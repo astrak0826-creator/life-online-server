@@ -8,13 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&family=DungGeunMo&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-color: #0b0d13;
-    --game-border: #334155;
+    --bg-color: #07090e;
+    --game-border: #1e293b;
     --ui-gold: #f59e0b;
     --ui-blue: #38bdf8;
-    --ui-neon: #a855f7;
+    --ui-emerald: #10b981;
+    --ui-purple: #a855f7;
     --seoul-asphalt: #1e2430;
-    --seoul-sidewalk: #475569;
   }
   * { 
     box-sizing: border-box; 
@@ -40,13 +40,38 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 3px solid var(--game-border);
-    background: #090a0f;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.9);
+    border: 2px solid #223249;
+    background: #090e17;
+    box-shadow: 0 14px 35px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08);
     position: relative;
     max-width: 100%;
-    border-radius: 6px;
+    width: 800px;
+    border-radius: 12px;
     overflow: hidden;
+  }
+
+  /* 상단 HUD (모바일/데스크톱 공통: 맵 가림 완전 분리) */
+  .hud-bar {
+    width: 100%;
+    background: linear-gradient(180deg, #101a2d 0%, #0a101d 100%);
+    border-bottom: 2px solid #1e293b;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    box-sizing: border-box;
+    z-index: 10;
+  }
+  .hud-nick {
+    color: #38bdf8;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  }
+  .hud-tokens {
+    color: #38bdf8;
+    font-weight: bold;
   }
 
   #gameCanvas {
@@ -60,32 +85,141 @@
     aspect-ratio: 4 / 3;
   }
 
-  .bottom-bar {
-  width: 100%;
-  background: #11141c;
-  border-top: 2px solid var(--game-border);
-  padding: 6px 8px;
-  display: flex;
-  flex-wrap: wrap;      /* 모바일에서 공간 부족 시 자연스럽게 줄바꿈 허용 */
-  gap: 6px;
-  align-items: center;
-}
-
-  .chat-box {
+  /* 데스크톱 하단 컨트롤 바 */
+  .desktop-bottom-bar {
+    width: 100%;
+    background: #0c111c;
+    border-top: 2px solid #1e293b;
+    padding: 8px 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .desktop-bottom-bar .chat-box {
     flex: 1;
     display: flex;
     gap: 6px;
   }
 
+  /* 모바일 통합 컨트롤 패널 */
+  .mobile-controller-panel {
+    display: none;
+    width: 100%;
+    background: radial-gradient(circle at 50% 0%, #111a2e 0%, #070a12 100%);
+    border-top: 2px solid #1c273c;
+    padding: 16px 20px;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  /* 십자키 (D-Pad) 디자인 */
+  .dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 48px);
+    grid-template-rows: repeat(3, 48px);
+    gap: 5px;
+  }
+  .dbtn {
+    background: linear-gradient(145deg, #1a2232, #0d121c);
+    border: 1px solid #2a374f;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    color: #94a3b8;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.08s;
+  }
+  .dbtn:active {
+    background: #25334c;
+    color: #38bdf8;
+    transform: translateY(2px) scale(0.96);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.8), inset 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .dbtn.up { grid-column: 2; grid-row: 1; }
+  .dbtn.left { grid-column: 1; grid-row: 2; }
+  .dbtn.down { grid-column: 2; grid-row: 2; }
+  .dbtn.right { grid-column: 3; grid-row: 2; }
+
+  /* 2x2 기능 버튼 디자인 */
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 74px);
+    grid-template-rows: repeat(2, 54px);
+    gap: 10px;
+  }
+  .btn-neo {
+    border-radius: 10px;
+    font-family: 'DungGeunMo', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-neo:active { transform: translateY(2px) scale(0.94); }
+
+  /* 정보 버튼: 사이언 블루 테마 */
+  .btn-info {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    border: 1px solid #38bdf8;
+    color: #f0f9ff;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-info:active { box-shadow: 0 2px 6px rgba(2, 132, 199, 0.5); }
+
+  /* 스펙업 버튼: 에메랄드 그린 테마 */
+  .btn-enhance {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    border: 1px solid #34d399;
+    color: #ecfdf5;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-enhance:active { box-shadow: 0 2px 6px rgba(5, 150, 105, 0.5); }
+
+  /* 순위 버튼: 골드 테마 */
+  .btn-rank {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    border: 1px solid #fbbf24;
+    color: #fffbeb;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-rank:active { box-shadow: 0 2px 6px rgba(217, 119, 6, 0.5); }
+
+  /* 채팅 버튼: 바이올렛 테마 */
+  .btn-chat {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    border: 1px solid #c084fc;
+    color: #faf5ff;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-chat:active { box-shadow: 0 2px 6px rgba(124, 58, 237, 0.5); }
+
+  /* 반응형 분기 */
+  @media (hover: none) and (pointer: coarse), (max-width: 768px) {
+    .desktop-bottom-bar { display: none; }
+    .mobile-controller-panel { display: flex; }
+    .guide { display: none; }
+  }
+
   input[type="text"], input[type="password"], select {
-    background: #1e293b;
-    border: 1px solid #475569;
+    background: #151d2a;
+    border: 1px solid #334155;
     color: #fff;
     padding: 7px 10px;
     font-family: 'DungGeunMo', monospace;
-    font-size: 14px;
+    font-size: 13px;
     outline: none;
-    border-radius: 4px;
+    border-radius: 6px;
     user-select: text;
     -webkit-user-select: text;
   }
@@ -93,26 +227,16 @@
     border-color: var(--ui-blue);
   }
 
-  #chatInput { flex: 1; }
-
   button {
-    background: #1e293b;
-    border: 1px solid #475569;
-    color: #f8fafc;
     font-family: 'DungGeunMo', monospace;
-    padding: 7px 12px;
     cursor: pointer;
-    font-size: 13px;
-    border-radius: 4px;
-    transition: 0.1s;
   }
-  button:active { transform: scale(0.97); }
 
   #chatLog {
     position: absolute;
-    bottom: 54px;
-    left: 10px;
-    width: 330px;
+    bottom: 12px;
+    left: 12px;
+    width: 320px;
     height: 110px;
     overflow-y: hidden;
     pointer-events: none;
@@ -123,12 +247,13 @@
     z-index: 5;
   }
   .chat-msg {
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(10, 16, 28, 0.88);
     padding: 3px 8px;
     border-radius: 4px;
     font-size: 12px;
-    color: #f8fafc;
+    color: #f1f5f9;
     border-left: 2px solid var(--ui-blue);
+    text-shadow: 1px 1px 0 #000;
   }
   .chat-author {
     color: var(--ui-gold);
@@ -136,79 +261,7 @@
     margin-right: 4px;
   }
 
-  .hud-bar {
-  width: 100%;
-  position: static;     /* absolute를 static으로 변경하여 맵 위로 밀어 올림 */
-  background: rgba(15, 23, 42, 0.95);
-  border-bottom: 2px solid var(--game-border);
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-sizing: border-box;
-  font-size: 13px;
-  color: #fff;
-  z-index: 10;
-}
-  .hud-title { color: var(--ui-gold); font-weight: bold; }
-  .hud-tokens { color: var(--ui-blue); }
-
-  /* 모바일 조작부 */
-  .mobile-controls {
-    display: none;
-    margin-top: 10px;
-    width: 100%;
-    max-width: 600px;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
-  }
-  @media (hover: none) and (pointer: coarse), (max-width: 768px) {
-  .mobile-controls { 
-    display: flex; 
-    max-width: 360px;     /* 모바일 가로폭에 맞게 최대 너비 제한 */
-  }
-  .guide { display: none; }
-
-/* D-pad 방향키 크기 축소 (기존 48px -> 38px) */
-  .dpad {
-    grid-template-columns: repeat(3, 38px);
-    grid-template-rows: repeat(3, 38px);
-    gap: 2px;
-  }
-
-/* 우측 액션 원형 버튼 크기 축소 (기존 60px -> 48px) */
-  .action-buttons {
-    gap: 6px;
-  }
-  .action-btn {
-    width: 48px;
-    height: 48px;
-    font-size: 9px;       /* 글자가 넘치지 않게 폰트 축소 */
-  }
-}
-  .action-btn.aura { background: #581c87; border-color: #c084fc; color: #f5d0fe; }
-  .action-btn.enhance { background: #065f46; border-color: #34d399; }
-  .action-btn.rank { background: #1e3a8a; border-color: #60a5fa; }
-  .action-btn:active { transform: scale(0.92); }
-
-  .dbtn {
-    background: #1e293b;
-    border: 1px solid #475569;
-    color: #94a3b8;
-    font-size: 18px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-  }
-  .dbtn.up { grid-column: 2; grid-row: 1; }
-  .dbtn.left { grid-column: 1; grid-row: 2; }
-  .dbtn.down { grid-column: 2; grid-row: 2; }
-  .dbtn.right { grid-column: 3; grid-row: 2; }
-
-  /* 모달 레이아웃 */
+  /* 모달 공통 레이아웃 */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -219,19 +272,40 @@
     z-index: 50;
   }
   .auth-card, .enhance-modal, .rank-modal, .npc-dialog-box {
-    background: #0f172a;
-    border: 2px solid #334155;
-    border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+    background: #0d1422;
+    border: 2px solid #223249;
+    border-radius: 10px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.9);
   }
-  .auth-card { padding: 22px; width: 90%; max-width: 350px; text-align: center; }
+  .auth-card { padding: 22px; width: 90%; max-width: 360px; text-align: center; }
   .auth-card h2 { color: var(--ui-blue); margin: 0 0 12px; font-size: 18px; }
   .auth-card input, .auth-card select { width: 100%; margin-bottom: 8px; }
   .auth-tabs { display: flex; margin-bottom: 12px; gap: 4px; }
-  .auth-tabs button { flex: 1; background: #1e293b; font-size: 12px; padding: 6px 4px; }
-  .auth-tabs button.active { background: #2563eb; border-color: #60a5fa; color: #fff; }
+  .auth-tabs button { flex: 1; background: #1a2333; border: 1px solid #334155; color: #94a3b8; font-size: 12px; padding: 6px 4px; border-radius: 4px; }
+  .auth-tabs button.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
   .auth-msg { font-size: 12px; color: #f87171; margin-top: 8px; min-height: 16px; }
   .auth-msg.success { color: #4ade80; }
+
+  /* 신설 내 정보 모달 카드 */
+  .info-stat-card {
+    background: #141c2c;
+    border: 1px solid #223249;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    font-size: 13px;
+  }
+  .info-stat-item {
+    background: #0b111c;
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 1px solid #1a2536;
+  }
+  .info-stat-name { color: #94a3b8; font-size: 11px; margin-bottom: 2px; }
+  .info-stat-val { color: var(--ui-gold); font-weight: bold; }
 
   /* 6대 스펙 강화 모달 */
   .enhance-modal {
@@ -253,11 +327,12 @@
     .stat-select-grid { grid-template-columns: repeat(2, 1fr); }
   }
   .stat-tab-btn {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #172030;
+    border: 1px solid #2a3b55;
     color: #94a3b8;
     padding: 8px 4px;
     font-size: 12px;
+    border-radius: 4px;
   }
   .stat-tab-btn.active {
     background: #0284c7;
@@ -265,10 +340,9 @@
     color: #fff;
     font-weight: bold;
   }
-
   .enhance-detail-box {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #131a28;
+    border: 1px solid #24334a;
     border-radius: 6px;
     padding: 14px;
     text-align: center;
@@ -276,8 +350,7 @@
   }
   .cur-stat-val { font-size: 24px; color: var(--ui-gold); font-weight: bold; margin: 4px 0; }
   .cur-stat-desc { font-size: 14px; color: #38bdf8; margin-bottom: 8px; }
-  .cur-stat-rule { font-size: 12px; color: #94a3b8; line-height: 1.5; background: #0f172a; padding: 8px; border-radius: 4px; }
-
+  .cur-stat-rule { font-size: 12px; color: #cbd5e1; line-height: 1.5; background: #0b1019; padding: 8px; border-radius: 4px; }
   .enhance-result-box {
     min-height: 28px;
     font-size: 14px;
@@ -288,40 +361,10 @@
     text-align: center;
     margin-bottom: 10px;
   }
-  .enhance-result-box.success { color: #4ade80; }
-  .enhance-result-box.fail { color: #f87171; }
+  .enhance-result-box.success { color: #4ade80; text-shadow: 0 0 8px #22c55e; }
+  .enhance-result-box.fail { color: #f87171; text-shadow: 0 0 8px #ef4444; }
   .enhance-result-box.catastrophe { color: #ff0055; animation: blink 0.5s infinite; }
   @keyframes blink { 50% { opacity: 0.3; } }
-
-  /* NPC 대화창 */
-  .npc-dialog-box {
-    padding: 16px;
-    width: 90%;
-    max-width: 480px;
-  }
-  .npc-dialog-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-  }
-  .npc-name-tag { color: var(--ui-blue); font-size: 15px; font-weight: bold; }
-  .npc-dialog-body { display: flex; gap: 14px; align-items: center; min-height: 80px; }
-  .npc-portrait {
-    width: 60px;
-    height: 60px;
-    background: #1e293b;
-    border: 2px solid var(--ui-blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    font-size: 32px;
-  }
-  .npc-text-content { flex: 1; font-size: 14px; line-height: 1.6; color: #f8fafc; }
-  .npc-speech-bubble { white-space: pre-line; }
 
   /* 랭킹 모달 */
   .rank-modal {
@@ -337,33 +380,33 @@
     font-size: 18px;
     text-align: center;
     margin: 0 0 12px;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid #223249;
     padding-bottom: 8px;
   }
   .rank-header {
     display: grid;
-    grid-template-columns: 45px 100px repeat(6, 1fr) 55px;
+    grid-template-columns: 45px 95px repeat(6, 1fr) 50px;
     padding: 6px 8px;
-    background: #1e293b;
+    background: #141c2c;
     color: var(--ui-blue);
     font-size: 11px;
     font-weight: bold;
-    border: 1px solid #334155;
+    border: 1px solid #223249;
     text-align: center;
   }
   .rank-list {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid #334155;
+    border: 1px solid #223249;
     border-top: none;
     background: #090e17;
   }
   .rank-item {
     display: grid;
-    grid-template-columns: 45px 100px repeat(6, 1fr) 55px;
+    grid-template-columns: 45px 95px repeat(6, 1fr) 50px;
     padding: 6px 8px;
     font-size: 11px;
-    border-bottom: 1px solid #1e293b;
+    border-bottom: 1px solid #141c2c;
     align-items: center;
     text-align: center;
   }
@@ -371,6 +414,31 @@
   .rank-item.top1 { color: #facc15; font-weight: bold; background: rgba(250,204,21,0.08); }
   .rank-item.top2 { color: #e2e8f0; font-weight: bold; }
   .rank-item.top3 { color: #fdba74; font-weight: bold; }
+
+  /* NPC 모달 */
+  .npc-dialog-box { padding: 16px; width: 90%; max-width: 480px; }
+  .npc-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #223249;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  .npc-name-tag { color: var(--ui-blue); font-size: 15px; font-weight: bold; }
+  .npc-dialog-body { display: flex; gap: 14px; align-items: center; min-height: 80px; }
+  .npc-portrait {
+    width: 60px;
+    height: 60px;
+    background: #162030;
+    border: 2px solid var(--ui-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 32px;
+  }
+  .npc-text-content { flex: 1; font-size: 14px; line-height: 1.6; color: #f8fafc; white-space: pre-line; }
 
   .hidden { display: none !important; }
   .guide { margin-top: 10px; font-size: 13px; color: #64748b; text-align: center; }
@@ -382,7 +450,6 @@
 <div id="authModal" class="modal-overlay">
   <div class="auth-card">
     <h2 id="modalTitle">인생온라인</h2>
-    
     <div class="auth-tabs">
       <button id="tabLogin" class="active">로그인</button>
       <button id="tabRegister">회원가입</button>
@@ -393,7 +460,7 @@
     <div id="loginFormSection">
       <input type="text" id="authUsername" placeholder="아이디" maxlength="15">
       <input type="password" id="authPassword" placeholder="비밀번호" maxlength="20">
-      <button id="authSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#2563eb;">서울 진입하기</button>
+      <button id="authSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#0284c7; border:none; border-radius:6px; color:#fff; font-weight:bold;">접속하기</button>
     </div>
 
     <!-- 회원가입 -->
@@ -401,13 +468,11 @@
       <input type="text" id="regUsername" placeholder="아이디 (3자 이상)" maxlength="15">
       <input type="password" id="regPassword" placeholder="비밀번호 (4자 이상)" maxlength="20">
       <input type="text" id="regNickname" placeholder="닉네임 (최대 8자)" maxlength="8">
-      
       <div style="text-align:left; font-size:11px; color:#94a3b8; margin:4px 0 2px;">성별 선택</div>
       <select id="regGender">
         <option value="male">남성</option>
         <option value="female">여성</option>
       </select>
-
       <div style="text-align:left; font-size:11px; color:#94a3b8; margin:4px 0 2px;">분실 대비 보안 질문</div>
       <select id="regSecurityQuestion">
         <option value="내가 가장 소중하게 생각하는 것은?">내가 가장 소중하게 생각하는 것은?</option>
@@ -415,8 +480,8 @@
         <option value="내가 가장 좋아하는 음식은?">내가 가장 좋아하는 음식은?</option>
         <option value="나만의 비밀 암호 단어는?">나만의 비밀 암호 단어는?</option>
       </select>
-      <input type="text" id="regSecurityAnswer" placeholder="보안 질문 답변 (분실 시 필요)" maxlength="20">
-      <button id="regSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#059669;">인생 캐릭터 생성</button>
+      <input type="text" id="regSecurityAnswer" placeholder="보안 질문 답변" maxlength="20">
+      <button id="regSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#059669; border:none; border-radius:6px; color:#fff; font-weight:bold;">캐릭터 생성</button>
     </div>
 
     <!-- 계정 찾기 -->
@@ -425,30 +490,47 @@
         <button id="subTabFindId" class="active" style="flex:1;">아이디 찾기</button>
         <button id="subTabResetPw" style="flex:1;">비밀번호 재설정</button>
       </div>
-
       <div id="findIdBox">
         <input type="text" id="findIdNick" placeholder="가입 시 등록한 닉네임" maxlength="8">
         <input type="text" id="findIdAnswer" placeholder="보안 질문 답변" maxlength="20">
-        <button id="findIdBtn" style="width:100%; padding: 8px;">아이디 확인</button>
+        <button id="findIdBtn" style="width:100%; padding: 8px; background:#1e293b; border:1px solid #334155; color:#fff;">아이디 확인</button>
       </div>
-
       <div id="resetPwBox" class="hidden">
         <input type="text" id="resetPwUsername" placeholder="내 아이디" maxlength="15">
         <input type="text" id="resetPwAnswer" placeholder="보안 질문 답변" maxlength="20">
-        <input type="password" id="resetPwNewPassword" placeholder="새로운 비밀번호 (4자 이상)" maxlength="20">
-        <button id="resetPwBtn" style="width:100%; padding: 8px;">새 비밀번호로 변경</button>
+        <input type="password" id="resetPwNewPassword" placeholder="새로운 비밀번호" maxlength="20">
+        <button id="resetPwBtn" style="width:100%; padding: 8px; background:#1e293b; border:1px solid #334155; color:#fff;">비밀번호 변경</button>
       </div>
     </div>
-
     <div id="authMsg" class="auth-msg"></div>
+  </div>
+</div>
+
+<!-- [신설] 내 정보 모달 (로그아웃 / 캐릭터 탈퇴 통합) -->
+<div id="infoModal" class="modal-overlay hidden">
+  <div class="auth-card" style="max-width: 420px; text-align: left;">
+    <h3 style="color:var(--ui-blue); margin:0 0 14px; text-align:center; font-size:17px;">📋 내 캐릭터 상세 정보</h3>
+    
+    <div class="info-stat-card" id="infoStatCardList">
+      <!-- JS로 동적 렌더링 -->
+    </div>
+
+    <div style="background:#090e17; border:1px dashed #334155; padding:8px 12px; border-radius:6px; font-size:12px; color:#94a3b8; margin-bottom:14px; text-align:center;">
+      계정 보호를 위해 로그아웃 및 탈퇴는 이 창에서만 진행됩니다.
+    </div>
+
+    <div style="display:flex; gap:6px;">
+      <button id="infoCloseBtn" style="flex:1; padding:8px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px;">닫기</button>
+      <button id="logoutBtn" style="flex:1; padding:8px; background:#334155; border:1px solid #475569; color:#f1f5f9; border-radius:6px;">로그아웃</button>
+      <button id="deleteAccountBtn" style="flex:1; padding:8px; background:#7f1d1d; border:1px solid #ef4444; color:#fca5a5; border-radius:6px;">캐릭삭제</button>
+    </div>
   </div>
 </div>
 
 <!-- 6대 인생 스펙 강화 모달 -->
 <div id="enhanceModal" class="modal-overlay hidden">
   <div class="enhance-modal">
-    <h3 class="enhance-title">🌟 스펙 강화 🌟</h3>
-    
+    <h3 class="enhance-title">🌟 인생 스펙 강화 센터 🌟</h3>
     <div class="stat-select-grid">
       <button class="stat-tab-btn active" data-stat="education">🎓 학력</button>
       <button class="stat-tab-btn" data-stat="appearance">✨ 외모</button>
@@ -462,38 +544,34 @@
       <div id="curStatName" style="font-size:13px; color:#94a3b8;">학력 스탯 현황</div>
       <div id="curStatLevel" class="cur-stat-val">+0강</div>
       <div id="curStatTitle" class="cur-stat-desc">문맹</div>
-      <div id="curStatRule" class="cur-stat-rule">
-        성공 1% (+1강) | 유지 99% (하락 없음)
-      </div>
+      <div id="curStatRule" class="cur-stat-rule">성공 1% (+1강) | 유지 99% (하락 없음)</div>
       <div style="margin-top:8px; font-size:13px; color:var(--ui-blue);">
         소모 토큰: 1개 (보유: <span id="modalTokenCount">120</span>/120)
       </div>
     </div>
 
-    <div id="enhanceResultMsg" class="enhance-result-box">성공 확률을 뚫고 인생을 역전시켜 보세요!</div>
+    <div id="enhanceResultMsg" class="enhance-result-box">스펙을 강화하여 최고의 칭호를 획득해 보세요!</div>
 
     <div style="display:flex; gap:8px;">
-      <button id="enhanceCloseBtn" style="flex:1; background:#334155;">닫기 (ESC)</button>
-      <button id="enhanceExecuteBtn" style="flex:2; background:#0284c7; border-color:#38bdf8;">스펙 강화 시도 (C)</button>
+      <button id="enhanceCloseBtn" style="flex:1; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; padding:8px;">닫기 (ESC)</button>
+      <button id="enhanceExecuteBtn" style="flex:2; background:#0284c7; border:1px solid #38bdf8; color:#fff; border-radius:6px; padding:8px; font-weight:bold;">스펙 강화 시도 (C)</button>
     </div>
   </div>
 </div>
 
-<!-- 서울 멘토 김과장 대화창 -->
+<!-- NPC 대화창 -->
 <div id="npcDialogModal" class="modal-overlay hidden">
   <div class="npc-dialog-box">
     <div class="npc-dialog-header">
-      <span class="npc-name-tag">[서울 멘토 김과장]</span>
+      <span class="npc-name-tag" id="npcNameTag">[서울 멘토]</span>
       <span style="font-size: 11px; color: #64748b;">(Space / Enter: 다음, ESC: 닫기)</span>
     </div>
     <div class="npc-dialog-body">
-      <div class="npc-portrait">💼🧑‍💼</div>
-      <div class="npc-text-content">
-        <div id="npcSpeechText" class="npc-speech-bubble"></div>
-      </div>
+      <div class="npc-portrait" id="npcPortraitIcon">🧑‍💼</div>
+      <div class="npc-text-content" id="npcSpeechText"></div>
     </div>
     <div class="npc-dialog-footer" style="display:flex; justify-content:flex-end; margin-top:10px;">
-      <button id="npcNextBtn" style="background:#2563eb;">다음 ▶</button>
+      <button id="npcNextBtn" style="background:#0284c7; border:none; padding:6px 14px; border-radius:4px; color:#fff;">다음 ▶</button>
     </div>
   </div>
 </div>
@@ -501,7 +579,7 @@
 <!-- 랭킹 모달 -->
 <div id="rankModal" class="modal-overlay hidden">
   <div class="rank-modal">
-    <h3 class="rank-title">🏆 순위 🏆</h3>
+    <h3 class="rank-title">🏆 종합 인생 랭킹 TOP 50 🏆</h3>
     <div class="rank-header">
       <div>순위</div>
       <div>닉네임</div>
@@ -515,49 +593,55 @@
     </div>
     <div class="rank-list" id="rankListBody"></div>
     <div style="margin-top: 10px; display:flex; justify-content: flex-end;">
-      <button id="rankCloseBtn" style="background:#334155; min-width:80px;">닫기 (ESC)</button>
+      <button id="rankCloseBtn" style="background:#1e293b; border:1px solid #334155; color:#fff; padding:6px 16px; border-radius:4px;">닫기 (ESC)</button>
     </div>
   </div>
 </div>
 
+<!-- 메인 게임 컨테이너 -->
 <div class="game-container">
+  <!-- 상단 HUD: 닉네임 좌측, 토큰 상태 우측 -->
   <div class="hud-bar">
-    <span class="hud-title" id="hudMainTitle">재력: 빈민 · 학력: 문맹</span>
-    <span class="hud-tokens" id="hudTokens">토큰: 120/120</span>
+    <div class="hud-nick" id="hudNick">[게스트]</div>
+    <div class="hud-tokens" id="hudTokens">토큰: 120/120 (00:00)</div>
   </div>
+
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   <div id="chatLog"></div>
 
-  <div class="bottom-bar">
-    <span id="myProfileTag" style="color:var(--ui-blue); font-size:13px; font-weight:bold;">[대기중]</span>
-    <button id="openEnhanceBarBtn" style="background:#0284c7; border-color:#38bdf8;">스펙강화(C)</button>
-    <button id="openRankBarBtn" style="background:#1e3a8a; border-color:#60a5fa;">순위(R)</button>
+  <!-- 데스크톱용 하단 바 (채팅창 및 공통 기능 버튼) -->
+  <div class="desktop-bottom-bar">
+    <button id="dBtnInfo" style="background:#0284c7; border:1px solid #38bdf8; color:#fff; padding:6px 12px; border-radius:4px;">정보</button>
+    <button id="dBtnEnhance" style="background:#059669; border:1px solid #34d399; color:#fff; padding:6px 12px; border-radius:4px;">스펙강화(C)</button>
+    <button id="dBtnRank" style="background:#d97706; border:1px solid #fbbf24; color:#fff; padding:6px 12px; border-radius:4px;">순위(R)</button>
     <div class="chat-box">
       <input type="text" id="chatInput" placeholder="채팅 입력 (Enter)" maxlength="35">
-      <button id="sendBtn">전송</button>
-      <button id="deleteAccountBtn" style="background:#7f1d1d; border-color:#ef4444;" title="캐릭터 영구 삭제">탈퇴</button>
-      <button id="logoutBtn" style="background:#334155;">로그아웃</button>
+      <button id="sendBtn" style="background:#1e293b; border:1px solid #334155; color:#fff; padding:6px 12px; border-radius:4px;">전송</button>
     </div>
   </div>
-</div>
 
-<!-- 모바일 조작 패널 -->
-<div class="mobile-controls">
-  <div class="dpad">
-    <button class="dbtn up" data-dir="up">▲</button>
-    <button class="dbtn left" data-dir="left">◀</button>
-    <button class="dbtn down" data-dir="down">▼</button>
-    <button class="dbtn right" data-dir="right">▶</button>
-  </div>
-  <div class="action-buttons">
-    <button class="action-btn aura" id="mobileAuraBtn">기운발산<br>[Space]</button>
-    <button class="action-btn enhance" id="mobileEnhanceBtn">스펙강화<br>[C]</button>
-    <button class="action-btn rank" id="mobileRankBtn">랭킹<br>[R]</button>
+  <!-- 모바일용 일체형 컨트롤 패널 (위치 불변, 세련된 네온 글래스모피즘 적용) -->
+  <div class="mobile-controller-panel">
+    <!-- 왼쪽 십자키 (D-Pad) -->
+    <div class="dpad">
+      <button class="dbtn up" data-dir="up">▲</button>
+      <button class="dbtn left" data-dir="left">◀</button>
+      <button class="dbtn down" data-dir="down">▼</button>
+      <button class="dbtn right" data-dir="right">▶</button>
+    </div>
+
+    <!-- 오른쪽 2x2 기능 버튼 -->
+    <div class="action-grid">
+      <button class="btn-neo btn-info" id="mBtnInfo">정보</button>
+      <button class="btn-neo btn-enhance" id="mBtnEnhance">스펙업</button>
+      <button class="btn-neo btn-rank" id="mBtnRank">순위</button>
+      <button class="btn-neo btn-chat" id="mBtnChat">채팅</button>
+    </div>
   </div>
 </div>
 
 <div class="guide">
-  이동: [방향키] | 기운 발산 및 대화: [Space] | 6대 스펙 강화: [C] | 종합 랭킹: [R] | 채팅: [Enter]
+  이동: [방향키] | 360° 기운 발산 및 대화: [Space] | 스펙 강화: [C] | 순위: [R] | 채팅: [Enter]
 </div>
 
 <script>
@@ -567,13 +651,10 @@ const ctx = canvas.getContext('2d');
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 const chatLog = document.getElementById('chatLog');
-const myProfileTag = document.getElementById('myProfileTag');
-const logoutBtn = document.getElementById('logoutBtn');
-const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-const hudMainTitle = document.getElementById('hudMainTitle');
+const hudNick = document.getElementById('hudNick');
 const hudTokens = document.getElementById('hudTokens');
 
-// 인증 UI
+// 인증 관련
 const authModal = document.getElementById('authModal');
 const tabLogin = document.getElementById('tabLogin');
 const tabRegister = document.getElementById('tabRegister');
@@ -581,13 +662,10 @@ const tabRecovery = document.getElementById('tabRecovery');
 const loginFormSection = document.getElementById('loginFormSection');
 const registerFormSection = document.getElementById('registerFormSection');
 const recoveryFormSection = document.getElementById('recoveryFormSection');
-const modalTitle = document.getElementById('modalTitle');
 const authMsg = document.getElementById('authMsg');
-
 const authUsername = document.getElementById('authUsername');
 const authPassword = document.getElementById('authPassword');
 const authSubmitBtn = document.getElementById('authSubmitBtn');
-
 const regUsername = document.getElementById('regUsername');
 const regPassword = document.getElementById('regPassword');
 const regNickname = document.getElementById('regNickname');
@@ -595,7 +673,6 @@ const regGender = document.getElementById('regGender');
 const regSecurityQuestion = document.getElementById('regSecurityQuestion');
 const regSecurityAnswer = document.getElementById('regSecurityAnswer');
 const regSubmitBtn = document.getElementById('regSubmitBtn');
-
 const subTabFindId = document.getElementById('subTabFindId');
 const subTabResetPw = document.getElementById('subTabResetPw');
 const findIdBox = document.getElementById('findIdBox');
@@ -608,9 +685,15 @@ const resetPwAnswer = document.getElementById('resetPwAnswer');
 const resetPwNewPassword = document.getElementById('resetPwNewPassword');
 const resetPwBtn = document.getElementById('resetPwBtn');
 
-// 6대 스펙 강화 모달
+// 신설 정보 모달
+const infoModal = document.getElementById('infoModal');
+const infoStatCardList = document.getElementById('infoStatCardList');
+const infoCloseBtn = document.getElementById('infoCloseBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+// 스펙 강화 모달
 const enhanceModal = document.getElementById('enhanceModal');
-const openEnhanceBarBtn = document.getElementById('openEnhanceBarBtn');
 const enhanceCloseBtn = document.getElementById('enhanceCloseBtn');
 const enhanceExecuteBtn = document.getElementById('enhanceExecuteBtn');
 const curStatName = document.getElementById('curStatName');
@@ -620,27 +703,22 @@ const curStatRule = document.getElementById('curStatRule');
 const modalTokenCount = document.getElementById('modalTokenCount');
 const enhanceResultMsg = document.getElementById('enhanceResultMsg');
 
-// NPC 김과장
+// 랭킹 모달
+const rankModal = document.getElementById('rankModal');
+const rankCloseBtn = document.getElementById('rankCloseBtn');
+const rankListBody = document.getElementById('rankListBody');
+
+// NPC 모달
 const npcDialogModal = document.getElementById('npcDialogModal');
 const npcSpeechText = document.getElementById('npcSpeechText');
 const npcNextBtn = document.getElementById('npcNextBtn');
-
-// 랭킹
-const rankModal = document.getElementById('rankModal');
-const openRankBarBtn = document.getElementById('openRankBarBtn');
-const rankCloseBtn = document.getElementById('rankCloseBtn');
-const rankListBody = document.getElementById('rankListBody');
-const mobileRankBtn = document.getElementById('mobileRankBtn');
-
-const mobileAuraBtn = document.getElementById('mobileAuraBtn');
-const mobileEnhanceBtn = document.getElementById('mobileEnhanceBtn');
 
 const TILE_SIZE = 40;
 let myId = null;
 let mapW = 20, mapH = 15;
 let obstacles = [];
 let players = {};
-let auraEffects = [];
+let burstEffects = [];
 let currentSelectedStat = 'education';
 
 const MAX_TOKENS = 120;
@@ -665,19 +743,16 @@ const EDU_TITLES = [
   "학사 4학년", "석사 1년차", "석사 2년차", "박사 1년차", "박사 2년차", "박사 3년차",
   "박사 4년차", "박사 수료"
 ];
-
 const APP_TITLES = {
   male: ["많이 섭섭함", "꽤나 서운함", "조금 아쉬움", "애매함", "평범", "훈남", "귀염상", "멋짐", "미남", "꽃미남", "절세미남"],
   female: ["많이 섭섭함", "꽤나 서운함", "조금 아쉬움", "애매함", "평범", "훈녀", "귀염상", "예쁨", "미녀", "꽃미녀", "절세미녀"]
 };
-
 const WEALTH_TITLES = [
   "빈민", "빈민", "저소득층", "저소득층", "중산층", "중산층", "중산층",
   "부자", "부자", "부자", "백만장자", "백만장자", "백만장자", "백만장자", "백만장자",
   "억만장자", "억만장자", "억만장자", "억만장자", "억만장자", "억만장자", "억만장자", "억만장자", "억만장자", "억만장자",
   "조만장자"
 ];
-
 const STA_TITLES = [
   "유리몸 (침대와 한 몸)", "만성 피로", "저질 체력", "계단 호흡 곤란", "평범한 몸",
   "가벼운 발걸음", "바른 자세", "기초 체력", "지치지 않는 활력", "탄탄한 잔근육",
@@ -686,7 +761,6 @@ const STA_TITLES = [
   "괴력의 소유자", "한계 돌파", "불사신급 회복력", "걸어 다니는 요새", "신체 완성체",
   "지상 최강의 피지컬"
 ];
-
 const PER_TITLES = [
   "인성 파탄", "상시 분노 모드", "매사 불평불만", "까칠하고 예민함", "소심하고 위축됨",
   "평범하고 무던함", "둥글둥글함", "예의 바른 태도", "주변 살피는 눈치", "다정다감함",
@@ -708,7 +782,7 @@ function getStatTitle(stat, val, gender = 'male') {
   return '';
 }
 
-// ================= [인증 및 계정 탭 로직] =================
+// ================= [인증 관련 로직] =================
 function showAuthTab(tab) {
   tabLogin.classList.remove('active');
   tabRegister.classList.remove('active');
@@ -722,15 +796,12 @@ function showAuthTab(tab) {
   if (tab === 'login') {
     tabLogin.classList.add('active');
     loginFormSection.classList.remove('hidden');
-    modalTitle.textContent = '인생온라인';
   } else if (tab === 'register') {
     tabRegister.classList.add('active');
     registerFormSection.classList.remove('hidden');
-    modalTitle.textContent = '새로운 시민 등록 (회원가입)';
   } else if (tab === 'recovery') {
     tabRecovery.classList.add('active');
     recoveryFormSection.classList.remove('hidden');
-    modalTitle.textContent = '아이디 / 비밀번호 찾기';
   }
 }
 
@@ -762,7 +833,7 @@ authSubmitBtn.addEventListener('click', async () => {
     authMsg.textContent = '아이디와 비밀번호를 입력해주세요.';
     return;
   }
-  authMsg.textContent = '서울 서버 접속 중...';
+  authMsg.textContent = '서버 접속 중...';
 
   try {
     const res = await fetch('/api/login', {
@@ -796,7 +867,6 @@ regSubmitBtn.addEventListener('click', async () => {
     authMsg.textContent = '모든 항목과 보안 답변을 입력해주세요.';
     return;
   }
-  authMsg.textContent = '시민 등록 처리 중...';
 
   try {
     const res = await fetch('/api/register', {
@@ -835,7 +905,7 @@ findIdBtn.addEventListener('click', async () => {
     if (!res.ok) throw new Error(data.message);
 
     authMsg.className = 'auth-msg success';
-    authMsg.textContent = `당신의 아이디는 [ ${data.username} ] 입니다!`;
+    authMsg.textContent = `아이디는 [ ${data.username} ] 입니다!`;
   } catch (err) {
     authMsg.className = 'auth-msg';
     authMsg.textContent = err.message;
@@ -871,11 +941,67 @@ resetPwBtn.addEventListener('click', async () => {
   }
 });
 
+// ================= [신설 정보 모달 로직] =================
+function openInfoModal() {
+  const c = myCharacter || {};
+  const g = c.gender || 'male';
+  const totalScore = (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.iq || 100) + (c.stamina || 0) + (c.personality || 0);
+
+  infoStatCardList.innerHTML = `
+    <div class="info-stat-item">
+      <div class="info-stat-name">🎓 학력</div>
+      <div class="info-stat-val">+${c.education || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('education', c.education || 0)})</span></div>
+    </div>
+    <div class="info-stat-item">
+      <div class="info-stat-name">✨ 외모</div>
+      <div class="info-stat-val">+${c.appearance || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('appearance', c.appearance || 0, g)})</span></div>
+    </div>
+    <div class="info-stat-item">
+      <div class="info-stat-name">💰 재력</div>
+      <div class="info-stat-val">+${c.wealth || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('wealth', c.wealth || 0)})</span></div>
+    </div>
+    <div class="info-stat-item">
+      <div class="info-stat-name">🧠 지능</div>
+      <div class="info-stat-val">IQ ${c.iq || 100} <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('iq', c.iq || 100)})</span></div>
+    </div>
+    <div class="info-stat-item">
+      <div class="info-stat-name">💪 체력</div>
+      <div class="info-stat-val">+${c.stamina || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('stamina', c.stamina || 0)})</span></div>
+    </div>
+    <div class="info-stat-item">
+      <div class="info-stat-name">🍀 성격</div>
+      <div class="info-stat-val">+${c.personality || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('personality', c.personality || 0)})</span></div>
+    </div>
+    <div class="info-stat-item" style="grid-column: span 2; background:#1c2536; text-align:center;">
+      <div class="info-stat-name" style="color:var(--ui-gold);">🏆 종합 스펙 점수</div>
+      <div class="info-stat-val" style="font-size:17px; color:#facc15;">${totalScore} 점</div>
+    </div>
+  `;
+  infoModal.classList.remove('hidden');
+}
+
+function closeInfoModal() {
+  infoModal.classList.add('hidden');
+}
+
+infoCloseBtn.addEventListener('click', closeInfoModal);
+document.getElementById('dBtnInfo').addEventListener('click', openInfoModal);
+document.getElementById('mBtnInfo').addEventListener('click', openInfoModal);
+
+// 안전하게 정보 창 내부로 옮겨진 로그아웃 & 캐릭터 탈퇴
+logoutBtn.addEventListener('click', () => {
+  if (!confirm('로그아웃 하시겠습니까?')) return;
+  localStorage.removeItem('azaekaban_token');
+  localStorage.removeItem('azaekaban_username');
+  localStorage.removeItem('azaekaban_nickname');
+  location.reload();
+});
+
 deleteAccountBtn.addEventListener('click', async () => {
   const username = localStorage.getItem('azaekaban_username');
   if (!username) return alert('로그인 정보가 없습니다.');
 
-  if (!confirm('정말로 서울 생활을 청산하고 계정을 영구 삭제하시겠습니까?\n모든 스펙과 랭킹이 초기화됩니다.')) return;
+  if (!confirm('정말로 캐릭터를 영구 삭제하시겠습니까?\n모든 스펙과 랭킹이 완전히 사라지며 복구할 수 없습니다.')) return;
   const passwordConfirm = prompt('본인 확인을 위해 비밀번호를 입력해주세요:');
   if (!passwordConfirm) return;
 
@@ -888,7 +1014,10 @@ deleteAccountBtn.addEventListener('click', async () => {
     const data = await res.json();
     if (res.ok && data.success) {
       alert(data.message);
-      logoutBtn.click();
+      localStorage.removeItem('azaekaban_token');
+      localStorage.removeItem('azaekaban_username');
+      localStorage.removeItem('azaekaban_nickname');
+      location.reload();
     } else {
       alert(data.message || '삭제 실패');
     }
@@ -896,308 +1025,6 @@ deleteAccountBtn.addEventListener('click', async () => {
     alert('삭제 요청 네트워크 오류');
   }
 });
-
-// ================= [서울 멘토 김과장 대화] =================
-const MENTOR_DIALOGS = [
-  "반갑습니다! 치열한 서울 도심에 오신 것을 환영합니다.",
-  "이곳에서는 학력, 외모, 재력, 지능, 체력, 성격 6가지 스펙이 모든 것을 결정합니다.\n[C] 키를 눌러 스펙을 쌓아 올리세요! 토큰은 1분마다 충전됩니다.",
-  "[Space] 키를 누르면 축적된 자신감의 오라(Aura)를 발산할 수 있습니다. 꾹 누르고 계시면 연속으로 뿜어져 나옵니다!",
-  "[R] 키나 순위 버튼을 누르면 서울 최고의 스펙을 가진 모험가 명단을 확인할 수 있습니다."
-];
-let currentDialogIndex = 0;
-
-function openMentorDialog() {
-  currentDialogIndex = 0;
-  npcSpeechText.textContent = MENTOR_DIALOGS[0];
-  npcDialogModal.classList.remove('hidden');
-}
-
-function nextMentorDialog() {
-  currentDialogIndex++;
-  if (currentDialogIndex < MENTOR_DIALOGS.length) {
-    npcSpeechText.textContent = MENTOR_DIALOGS[currentDialogIndex];
-  } else {
-    npcDialogModal.classList.add('hidden');
-    currentDialogIndex = 0;
-  }
-}
-npcNextBtn.addEventListener('click', nextMentorDialog);
-
-// ================= [랭킹 모달] =================
-async function openRankModal() {
-  rankModal.classList.remove('hidden');
-  rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">서울 랭킹 집계 중...</div>';
-
-  try {
-    const res = await fetch('/api/rankings');
-    const data = await res.json();
-    rankListBody.innerHTML = '';
-
-    if (!data.rankings || data.rankings.length === 0) {
-      rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">등록된 시민이 없습니다.</div>';
-      return;
-    }
-
-    data.rankings.forEach(item => {
-      const row = document.createElement('div');
-      let topClass = '';
-      let medal = `${item.rank}위`;
-      if (item.rank === 1) { topClass = 'top1'; medal = '🥇 1위'; }
-      else if (item.rank === 2) { topClass = 'top2'; medal = '🥈 2위'; }
-      else if (item.rank === 3) { topClass = 'top3'; medal = '🥉 3위'; }
-
-      row.className = `rank-item ${topClass}`;
-      row.innerHTML = `
-        <div>${medal}</div>
-        <div style="text-align:left; padding-left:4px;">${item.nickname}</div>
-        <div>+${item.education}</div>
-        <div>+${item.appearance}</div>
-        <div>+${item.wealth}</div>
-        <div>${item.iq}</div>
-        <div>+${item.stamina}</div>
-        <div>+${item.personality}</div>
-        <div style="color:var(--ui-gold); font-weight:bold;">${item.totalScore}</div>
-      `;
-      rankListBody.appendChild(row);
-    });
-  } catch (err) {
-    rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#ef4444;">랭킹 로드 실패</div>';
-  }
-}
-
-function closeRankModal() { rankModal.classList.add('hidden'); }
-openRankBarBtn.addEventListener('click', openRankModal);
-rankCloseBtn.addEventListener('click', closeRankModal);
-mobileRankBtn.addEventListener('click', openRankModal);
-
-window.addEventListener('DOMContentLoaded', () => {
-  const token = localStorage.getItem('azaekaban_token');
-  const nick = localStorage.getItem('azaekaban_nickname');
-  if (token && nick) connectSocketGame(token, nick);
-});
-
-logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('azaekaban_token');
-  localStorage.removeItem('azaekaban_username');
-  localStorage.removeItem('azaekaban_nickname');
-  location.reload();
-});
-
-// ================= [소켓 연결 및 보간 위치 초기화] =================
-function connectSocketGame(token, nickname) {
-  authModal.classList.add('hidden');
-  myProfileTag.textContent = `[${nickname}]`;
-
-  socket = io({ auth: { token } });
-
-  socket.on('connect_error', () => {
-    alert('인증이 만료되었습니다. 다시 로그인해주세요.');
-    logoutBtn.click();
-  });
-
-  socket.on('init', (data) => {
-    myId = data.myId;
-    mapW = data.mapWidth;
-    mapH = data.mapHeight;
-    obstacles = data.obstacles;
-    players = {};
-
-    // 부드러운 이동을 위한 renderX, renderY 초기화
-    Object.values(data.players).forEach(p => {
-      players[p.id] = {
-        ...p,
-        renderX: p.x * TILE_SIZE,
-        renderY: p.y * TILE_SIZE
-      };
-    });
-
-    if (players[myId]) {
-      myCharacter = players[myId].character || myCharacter;
-      myTokens = players[myId].enhanceTokens;
-      myLastRefill = players[myId].lastTokenRefill;
-      updateHUD();
-    }
-  });
-
-  socket.on('playerJoined', (p) => {
-    players[p.id] = {
-      ...p,
-      renderX: p.x * TILE_SIZE,
-      renderY: p.y * TILE_SIZE
-    };
-    addChatLog('서울 광장', `${p.name} 님이 도심에 도착했습니다.`);
-  });
-
-  socket.on('playerMoved', (data) => {
-    if (players[data.id]) {
-      players[data.id].x = data.x;
-      players[data.id].y = data.y;
-      players[data.id].dir = data.dir;
-    }
-  });
-
-  socket.on('playerStatUpdated', (data) => {
-    if (players[data.id]) {
-      players[data.id].character = data.character;
-      if (data.id === myId) {
-        myCharacter = data.character;
-        updateHUD();
-        renderEnhanceUI();
-      }
-    }
-  });
-
-  socket.on('serverAnnouncement', (msg) => {
-    addChatLog('서울 속보', msg);
-  });
-
-  socket.on('playerChat', (data) => {
-    if (players[data.id]) players[data.id].chatText = data.message;
-    addChatLog(data.name, data.message);
-  });
-
-  socket.on('playerChatClear', (data) => {
-    if (players[data.id]) players[data.id].chatText = '';
-  });
-
-  socket.on('playerLeft', (id) => {
-    if (players[id]) {
-      addChatLog('서울 광장', `${players[id].name} 님이 이동했습니다.`);
-      delete players[id];
-    }
-  });
-}
-
-function addChatLog(author, message) {
-  const line = document.createElement('div');
-  line.className = 'chat-msg';
-  line.innerHTML = `<span class="chat-author">[${author}]</span>${message}`;
-  chatLog.appendChild(line);
-  if (chatLog.children.length > 5) chatLog.removeChild(chatLog.children[0]);
-}
-
-function updateTokensClient() {
-  const now = Date.now();
-  if (myTokens >= MAX_TOKENS) {
-    myTokens = MAX_TOKENS;
-    myLastRefill = now;
-    return;
-  }
-  const elapsed = now - myLastRefill;
-  const gained = Math.floor(elapsed / REFILL_INTERVAL_MS);
-  if (gained > 0) {
-    myTokens = Math.min(MAX_TOKENS, myTokens + gained);
-    myLastRefill += gained * REFILL_INTERVAL_MS;
-    if (myTokens >= MAX_TOKENS) myLastRefill = now;
-  }
-}
-
-function updateHUD() {
-  const wealthTitle = getStatTitle('wealth', myCharacter.wealth || 0);
-  const eduTitle = getStatTitle('education', myCharacter.education || 0);
-  hudMainTitle.textContent = `${wealthTitle} · ${eduTitle}`;
-
-  let tokenStr = `토큰: ${myTokens}/${MAX_TOKENS}`;
-  if (myTokens < MAX_TOKENS) {
-    const s = Math.ceil(Math.max(0, REFILL_INTERVAL_MS - (Date.now() - myLastRefill)) / 1000);
-    const mm = String(Math.floor(s / 60)).padStart(2, '0');
-    const ss = String(s % 60).padStart(2, '0');
-    tokenStr += ` (${mm}:${ss})`;
-  }
-  hudTokens.textContent = tokenStr;
-  modalTokenCount.textContent = myTokens;
-}
-
-setInterval(() => {
-  updateTokensClient();
-  updateHUD();
-}, 1000);
-
-// ================= [기운 발산(오라) 이펙트] =================
-function triggerAuraBurst(x, y, dir) {
-  // 종합 스탯에 따른 오라 컬러 배정
-  const c = myCharacter || {};
-  const total = (c.wealth || 0) + (c.education || 0) + (c.appearance || 0) + (c.stamina || 0) + (c.personality || 0);
-
-  let auraColor = '#38bdf8'; // 기본 블루
-  let glowColor = 'rgba(56, 189, 248, 0.6)';
-  if (total >= 50) {
-    auraColor = '#f43f5e'; // 마스터 레드
-    glowColor = 'rgba(244, 63, 94, 0.8)';
-  } else if (total >= 25) {
-    auraColor = '#eab308'; // 골드
-    glowColor = 'rgba(234, 179, 8, 0.7)';
-  } else if (total >= 10) {
-    auraColor = '#a855f7'; // 네온 바이올렛
-    glowColor = 'rgba(168, 85, 247, 0.7)';
-  }
-
-  let cx = x + 20;
-  let cy = y + 20;
-  if (dir === 'up') cy -= 15;
-  else if (dir === 'down') cy += 15;
-  else if (dir === 'left') cx -= 15;
-  else if (dir === 'right') cx += 15;
-
-  auraEffects.push({
-    cx, cy,
-    born: Date.now(),
-    duration: 350,
-    color: auraColor,
-    glow: glowColor,
-    maxR: 36,
-    particles: Array.from({ length: 12 }, () => ({
-      vx: (Math.random() - 0.5) * 6,
-      vy: (Math.random() - 0.5) * 6,
-      size: Math.random() * 3 + 2
-    }))
-  });
-}
-
-function handleSpaceAction() {
-  if (!socket || !players[myId]) return;
-  const me = players[myId];
-
-  if (!npcDialogModal.classList.contains('hidden')) {
-    nextMentorDialog();
-    return;
-  }
-
-  // 김과장 NPC (x: 7, y: 1)와 마주보고 있는지 검사
-  const isFacingMentor = (me.dir === 'up' && me.y === 2 && me.x === 7);
-  if (isFacingMentor) {
-    openMentorDialog();
-  } else {
-    triggerAuraBurst(me.renderX, me.renderY, me.dir);
-  }
-}
-
-// 모바일 [기운 발산] 버튼 꾹 누름(Long-Press) 자동 연타 처리
-let auraInterval = null;
-
-function startAuraSpam(e) {
-  if (e) e.preventDefault();
-  handleSpaceAction();
-  if (auraInterval) clearInterval(auraInterval);
-  auraInterval = setInterval(() => {
-    handleSpaceAction();
-  }, 180); // 0.18초 간격으로 연속 폭발
-}
-
-function stopAuraSpam(e) {
-  if (e) e.preventDefault();
-  if (auraInterval) {
-    clearInterval(auraInterval);
-    auraInterval = null;
-  }
-}
-
-mobileAuraBtn.addEventListener('touchstart', startAuraSpam, { passive: false });
-mobileAuraBtn.addEventListener('touchend', stopAuraSpam);
-mobileAuraBtn.addEventListener('touchcancel', stopAuraSpam);
-mobileAuraBtn.addEventListener('mousedown', startAuraSpam);
-mobileAuraBtn.addEventListener('mouseup', stopAuraSpam);
-mobileAuraBtn.addEventListener('mouseleave', stopAuraSpam);
 
 // ================= [스펙 강화 모달 로직] =================
 const STAT_RULES = {
@@ -1221,7 +1048,7 @@ document.querySelectorAll('.stat-tab-btn').forEach(btn => {
 function openEnhance() {
   if (!socket) return;
   enhanceModal.classList.remove('hidden');
-  enhanceResultMsg.textContent = '강화할 인생 스탯을 고르고 시도 버튼을 누르세요!';
+  enhanceResultMsg.textContent = '스펙을 강화하여 최고의 칭호를 획득해 보세요!';
   enhanceResultMsg.className = 'enhance-result-box';
   renderEnhanceUI();
 }
@@ -1270,6 +1097,7 @@ function executeEnhance() {
       enhanceResultMsg.className = 'enhance-result-box catastrophe';
     } else if (res.result.type.includes('success')) {
       enhanceResultMsg.className = 'enhance-result-box success';
+      if (players[myId]) trigger360AuraBurst(players[myId].renderX, players[myId].renderY);
     } else if (res.result.type === 'fail') {
       enhanceResultMsg.className = 'enhance-result-box fail';
     } else {
@@ -1280,16 +1108,268 @@ function executeEnhance() {
   });
 }
 
-openEnhanceBarBtn.addEventListener('click', openEnhance);
-enhanceCloseBtn.addEventListener('click', closeEnhance);
-enhanceExecuteBtn.addEventListener('click', executeEnhance);
-
-mobileEnhanceBtn.addEventListener('click', () => {
+document.getElementById('dBtnEnhance').addEventListener('click', openEnhance);
+document.getElementById('mBtnEnhance').addEventListener('click', () => {
   if (enhanceModal.classList.contains('hidden')) openEnhance();
   else executeEnhance();
 });
+enhanceCloseBtn.addEventListener('click', closeEnhance);
+enhanceExecuteBtn.addEventListener('click', executeEnhance);
 
-// 키보드 입력 핸들러
+// ================= [랭킹 모달] =================
+async function openRankModal() {
+  rankModal.classList.remove('hidden');
+  rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">랭킹 집계 중...</div>';
+
+  try {
+    const res = await fetch('/api/rankings');
+    const data = await res.json();
+    rankListBody.innerHTML = '';
+
+    if (!data.rankings || data.rankings.length === 0) {
+      rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">등록된 캐릭터가 없습니다.</div>';
+      return;
+    }
+
+    data.rankings.forEach(item => {
+      const row = document.createElement('div');
+      let topClass = '';
+      let medal = `${item.rank}위`;
+      if (item.rank === 1) { topClass = 'top1'; medal = '🥇 1위'; }
+      else if (item.rank === 2) { topClass = 'top2'; medal = '🥈 2위'; }
+      else if (item.rank === 3) { topClass = 'top3'; medal = '🥉 3위'; }
+
+      row.className = `rank-item ${topClass}`;
+      row.innerHTML = `
+        <div>${medal}</div>
+        <div style="text-align:left; padding-left:4px;">${item.nickname}</div>
+        <div>+${item.education}</div>
+        <div>+${item.appearance}</div>
+        <div>+${item.wealth}</div>
+        <div>${item.iq}</div>
+        <div>+${item.stamina}</div>
+        <div>+${item.personality}</div>
+        <div style="color:var(--ui-gold); font-weight:bold;">${item.totalScore}</div>
+      `;
+      rankListBody.appendChild(row);
+    });
+  } catch (err) {
+    rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#ef4444;">랭킹 로드 실패</div>';
+  }
+}
+
+function closeRankModal() { rankModal.classList.add('hidden'); }
+document.getElementById('dBtnRank').addEventListener('click', openRankModal);
+document.getElementById('mBtnRank').addEventListener('click', openRankModal);
+rankCloseBtn.addEventListener('click', closeRankModal);
+
+// 모바일 채팅 버튼 클릭 시 프롬프트 창
+document.getElementById('mBtnChat').addEventListener('click', () => {
+  const msg = prompt('외칠 말을 입력하세요:');
+  if (msg && msg.trim() && socket) {
+    socket.emit('sendChat', msg.trim());
+  }
+});
+
+// ================= [화려한 360도 전신 축복 오라 방출 이펙트] =================
+function trigger360AuraBurst(rx, ry) {
+  const c = myCharacter || {};
+  const total = (c.wealth || 0) + (c.education || 0) + (c.appearance || 0) + (c.stamina || 0) + (c.personality || 0);
+
+  let primaryColor = '#38bdf8';
+  let ringColor = '#818cf8';
+  let glowColor = 'rgba(56, 189, 248, 0.9)';
+
+  if (total >= 50) {
+    primaryColor = '#ec4899'; // 네온 루비 핑크
+    ringColor = '#ffffff';
+    glowColor = 'rgba(236, 72, 153, 0.9)';
+  } else if (total >= 25) {
+    primaryColor = '#fbbf24'; // 성탄/황금 골드
+    ringColor = '#f59e0b';
+    glowColor = 'rgba(251, 191, 36, 0.8)';
+  } else if (total >= 10) {
+    primaryColor = '#4ade80'; // 에메랄드 그린
+    ringColor = '#facc15';
+    glowColor = 'rgba(74, 222, 128, 0.8)';
+  }
+
+  const centerX = rx + 20;
+  const centerY = ry + 20;
+
+  // 360도 전방위로 퍼져나가는 입자 32개 생성
+  const particles = [];
+  const pCount = 32;
+  for (let i = 0; i < pCount; i++) {
+    const angle = (Math.PI * 2 / pCount) * i + (Math.random() * 0.2 - 0.1);
+    const speed = Math.random() * 4.8 + 2.6;
+    particles.push({
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: Math.random() * 4 + 2.5,
+      color: (i % 2 === 0) ? primaryColor : ringColor,
+      isStar: Math.random() > 0.35
+    });
+  }
+
+  burstEffects.push({
+    cx: centerX,
+    cy: centerY,
+    born: Date.now(),
+    duration: 480,
+    maxRadius: 56,
+    ringColor,
+    primaryColor,
+    glowColor,
+    particles
+  });
+}
+
+function handleSpaceAction() {
+  if (!socket || !players[myId]) return;
+  const me = players[myId];
+
+  // NPC 앞 검사
+  const isFacingNPC = (me.dir === 'up' && me.y === 2 && (me.x >= 7 && me.x <= 10));
+  if (isFacingNPC) {
+    if (!npcDialogModal.classList.contains('hidden')) {
+      npcDialogModal.classList.add('hidden');
+    } else {
+      npcSpeechText.textContent = "반갑습니다! 6가지 스펙을 쌓아 올려 최고의 모험가가 되어보세요!\n[Space] 키로 화려한 360도 기운을 뿜을 수 있습니다.";
+      npcDialogModal.classList.remove('hidden');
+    }
+  } else {
+    trigger360AuraBurst(me.renderX, me.renderY);
+  }
+}
+npcNextBtn.addEventListener('click', () => npcDialogModal.classList.add('hidden'));
+
+// ================= [소켓 연결 및 보간] =================
+function connectSocketGame(token, nickname) {
+  authModal.classList.add('hidden');
+  hudNick.textContent = `[${nickname}]`;
+
+  socket = io({ auth: { token } });
+
+  socket.on('connect_error', () => {
+    alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+    logoutBtn.click();
+  });
+
+  socket.on('init', (data) => {
+    myId = data.myId;
+    mapW = data.mapWidth;
+    mapH = data.mapHeight;
+    obstacles = data.obstacles;
+    players = {};
+
+    Object.values(data.players).forEach(p => {
+      players[p.id] = {
+        ...p,
+        renderX: p.x * TILE_SIZE,
+        renderY: p.y * TILE_SIZE
+      };
+    });
+
+    if (players[myId]) {
+      myCharacter = players[myId].character || myCharacter;
+      myTokens = players[myId].enhanceTokens;
+      myLastRefill = players[myId].lastTokenRefill;
+      updateHUD();
+    }
+  });
+
+  socket.on('playerJoined', (p) => {
+    players[p.id] = {
+      ...p,
+      renderX: p.x * TILE_SIZE,
+      renderY: p.y * TILE_SIZE
+    };
+    addChatLog('알림', `${p.name} 님이 들어오셨습니다.`);
+  });
+
+  socket.on('playerMoved', (data) => {
+    if (players[data.id]) {
+      players[data.id].x = data.x;
+      players[data.id].y = data.y;
+      players[data.id].dir = data.dir;
+    }
+  });
+
+  socket.on('playerStatUpdated', (data) => {
+    if (players[data.id]) {
+      players[data.id].character = data.character;
+      if (data.id === myId) {
+        myCharacter = data.character;
+        updateHUD();
+        renderEnhanceUI();
+      }
+    }
+  });
+
+  socket.on('serverAnnouncement', (msg) => {
+    addChatLog('속보', msg);
+  });
+
+  socket.on('playerChat', (data) => {
+    if (players[data.id]) players[data.id].chatText = data.message;
+    addChatLog(data.name, data.message);
+  });
+
+  socket.on('playerChatClear', (data) => {
+    if (players[data.id]) players[data.id].chatText = '';
+  });
+
+  socket.on('playerLeft', (id) => {
+    if (players[id]) {
+      addChatLog('알림', `${players[id].name} 님이 나갔습니다.`);
+      delete players[id];
+    }
+  });
+}
+
+function addChatLog(author, message) {
+  const line = document.createElement('div');
+  line.className = 'chat-msg';
+  line.innerHTML = `<span class="chat-author">[${author}]</span>${message}`;
+  chatLog.appendChild(line);
+  if (chatLog.children.length > 5) chatLog.removeChild(chatLog.children[0]);
+}
+
+function updateTokensClient() {
+  const now = Date.now();
+  if (myTokens >= MAX_TOKENS) {
+    myTokens = MAX_TOKENS;
+    myLastRefill = now;
+    return;
+  }
+  const elapsed = now - myLastRefill;
+  const gained = Math.floor(elapsed / REFILL_INTERVAL_MS);
+  if (gained > 0) {
+    myTokens = Math.min(MAX_TOKENS, myTokens + gained);
+    myLastRefill += gained * REFILL_INTERVAL_MS;
+    if (myTokens >= MAX_TOKENS) myLastRefill = now;
+  }
+}
+
+function updateHUD() {
+  let tokenStr = `토큰: ${myTokens}/${MAX_TOKENS}`;
+  if (myTokens < MAX_TOKENS) {
+    const s = Math.ceil(Math.max(0, REFILL_INTERVAL_MS - (Date.now() - myLastRefill)) / 1000);
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    tokenStr += ` (${mm}:${ss})`;
+  }
+  hudTokens.textContent = tokenStr;
+  modalTokenCount.textContent = myTokens;
+}
+
+setInterval(() => {
+  updateTokensClient();
+  updateHUD();
+}, 1000);
+
+// 키보드 이벤트
 window.addEventListener('keydown', (e) => {
   const activeEl = document.activeElement;
   const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
@@ -1310,20 +1390,16 @@ window.addEventListener('keydown', (e) => {
   if (!authModal.classList.contains('hidden')) return;
 
   if (e.key === 'Enter') {
-    if (!npcDialogModal.classList.contains('hidden')) {
-      e.preventDefault();
-      nextMentorDialog();
-      return;
-    }
     e.preventDefault();
     chatInput.focus();
     return;
   }
 
   if (e.key === 'Escape') {
-    if (!rankModal.classList.contains('hidden')) { closeRankModal(); return; }
-    if (!npcDialogModal.classList.contains('hidden')) { npcDialogModal.classList.add('hidden'); return; }
+    closeInfoModal();
+    closeRankModal();
     closeEnhance();
+    npcDialogModal.classList.add('hidden');
     return;
   }
 
@@ -1359,6 +1435,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+// 모바일 D-pad 터치
 document.querySelectorAll('.dbtn').forEach(btn => {
   const triggerMove = (e) => {
     e.preventDefault();
@@ -1380,37 +1457,31 @@ function sendChatMessage() {
 }
 sendBtn.addEventListener('click', sendChatMessage);
 
-// ================= [서울 테마 캔버스 렌더링 + 보간 이동] =================
+// ================= [캔버스 렌더링 루프] =================
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const time = Date.now();
 
-  // 1. 서울 바닥 타일 (아스팔트 도로, 보도블록, 횡단보도)
+  // 1. 바닥 타일
   for (let x = 0; x < mapW; x++) {
     for (let y = 0; y < mapH; y++) {
       const px = x * TILE_SIZE;
       const py = y * TILE_SIZE;
 
-      // 중앙 2차선 도로 (y: 6 ~ 8)
       if (y >= 6 && y <= 8) {
-        ctx.fillStyle = '#1e2430'; // 아스팔트
+        ctx.fillStyle = '#1e2430';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-
-        // 중앙 차선 점선 (y: 7)
         if (y === 7 && x % 2 === 0) {
           ctx.fillStyle = '#facc15';
           ctx.fillRect(px + 6, py + 18, 28, 4);
         }
-
-        // 보행자 횡단보도 (x: 10, 11)
         if (x === 10 || x === 11) {
           ctx.fillStyle = '#f8fafc';
           ctx.fillRect(px + 4, py + 4, TILE_SIZE - 8, 8);
           ctx.fillRect(px + 4, py + 20, TILE_SIZE - 8, 8);
           ctx.fillRect(px + 4, py + 36, TILE_SIZE - 8, 4);
         }
-      } 
-      // 보도블록 보행로
-      else {
+      } else {
         ctx.fillStyle = (x + y) % 2 === 0 ? '#334155' : '#3f4c6b';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         ctx.strokeStyle = 'rgba(15, 23, 42, 0.4)';
@@ -1419,12 +1490,11 @@ function drawGame() {
     }
   }
 
-  // 2. 서울 현대 지형지물 렌더링
+  // 2. 오브젝트
   obstacles.forEach(obs => {
     const px = obs.x * TILE_SIZE;
     const py = obs.y * TILE_SIZE;
 
-    // 빌딩 오피스
     if (obs.type === 'building') {
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
@@ -1433,105 +1503,35 @@ function drawGame() {
       ctx.fillRect(px + 22, py + 6, 12, 10);
       ctx.fillRect(px + 6, py + 22, 12, 12);
       ctx.fillRect(px + 22, py + 22, 12, 12);
-    }
-    // 스타벅스풍 도심 카페
-    else if (obs.type === 'cafe') {
-      ctx.fillStyle = '#064e3b';
-      ctx.fillRect(px + 2, py + 4, TILE_SIZE - 4, TILE_SIZE - 6);
-      ctx.fillStyle = '#34d399';
-      ctx.font = 'bold 10px monospace';
-      ctx.fillText('CAFE', px + 6, py + 24);
-    }
-    // 편의점 (GS25 / CU 스타일)
-    else if (obs.type === 'convenience') {
-      ctx.fillStyle = '#0284c7';
-      ctx.fillRect(px + 2, py + 6, TILE_SIZE - 4, TILE_SIZE - 8);
-      ctx.fillStyle = '#f97316';
-      ctx.fillRect(px + 2, py + 2, TILE_SIZE - 4, 4);
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 9px monospace';
-      ctx.fillText('24H', px + 10, py + 24);
-    }
-    // 지하철 2호선 입구
-    else if (obs.type === 'subway') {
-      ctx.fillStyle = '#15803d'; // 2호선 그린
-      ctx.fillRect(px + 4, py + 10, TILE_SIZE - 8, TILE_SIZE - 10);
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 9px monospace';
-      ctx.fillText('②역', px + 8, py + 26);
-    }
-    // 버스 정류장
-    else if (obs.type === 'bus_stop') {
-      ctx.fillStyle = '#2563eb';
-      ctx.fillRect(px + 14, py + 4, 12, TILE_SIZE - 4);
-      ctx.fillStyle = '#93c5fd';
-      ctx.fillRect(px + 4, py + 4, 24, 6);
-    }
-    // 서울 따릉이 대여소
-    else if (obs.type === 'ttareungi') {
-      ctx.fillStyle = '#10b981';
-      ctx.fillRect(px + 4, py + 20, 14, 14);
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(px + 10, py + 30, 4, 0, Math.PI * 2);
-      ctx.arc(px + 26, py + 30, 4, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    // 가로수
-    else if (obs.type === 'tree') {
+    } else if (obs.type === 'tree') {
       ctx.fillStyle = '#15803d';
       ctx.beginPath();
       ctx.arc(px + 20, py + 18, 14, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#78350f';
       ctx.fillRect(px + 17, py + 24, 6, 14);
-    }
-    // 도심 벤치
-    else if (obs.type === 'bench') {
+    } else if (obs.type === 'bench') {
       ctx.fillStyle = '#b45309';
       ctx.fillRect(px + 6, py + 18, 28, 8);
       ctx.fillStyle = '#475569';
       ctx.fillRect(px + 8, py + 26, 4, 6);
       ctx.fillRect(px + 28, py + 26, 4, 6);
-    }
-    // 가로등
-    else if (obs.type === 'street_lamp') {
+    } else if (obs.type === 'street_lamp') {
       ctx.fillStyle = '#64748b';
       ctx.fillRect(px + 18, py + 6, 4, 30);
       ctx.fillStyle = '#fef08a';
       ctx.beginPath();
       ctx.arc(px + 20, py + 8, 6, 0, Math.PI * 2);
       ctx.fill();
-    }
-    // 푸드트럭
-    else if (obs.type === 'foodtruck') {
-      ctx.fillStyle = '#e11d48';
-      ctx.fillRect(px + 2, py + 8, TILE_SIZE - 4, TILE_SIZE - 12);
-      ctx.fillStyle = '#fef3c7';
-      ctx.fillRect(px + 6, py + 12, 18, 10);
-    }
-    // 화단
-    else if (obs.type === 'flowerbed') {
-      ctx.fillStyle = '#84cc16';
-      ctx.fillRect(px + 4, py + 14, TILE_SIZE - 8, 16);
-      ctx.fillStyle = '#f43f5e';
-      ctx.fillRect(px + 10, py + 18, 4, 4);
-      ctx.fillRect(px + 22, py + 22, 4, 4);
-    }
-    // 서울 멘토 김과장 NPC
-    else if (obs.type === 'mentor_npc') {
+    } else if (obs.type === 'mentor_npc') {
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       ctx.beginPath();
       ctx.ellipse(px + 20, py + 34, 12, 4, 0, 0, Math.PI * 2);
       ctx.fill();
-
-      // 정장 차림
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(px + 10, py + 16, 20, 18);
-      ctx.fillStyle = '#38bdf8'; // 넥타이
+      ctx.fillStyle = '#38bdf8';
       ctx.fillRect(px + 19, py + 18, 2, 10);
-
-      // 얼굴 & 머리
       ctx.fillStyle = '#ffdfba';
       ctx.fillRect(px + 13, py + 6, 14, 10);
       ctx.fillStyle = '#0f172a';
@@ -1547,13 +1547,12 @@ function drawGame() {
     }
   });
 
-  // 3. 플레이어 부드러운 위치 보간(Lerp) 및 렌더링
+  // 3. 플레이어
   const sortedPlayers = Object.values(players).sort((a, b) => a.y - b.y);
   sortedPlayers.forEach(p => {
     const targetX = p.x * TILE_SIZE;
     const targetY = p.y * TILE_SIZE;
 
-    // 미끄러지듯 부드러운 이동 보간 (0.28 계수)
     p.renderX += (targetX - p.renderX) * 0.28;
     p.renderY += (targetY - p.renderY) * 0.28;
 
@@ -1561,26 +1560,21 @@ function drawGame() {
     const ry = p.renderY;
     const c = p.character || {};
 
-    // 그림자
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
     ctx.ellipse(rx + 20, ry + 36, 12, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 몸체 (현대 캐주얼 후드/코트)
     ctx.fillStyle = p.color || '#2563eb';
     ctx.fillRect(rx + 10, ry + 18, 20, 18);
 
-    // 얼굴
     ctx.fillStyle = '#ffdfba';
     ctx.fillRect(rx + 12, ry + 6, 16, 14);
 
-    // 헤어스타일
     ctx.fillStyle = '#1e1b18';
     ctx.fillRect(rx + 10, ry + 4, 20, 6);
     ctx.fillRect(rx + 17, ry + 1, 6, 4);
 
-    // 시선 방향
     ctx.fillStyle = '#000';
     if (p.dir === 'down') {
       ctx.fillRect(rx + 15, ry + 13, 2, 3);
@@ -1596,7 +1590,6 @@ function drawGame() {
       ctx.fillRect(rx + 11, ry + 6, 18, 12);
     }
 
-    // 머리 위 인생 스펙 칭호
     const wealthTitle = getStatTitle('wealth', c.wealth || 0);
     const eduTitle = getStatTitle('education', c.education || 0);
     const mainTitle = (c.wealth >= 10 || c.education >= 15) ? `[${wealthTitle}]` : `[${eduTitle}]`;
@@ -1609,7 +1602,6 @@ function drawGame() {
     ctx.strokeText(mainTitle, rx + 20, ry - 18);
     ctx.fillText(mainTitle, rx + 20, ry - 18);
 
-    // 닉네임
     ctx.font = '12px "DungGeunMo"';
     ctx.textAlign = 'center';
     ctx.fillStyle = (p.id === myId) ? '#67e8f9' : '#ffffff';
@@ -1623,10 +1615,9 @@ function drawGame() {
     }
   });
 
-  // 4. 기운 발산(오라) 파동 이펙트 렌더링
-  const now = Date.now();
-  auraEffects = auraEffects.filter(eff => {
-    const elapsed = now - eff.born;
+  // 4. 360도 전신 축복 오라 방출 이펙트
+  burstEffects = burstEffects.filter(eff => {
+    const elapsed = time - eff.born;
     if (elapsed > eff.duration) return false;
 
     const progress = elapsed / eff.duration;
@@ -1635,22 +1626,40 @@ function drawGame() {
     ctx.save();
     ctx.translate(eff.cx, eff.cy);
 
-    // 중심 에너지 링
+    ctx.shadowColor = eff.glowColor;
+    ctx.shadowBlur = 18 * (1 - progress);
+
+    // 2중 에너지 링
     ctx.beginPath();
-    ctx.arc(0, 0, eff.maxR * progress, 0, Math.PI * 2);
-    ctx.strokeStyle = eff.color;
+    ctx.arc(0, 0, eff.maxRadius * progress, 0, Math.PI * 2);
+    ctx.strokeStyle = eff.primaryColor;
     ctx.lineWidth = 4 * (1 - progress);
-    ctx.shadowColor = eff.glow;
-    ctx.shadowBlur = 14;
     ctx.globalAlpha = alpha;
     ctx.stroke();
 
-    // 퍼져나가는 입자 파티클
+    ctx.beginPath();
+    ctx.arc(0, 0, (eff.maxRadius * 0.65) * progress, 0, Math.PI * 2);
+    ctx.strokeStyle = eff.ringColor;
+    ctx.lineWidth = 2 * (1 - progress);
+    ctx.stroke();
+
+    // 360도 회전 별빛 파티클
     eff.particles.forEach(pt => {
-      ctx.fillStyle = eff.color;
-      ctx.beginPath();
-      ctx.arc(pt.vx * progress * 8, pt.vy * progress * 8, pt.size * (1 - progress), 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = pt.color;
+      ctx.globalAlpha = alpha;
+
+      const px = pt.vx * progress * 10;
+      const py = pt.vy * progress * 10;
+      const size = pt.size * (1 - progress * 0.4);
+
+      if (pt.isStar) {
+        ctx.fillRect(px - size, py - 1, size * 2, 2);
+        ctx.fillRect(px - 1, py - size, 2, size * 2);
+      } else {
+        ctx.beginPath();
+        ctx.arc(px, py, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
     });
 
     ctx.restore();
@@ -1685,6 +1694,12 @@ function drawSpeechBubble(cx, cy, text) {
   ctx.textAlign = 'center';
   ctx.fillText(text, cx, by + 15);
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('azaekaban_token');
+  const nick = localStorage.getItem('azaekaban_nickname');
+  if (token && nick) connectSocketGame(token, nick);
+});
 
 requestAnimationFrame(drawGame);
 </script>
