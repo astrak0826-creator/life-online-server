@@ -9,12 +9,11 @@
 <style>
   :root {
     --bg-color: #07090e;
-    --game-border: #1e293b;
+    --game-border: #223249;
     --ui-gold: #f59e0b;
     --ui-blue: #38bdf8;
     --ui-emerald: #10b981;
     --ui-purple: #a855f7;
-    --seoul-asphalt: #1e2430;
   }
   * { 
     box-sizing: border-box; 
@@ -24,7 +23,7 @@
   }
   body {
     margin: 0;
-    padding: 8px;
+    padding: 6px;
     background-color: var(--bg-color);
     color: #f1f5f9;
     font-family: 'DungGeunMo', monospace;
@@ -40,7 +39,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 2px solid #223249;
+    border: 2px solid var(--game-border);
     background: #090e17;
     box-shadow: 0 14px 35px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08);
     position: relative;
@@ -50,12 +49,12 @@
     overflow: hidden;
   }
 
-  /* 상단 HUD (모바일/데스크톱 공통: 맵 가림 완전 분리) */
+  /* 상단 HUD */
   .hud-bar {
     width: 100%;
     background: linear-gradient(180deg, #101a2d 0%, #0a101d 100%);
     border-bottom: 2px solid #1e293b;
-    padding: 10px 16px;
+    padding: 10px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -74,15 +73,54 @@
     font-weight: bold;
   }
 
+  /* 캔버스 & 채팅창 격리 래퍼 (조작부 침범 원천 방지) */
+  .canvas-area {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    line-height: 0;
+    overflow: hidden;
+  }
+
   #gameCanvas {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
     display: block;
-    background-color: var(--seoul-asphalt);
+    background-color: #5a8f56;
     width: 100%;
     max-width: 800px;
     height: auto;
     aspect-ratio: 4 / 3;
+  }
+
+  #chatLog {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    width: min(260px, 68%);
+    max-height: 92px;
+    overflow-y: hidden;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 3px;
+    z-index: 5;
+    line-height: 1.35;
+  }
+  .chat-msg {
+    background: rgba(10, 16, 28, 0.78);
+    backdrop-filter: blur(2px);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #f8fafc;
+    border-left: 3px solid var(--ui-blue);
+    text-shadow: 1px 1px 1px #000;
+    word-break: break-all;
+  }
+  .chat-author {
+    color: #fde047;
+    font-weight: bold;
+    margin-right: 4px;
   }
 
   /* 데스크톱 하단 컨트롤 바 */
@@ -101,38 +139,41 @@
     gap: 6px;
   }
 
-  /* 모바일 통합 컨트롤 패널 */
+  /* 모바일 통합 컨트롤 패널 (우측 버튼 잘림 방지 최적화) */
   .mobile-controller-panel {
     display: none;
     width: 100%;
     background: radial-gradient(circle at 50% 0%, #111a2e 0%, #070a12 100%);
     border-top: 2px solid #1c273c;
-    padding: 16px 20px;
+    padding: 14px 12px;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     box-sizing: border-box;
   }
 
-  /* 십자키 (D-Pad) 디자인 */
+  /* 십자키 (D-Pad) */
   .dpad {
     display: grid;
-    grid-template-columns: repeat(3, 48px);
-    grid-template-rows: repeat(3, 48px);
-    gap: 5px;
+    grid-template-columns: repeat(3, 42px);
+    grid-template-rows: repeat(3, 42px);
+    gap: 4px;
+    flex-shrink: 0;
   }
   .dbtn {
     background: linear-gradient(145deg, #1a2232, #0d121c);
     border: 1px solid #2a374f;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
     color: #94a3b8;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 9px;
     cursor: pointer;
     transition: 0.08s;
+    padding: 0;
   }
   .dbtn:active {
     background: #25334c;
@@ -145,17 +186,19 @@
   .dbtn.down { grid-column: 2; grid-row: 2; }
   .dbtn.right { grid-column: 3; grid-row: 2; }
 
-  /* 2x2 기능 버튼 디자인 */
+  /* 2x2 기능 버튼 (반응형 너비로 화면 밖 잘림 방지) */
   .action-grid {
     display: grid;
-    grid-template-columns: repeat(2, 74px);
-    grid-template-rows: repeat(2, 54px);
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 50px);
+    gap: 8px;
+    flex: 1;
+    max-width: 156px;
   }
   .btn-neo {
     border-radius: 10px;
     font-family: 'DungGeunMo', monospace;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -163,52 +206,41 @@
     cursor: pointer;
     transition: all 0.12s ease;
     text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    position: relative;
-    overflow: hidden;
+    padding: 0 4px;
+    white-space: nowrap;
   }
   .btn-neo:active { transform: translateY(2px) scale(0.94); }
 
-  /* 정보 버튼: 사이언 블루 테마 */
   .btn-info {
     background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
     border: 1px solid #38bdf8;
     color: #f0f9ff;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
   }
-  .btn-info:active { box-shadow: 0 2px 6px rgba(2, 132, 199, 0.5); }
-
-  /* 스펙업 버튼: 에메랄드 그린 테마 */
   .btn-enhance {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     border: 1px solid #34d399;
     color: #ecfdf5;
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
   }
-  .btn-enhance:active { box-shadow: 0 2px 6px rgba(5, 150, 105, 0.5); }
-
-  /* 순위 버튼: 골드 테마 */
   .btn-rank {
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     border: 1px solid #fbbf24;
     color: #fffbeb;
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
   }
-  .btn-rank:active { box-shadow: 0 2px 6px rgba(217, 119, 6, 0.5); }
-
-  /* 채팅 버튼: 바이올렛 테마 */
   .btn-chat {
     background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     border: 1px solid #c084fc;
     color: #faf5ff;
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
   }
-  .btn-chat:active { box-shadow: 0 2px 6px rgba(124, 58, 237, 0.5); }
 
-  /* 반응형 분기 */
   @media (hover: none) and (pointer: coarse), (max-width: 768px) {
     .desktop-bottom-bar { display: none; }
     .mobile-controller-panel { display: flex; }
     .guide { display: none; }
+    .hud-bar { font-size: 13px; padding: 8px 12px; }
   }
 
   input[type="text"], input[type="password"], select {
@@ -230,35 +262,6 @@
   button {
     font-family: 'DungGeunMo', monospace;
     cursor: pointer;
-  }
-
-  #chatLog {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    width: 320px;
-    height: 110px;
-    overflow-y: hidden;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 3px;
-    z-index: 5;
-  }
-  .chat-msg {
-    background: rgba(10, 16, 28, 0.88);
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #f1f5f9;
-    border-left: 2px solid var(--ui-blue);
-    text-shadow: 1px 1px 0 #000;
-  }
-  .chat-author {
-    color: var(--ui-gold);
-    font-weight: bold;
-    margin-right: 4px;
   }
 
   /* 모달 공통 레이아웃 */
@@ -286,7 +289,7 @@
   .auth-msg { font-size: 12px; color: #f87171; margin-top: 8px; min-height: 16px; }
   .auth-msg.success { color: #4ade80; }
 
-  /* 신설 내 정보 모달 카드 */
+  /* 내 정보 모달 카드 */
   .info-stat-card {
     background: #141c2c;
     border: 1px solid #223249;
@@ -456,14 +459,12 @@
       <button id="tabRecovery">계정 찾기</button>
     </div>
 
-    <!-- 로그인 -->
     <div id="loginFormSection">
       <input type="text" id="authUsername" placeholder="아이디" maxlength="15">
       <input type="password" id="authPassword" placeholder="비밀번호" maxlength="20">
       <button id="authSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#0284c7; border:none; border-radius:6px; color:#fff; font-weight:bold;">접속하기</button>
     </div>
 
-    <!-- 회원가입 -->
     <div id="registerFormSection" class="hidden">
       <input type="text" id="regUsername" placeholder="아이디 (3자 이상)" maxlength="15">
       <input type="password" id="regPassword" placeholder="비밀번호 (4자 이상)" maxlength="20">
@@ -484,7 +485,6 @@
       <button id="regSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#059669; border:none; border-radius:6px; color:#fff; font-weight:bold;">캐릭터 생성</button>
     </div>
 
-    <!-- 계정 찾기 -->
     <div id="recoveryFormSection" class="hidden">
       <div style="display:flex; gap:6px; margin-bottom:10px;">
         <button id="subTabFindId" class="active" style="flex:1;">아이디 찾기</button>
@@ -506,19 +506,14 @@
   </div>
 </div>
 
-<!-- [신설] 내 정보 모달 (로그아웃 / 캐릭터 탈퇴 통합) -->
+<!-- 내 정보 모달 (로그아웃 / 캐릭터 탈퇴 통합) -->
 <div id="infoModal" class="modal-overlay hidden">
   <div class="auth-card" style="max-width: 420px; text-align: left;">
     <h3 style="color:var(--ui-blue); margin:0 0 14px; text-align:center; font-size:17px;">📋 내 캐릭터 상세 정보</h3>
-    
-    <div class="info-stat-card" id="infoStatCardList">
-      <!-- JS로 동적 렌더링 -->
-    </div>
-
+    <div class="info-stat-card" id="infoStatCardList"></div>
     <div style="background:#090e17; border:1px dashed #334155; padding:8px 12px; border-radius:6px; font-size:12px; color:#94a3b8; margin-bottom:14px; text-align:center;">
       계정 보호를 위해 로그아웃 및 탈퇴는 이 창에서만 진행됩니다.
     </div>
-
     <div style="display:flex; gap:6px;">
       <button id="infoCloseBtn" style="flex:1; padding:8px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px;">닫기</button>
       <button id="logoutBtn" style="flex:1; padding:8px; background:#334155; border:1px solid #475569; color:#f1f5f9; border-radius:6px;">로그아웃</button>
@@ -563,11 +558,11 @@
 <div id="npcDialogModal" class="modal-overlay hidden">
   <div class="npc-dialog-box">
     <div class="npc-dialog-header">
-      <span class="npc-name-tag" id="npcNameTag">[서울 멘토]</span>
+      <span class="npc-name-tag" id="npcNameTag">[마을 안내자]</span>
       <span style="font-size: 11px; color: #64748b;">(Space / Enter: 다음, ESC: 닫기)</span>
     </div>
     <div class="npc-dialog-body">
-      <div class="npc-portrait" id="npcPortraitIcon">🧑‍💼</div>
+      <div class="npc-portrait" id="npcPortraitIcon">🌿</div>
       <div class="npc-text-content" id="npcSpeechText"></div>
     </div>
     <div class="npc-dialog-footer" style="display:flex; justify-content:flex-end; margin-top:10px;">
@@ -600,19 +595,21 @@
 
 <!-- 메인 게임 컨테이너 -->
 <div class="game-container">
-  <!-- 상단 HUD: 닉네임 좌측, 토큰 상태 우측 -->
   <div class="hud-bar">
     <div class="hud-nick" id="hudNick">[게스트]</div>
     <div class="hud-tokens" id="hudTokens">토큰: 120/120 (00:00)</div>
   </div>
 
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div id="chatLog"></div>
+  <!-- 캔버스 전용 영역: 채팅창이 조작 패널을 침범하지 않도록 격리 -->
+  <div class="canvas-area">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="chatLog"></div>
+  </div>
 
-  <!-- 데스크톱용 하단 바 (채팅창 및 공통 기능 버튼) -->
+  <!-- 데스크톱 하단 바 -->
   <div class="desktop-bottom-bar">
     <button id="dBtnInfo" style="background:#0284c7; border:1px solid #38bdf8; color:#fff; padding:6px 12px; border-radius:4px;">정보</button>
-    <button id="dBtnEnhance" style="background:#059669; border:1px solid #34d399; color:#fff; padding:6px 12px; border-radius:4px;">스펙강화(C)</button>
+    <button id="dBtnEnhance" style="background:#059669; border:1px solid #34d399; color:#fff; padding:6px 12px; border-radius:4px;">스펙업(C)</button>
     <button id="dBtnRank" style="background:#d97706; border:1px solid #fbbf24; color:#fff; padding:6px 12px; border-radius:4px;">순위(R)</button>
     <div class="chat-box">
       <input type="text" id="chatInput" placeholder="채팅 입력 (Enter)" maxlength="35">
@@ -620,9 +617,8 @@
     </div>
   </div>
 
-  <!-- 모바일용 일체형 컨트롤 패널 (위치 불변, 세련된 네온 글래스모피즘 적용) -->
+  <!-- 모바일 컨트롤 패널 -->
   <div class="mobile-controller-panel">
-    <!-- 왼쪽 십자키 (D-Pad) -->
     <div class="dpad">
       <button class="dbtn up" data-dir="up">▲</button>
       <button class="dbtn left" data-dir="left">◀</button>
@@ -630,7 +626,6 @@
       <button class="dbtn right" data-dir="right">▶</button>
     </div>
 
-    <!-- 오른쪽 2x2 기능 버튼 -->
     <div class="action-grid">
       <button class="btn-neo btn-info" id="mBtnInfo">정보</button>
       <button class="btn-neo btn-enhance" id="mBtnEnhance">스펙업</button>
@@ -654,7 +649,7 @@ const chatLog = document.getElementById('chatLog');
 const hudNick = document.getElementById('hudNick');
 const hudTokens = document.getElementById('hudTokens');
 
-// 인증 관련
+// 인증 UI
 const authModal = document.getElementById('authModal');
 const tabLogin = document.getElementById('tabLogin');
 const tabRegister = document.getElementById('tabRegister');
@@ -685,7 +680,7 @@ const resetPwAnswer = document.getElementById('resetPwAnswer');
 const resetPwNewPassword = document.getElementById('resetPwNewPassword');
 const resetPwBtn = document.getElementById('resetPwBtn');
 
-// 신설 정보 모달
+// 내 정보 모달
 const infoModal = document.getElementById('infoModal');
 const infoStatCardList = document.getElementById('infoStatCardList');
 const infoCloseBtn = document.getElementById('infoCloseBtn');
@@ -721,6 +716,17 @@ let players = {};
 let burstEffects = [];
 let currentSelectedStat = 'education';
 
+// 바람에 날리는 꽃잎 & 햇살 부유 입자
+const ambientPetals = Array.from({ length: 26 }, () => ({
+  x: Math.random() * 800,
+  y: Math.random() * 600,
+  r: Math.random() * 2.5 + 1.5,
+  vx: Math.random() * 0.45 + 0.15,
+  vy: Math.random() * 0.35 + 0.1,
+  phase: Math.random() * Math.PI * 2,
+  type: Math.random() > 0.45 ? 'petal' : 'light'
+}));
+
 const MAX_TOKENS = 120;
 const REFILL_INTERVAL_MS = 60 * 1000;
 let myTokens = MAX_TOKENS;
@@ -735,7 +741,6 @@ let myCharacter = {
   personality: 0
 };
 
-// 칭호 목록
 const EDU_TITLES = [
   "문맹", "어린이집 원생", "유치원생", "초등 1학년", "초등 2학년", "초등 3학년",
   "초등 4학년", "초등 5학년", "초등 6학년", "중학 1학년", "중학 2학년", "중학 3학년",
@@ -782,7 +787,7 @@ function getStatTitle(stat, val, gender = 'male') {
   return '';
 }
 
-// ================= [인증 관련 로직] =================
+// 인증 탭 제어
 function showAuthTab(tab) {
   tabLogin.classList.remove('active');
   tabRegister.classList.remove('active');
@@ -941,7 +946,7 @@ resetPwBtn.addEventListener('click', async () => {
   }
 });
 
-// ================= [신설 정보 모달 로직] =================
+// 내 정보 모달
 function openInfoModal() {
   const c = myCharacter || {};
   const g = c.gender || 'male';
@@ -980,15 +985,11 @@ function openInfoModal() {
   infoModal.classList.remove('hidden');
 }
 
-function closeInfoModal() {
-  infoModal.classList.add('hidden');
-}
-
+function closeInfoModal() { infoModal.classList.add('hidden'); }
 infoCloseBtn.addEventListener('click', closeInfoModal);
 document.getElementById('dBtnInfo').addEventListener('click', openInfoModal);
 document.getElementById('mBtnInfo').addEventListener('click', openInfoModal);
 
-// 안전하게 정보 창 내부로 옮겨진 로그아웃 & 캐릭터 탈퇴
 logoutBtn.addEventListener('click', () => {
   if (!confirm('로그아웃 하시겠습니까?')) return;
   localStorage.removeItem('azaekaban_token');
@@ -1026,7 +1027,7 @@ deleteAccountBtn.addEventListener('click', async () => {
   }
 });
 
-// ================= [스펙 강화 모달 로직] =================
+// 스펙 강화 모달
 const STAT_RULES = {
   education: { name: "학력 (0~25강+)", rule: "성공 1% (+1강) | 유지 99% (하락 없음)" },
   appearance: { name: "외모 (0~10강+)", rule: "성공 1% (+1강) | 유지 98% | 실패 1% (-1강, 0강 보호)" },
@@ -1116,7 +1117,7 @@ document.getElementById('mBtnEnhance').addEventListener('click', () => {
 enhanceCloseBtn.addEventListener('click', closeEnhance);
 enhanceExecuteBtn.addEventListener('click', executeEnhance);
 
-// ================= [랭킹 모달] =================
+// 랭킹 모달
 async function openRankModal() {
   rankModal.classList.remove('hidden');
   rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">랭킹 집계 중...</div>';
@@ -1163,7 +1164,6 @@ document.getElementById('dBtnRank').addEventListener('click', openRankModal);
 document.getElementById('mBtnRank').addEventListener('click', openRankModal);
 rankCloseBtn.addEventListener('click', closeRankModal);
 
-// 모바일 채팅 버튼 클릭 시 프롬프트 창
 document.getElementById('mBtnChat').addEventListener('click', () => {
   const msg = prompt('외칠 말을 입력하세요:');
   if (msg && msg.trim() && socket) {
@@ -1171,33 +1171,32 @@ document.getElementById('mBtnChat').addEventListener('click', () => {
   }
 });
 
-// ================= [화려한 360도 전신 축복 오라 방출 이펙트] =================
+// 360도 전신 축복 오라 폭발
 function trigger360AuraBurst(rx, ry) {
   const c = myCharacter || {};
   const total = (c.wealth || 0) + (c.education || 0) + (c.appearance || 0) + (c.stamina || 0) + (c.personality || 0);
 
-  let primaryColor = '#38bdf8';
-  let ringColor = '#818cf8';
-  let glowColor = 'rgba(56, 189, 248, 0.9)';
+  let primaryColor = '#fde047';
+  let ringColor = '#38bdf8';
+  let glowColor = 'rgba(253, 224, 71, 0.85)';
 
   if (total >= 50) {
-    primaryColor = '#ec4899'; // 네온 루비 핑크
-    ringColor = '#ffffff';
-    glowColor = 'rgba(236, 72, 153, 0.9)';
+    primaryColor = '#f43f5e';
+    ringColor = '#fde047';
+    glowColor = 'rgba(244, 63, 94, 0.9)';
   } else if (total >= 25) {
-    primaryColor = '#fbbf24'; // 성탄/황금 골드
-    ringColor = '#f59e0b';
-    glowColor = 'rgba(251, 191, 36, 0.8)';
+    primaryColor = '#38bdf8';
+    ringColor = '#c084fc';
+    glowColor = 'rgba(56, 189, 248, 0.9)';
   } else if (total >= 10) {
-    primaryColor = '#4ade80'; // 에메랄드 그린
-    ringColor = '#facc15';
-    glowColor = 'rgba(74, 222, 128, 0.8)';
+    primaryColor = '#4ade80';
+    ringColor = '#fef08a';
+    glowColor = 'rgba(74, 222, 128, 0.85)';
   }
 
   const centerX = rx + 20;
   const centerY = ry + 20;
 
-  // 360도 전방위로 퍼져나가는 입자 32개 생성
   const particles = [];
   const pCount = 32;
   for (let i = 0; i < pCount; i++) {
@@ -1217,7 +1216,7 @@ function trigger360AuraBurst(rx, ry) {
     cy: centerY,
     born: Date.now(),
     duration: 480,
-    maxRadius: 56,
+    maxRadius: 58,
     ringColor,
     primaryColor,
     glowColor,
@@ -1229,13 +1228,12 @@ function handleSpaceAction() {
   if (!socket || !players[myId]) return;
   const me = players[myId];
 
-  // NPC 앞 검사
   const isFacingNPC = (me.dir === 'up' && me.y === 2 && (me.x >= 7 && me.x <= 10));
   if (isFacingNPC) {
     if (!npcDialogModal.classList.contains('hidden')) {
       npcDialogModal.classList.add('hidden');
     } else {
-      npcSpeechText.textContent = "반갑습니다! 6가지 스펙을 쌓아 올려 최고의 모험가가 되어보세요!\n[Space] 키로 화려한 360도 기운을 뿜을 수 있습니다.";
+      npcSpeechText.textContent = "평화로운 마을 광장에 오신 것을 환영합니다!\n[C] 키나 스펙업 버튼으로 6가지 인생 스펙을 키우고, [Space] 키로 찬란한 기운을 뿜어보세요.";
       npcDialogModal.classList.remove('hidden');
     }
   } else {
@@ -1244,7 +1242,7 @@ function handleSpaceAction() {
 }
 npcNextBtn.addEventListener('click', () => npcDialogModal.classList.add('hidden'));
 
-// ================= [소켓 연결 및 보간] =================
+// 소켓 연결
 function connectSocketGame(token, nickname) {
   authModal.classList.add('hidden');
   hudNick.textContent = `[${nickname}]`;
@@ -1253,7 +1251,8 @@ function connectSocketGame(token, nickname) {
 
   socket.on('connect_error', () => {
     alert('인증이 만료되었습니다. 다시 로그인해주세요.');
-    logoutBtn.click();
+    localStorage.removeItem('azaekaban_token');
+    location.reload();
   });
 
   socket.on('init', (data) => {
@@ -1285,7 +1284,7 @@ function connectSocketGame(token, nickname) {
       renderX: p.x * TILE_SIZE,
       renderY: p.y * TILE_SIZE
     };
-    addChatLog('알림', `${p.name} 님이 들어오셨습니다.`);
+    addChatLog('알림', `${p.name} 님이 광장에 찾아왔습니다.`);
   });
 
   socket.on('playerMoved', (data) => {
@@ -1308,7 +1307,7 @@ function connectSocketGame(token, nickname) {
   });
 
   socket.on('serverAnnouncement', (msg) => {
-    addChatLog('속보', msg);
+    addChatLog('소식', msg);
   });
 
   socket.on('playerChat', (data) => {
@@ -1322,7 +1321,7 @@ function connectSocketGame(token, nickname) {
 
   socket.on('playerLeft', (id) => {
     if (players[id]) {
-      addChatLog('알림', `${players[id].name} 님이 나갔습니다.`);
+      addChatLog('알림', `${players[id].name} 님이 떠났습니다.`);
       delete players[id];
     }
   });
@@ -1333,7 +1332,7 @@ function addChatLog(author, message) {
   line.className = 'chat-msg';
   line.innerHTML = `<span class="chat-author">[${author}]</span>${message}`;
   chatLog.appendChild(line);
-  if (chatLog.children.length > 5) chatLog.removeChild(chatLog.children[0]);
+  if (chatLog.children.length > 4) chatLog.removeChild(chatLog.children[0]);
 }
 
 function updateTokensClient() {
@@ -1369,7 +1368,6 @@ setInterval(() => {
   updateHUD();
 }, 1000);
 
-// 키보드 이벤트
 window.addEventListener('keydown', (e) => {
   const activeEl = document.activeElement;
   const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
@@ -1435,7 +1433,6 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// 모바일 D-pad 터치
 document.querySelectorAll('.dbtn').forEach(btn => {
   const triggerMove = (e) => {
     e.preventDefault();
@@ -1457,97 +1454,528 @@ function sendChatMessage() {
 }
 sendBtn.addEventListener('click', sendChatMessage);
 
-// ================= [캔버스 렌더링 루프] =================
+// ================= [회화풍 일러스트 그래픽 & 캐릭터 렌더링 엔진] =================
+
+function drawRoundedRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// 아기자기한 일러스트풍 캐릭터 그리기 함수
+function drawCharacterSprite(rx, ry, p, isNPC = false, time = 0) {
+  const cx = rx + 20;
+  const cy = ry + 20;
+
+  // 이동 여부 및 걸음걸이/숨쉬기 리듬 계산
+  const dx = (p.x * TILE_SIZE) - rx;
+  const dy = (p.y * TILE_SIZE) - ry;
+  const isMoving = Math.hypot(dx, dy) > 1.2;
+  const walkSwing = isMoving ? Math.sin(time * 0.022) * 4 : 0;
+  const breathe = Math.sin(time * 0.004 + (rx * 0.1)) * 1.2;
+
+  ctx.save();
+
+  // 1. 부드러운 바닥 그림자
+  ctx.fillStyle = 'rgba(20, 40, 20, 0.32)';
+  ctx.beginPath();
+  ctx.ellipse(cx, ry + 36, 12, 4.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 종합 스펙에 따른 은은한 발밑 후광
+  const c = p.character || {};
+  const totalSpec = (c.wealth || 0) + (c.education || 0) + (c.appearance || 0) + (c.stamina || 0) + (c.personality || 0);
+  if (!isNPC && totalSpec >= 10) {
+    const auraGrad = ctx.createRadialGradient(cx, ry + 35, 2, cx, ry + 35, 18);
+    auraGrad.addColorStop(0, totalSpec >= 30 ? 'rgba(253, 224, 71, 0.55)' : 'rgba(56, 189, 248, 0.45)');
+    auraGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, ry + 35, 18, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 2. 다리 & 가죽 부츠 (걸을 때 앞뒤로 귀여운 교차)
+  ctx.fillStyle = '#451a03';
+  ctx.strokeStyle = '#271206';
+  ctx.lineWidth = 1.2;
+  // 왼발
+  drawRoundedRect(ctx, cx - 7, ry + 29 + walkSwing * 0.6, 5.5, 7, 2.5);
+  ctx.fill(); ctx.stroke();
+  // 오른발
+  drawRoundedRect(ctx, cx + 1.5, ry + 29 - walkSwing * 0.6, 5.5, 7, 2.5);
+  ctx.fill(); ctx.stroke();
+
+  // 3. 의상 (따뜻한 튜닉 코트 & 망토 디테일)
+  const coatColor = isNPC ? '#2d6a4f' : (p.color || '#3b82f6');
+  const bodyY = ry + 16 + breathe * 0.5;
+
+  // 몸통 코트 그라데이션
+  const bodyGrad = ctx.createLinearGradient(cx, bodyY, cx, bodyY + 16);
+  bodyGrad.addColorStop(0, coatColor);
+  bodyGrad.addColorStop(1, '#1e293b');
+  ctx.fillStyle = bodyGrad;
+  ctx.strokeStyle = '#1e1b18';
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.moveTo(cx - 8, bodyY + 2);
+  ctx.quadraticCurveTo(cx - 11, bodyY + 14, cx - 9, bodyY + 15);
+  ctx.lineTo(cx + 9, bodyY + 15);
+  ctx.quadraticCurveTo(cx + 11, bodyY + 14, cx + 8, bodyY + 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 허리 벨트와 금장 버클
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(cx - 8.5, bodyY + 10, 17, 2.5);
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(cx - 2, bodyY + 9.5, 4, 3.5);
+
+  // 양팔 (걸을 때 흔들림)
+  ctx.fillStyle = coatColor;
+  drawRoundedRect(ctx, cx - 12, bodyY + 2 - walkSwing * 0.4, 4.5, 10, 2);
+  ctx.fill(); ctx.stroke();
+  drawRoundedRect(ctx, cx + 7.5, bodyY + 2 + walkSwing * 0.4, 4.5, 10, 2);
+  ctx.fill(); ctx.stroke();
+
+  // 목도리 / 스카프
+  ctx.fillStyle = isNPC ? '#fde047' : '#f43f5e';
+  drawRoundedRect(ctx, cx - 7.5, bodyY - 0.5, 15, 4.5, 2);
+  ctx.fill();
+
+  // 4. 머리 & 얼굴 (부드러운 곡선형 윤곽)
+  const headY = ry + 8 + breathe;
+
+  // 뒷머리 볼륨
+  const hairColor = isNPC ? '#5c4033' : (c.gender === 'female' ? '#4a2511' : '#2c1d11');
+  ctx.fillStyle = hairColor;
+  ctx.beginPath();
+  ctx.arc(cx, headY, 11.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 피부톤 얼굴
+  const skinGrad = ctx.createRadialGradient(cx, headY - 1, 2, cx, headY + 1, 10);
+  skinGrad.addColorStop(0, '#fff3e0');
+  skinGrad.addColorStop(1, '#ffe0b2');
+  ctx.fillStyle = skinGrad;
+  ctx.strokeStyle = '#5d4037';
+  ctx.lineWidth = 1.2;
+
+  ctx.beginPath();
+  ctx.arc(cx, headY + 1, 9.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // 5. 표정 (방향별 눈동자, 하이라이트, 발그레한 볼터치)
+  if (p.dir === 'up') {
+    // 뒷모습일 때 풍성한 뒷머리 덮기
+    ctx.fillStyle = hairColor;
+    ctx.beginPath();
+    ctx.arc(cx, headY + 0.5, 10.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#1e140c';
+    ctx.stroke();
+  } else {
+    const eyeOffsetX = (p.dir === 'left') ? -2.2 : (p.dir === 'right' ? 2.2 : 0);
+
+    // 발그레한 수채화 볼터치
+    ctx.fillStyle = 'rgba(244, 114, 182, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(cx - 5.5 + eyeOffsetX * 0.5, headY + 3.5, 2.4, 1.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 5.5 + eyeOffsetX * 0.5, headY + 3.5, 2.4, 1.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 눈동자 (초롱초롱한 다크 브라운 + 흰색 하이라이트 점)
+    ctx.fillStyle = '#1f1209';
+    ctx.beginPath();
+    ctx.ellipse(cx - 3.6 + eyeOffsetX, headY + 1.2, 1.7, 2.3, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 3.6 + eyeOffsetX, headY + 1.2, 1.7, 2.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 눈 속 반짝이는 빛망울
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx - 4.1 + eyeOffsetX, headY + 0.3, 0.75, 0, Math.PI * 2);
+    ctx.arc(cx + 3.1 + eyeOffsetX, headY + 0.3, 0.75, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 미소 짓는 입매
+    ctx.strokeStyle = '#7c2d12';
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.arc(cx + eyeOffsetX * 0.6, headY + 3.8, 1.6, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+
+    // 앞머리 & 옆머리 결
+    ctx.fillStyle = hairColor;
+    ctx.beginPath();
+    ctx.arc(cx, headY - 1.5, 10.2, Math.PI * 0.95, Math.PI * 2.05);
+    ctx.quadraticCurveTo(cx + 6, headY + 1, cx + 3, headY - 3);
+    ctx.quadraticCurveTo(cx, headY + 1.5, cx - 3, headY - 3);
+    ctx.quadraticCurveTo(cx - 6, headY + 1, cx - 10, headY - 1);
+    ctx.closePath();
+    ctx.fill();
+
+    // 머리 위 포인트 장식 (NPC는 베레모, 고스펙 유저는 황금 왕관, 일반은 새싹/리본)
+    if (isNPC) {
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.ellipse(cx, headY - 9, 9, 4, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (totalSpec >= 20) {
+      ctx.fillStyle = '#facc15';
+      ctx.strokeStyle = '#854d0e';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - 5, headY - 9);
+      ctx.lineTo(cx - 6, headY - 15);
+      ctx.lineTo(cx - 2, headY - 12);
+      ctx.lineTo(cx, headY - 16);
+      ctx.lineTo(cx + 2, headY - 12);
+      ctx.lineTo(cx + 6, headY - 15);
+      ctx.lineTo(cx + 5, headY - 9);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      // 귀여운 초록 두 잎 새싹
+      ctx.strokeStyle = '#15803d';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, headY - 9);
+      ctx.quadraticCurveTo(cx + 1, headY - 14, cx + 4, headY - 14);
+      ctx.stroke();
+      ctx.fillStyle = '#4ade80';
+      ctx.beginPath();
+      ctx.ellipse(cx + 4, headY - 14, 3, 1.8, -0.4, 0, Math.PI * 2);
+      ctx.ellipse(cx - 2, headY - 13, 2.5, 1.5, 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const time = Date.now();
 
-  // 1. 바닥 타일
+  // 1. 수채화풍 자연 잔디밭과 따스한 돌담 산책로 렌더링
   for (let x = 0; x < mapW; x++) {
     for (let y = 0; y < mapH; y++) {
       const px = x * TILE_SIZE;
       const py = y * TILE_SIZE;
+      const seed = (x * 37 + y * 13) % 10;
 
+      // 중앙 산책로 (y: 6 ~ 8) -> 따뜻한 크림색 유럽풍 판석 거리
       if (y >= 6 && y <= 8) {
-        ctx.fillStyle = '#1e2430';
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#e6ccb2' : '#ddb892';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-        if (y === 7 && x % 2 === 0) {
-          ctx.fillStyle = '#facc15';
-          ctx.fillRect(px + 6, py + 18, 28, 4);
+
+        // 판석 가장자리 부드러운 돌결 묘사
+        ctx.strokeStyle = 'rgba(127, 85, 57, 0.22)';
+        ctx.lineWidth = 1;
+        drawRoundedRect(ctx, px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4, 5);
+        ctx.stroke();
+
+        // 산책로 위아래 꽃무늬 경계석
+        if (y === 6) {
+          ctx.fillStyle = '#b08968';
+          ctx.fillRect(px, py, TILE_SIZE, 4);
+        } else if (y === 8) {
+          ctx.fillStyle = '#b08968';
+          ctx.fillRect(px, py + TILE_SIZE - 4, TILE_SIZE, 4);
         }
+
+        // 중앙 징검다리 광장 보도 (x: 10, 11)
         if (x === 10 || x === 11) {
-          ctx.fillStyle = '#f8fafc';
-          ctx.fillRect(px + 4, py + 4, TILE_SIZE - 8, 8);
-          ctx.fillRect(px + 4, py + 20, TILE_SIZE - 8, 8);
-          ctx.fillRect(px + 4, py + 36, TILE_SIZE - 8, 4);
+          ctx.fillStyle = '#fefae0';
+          drawRoundedRect(ctx, px + 5, py + 6, TILE_SIZE - 10, 10, 4);
+          ctx.fill();
+          drawRoundedRect(ctx, px + 5, py + 24, TILE_SIZE - 10, 10, 4);
+          ctx.fill();
         }
-      } else {
-        ctx.fillStyle = (x + y) % 2 === 0 ? '#334155' : '#3f4c6b';
+      } 
+      // 싱그러운 초록 잔디 타일 & 야생화
+      else {
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#6a994e' : '#608c45';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-        ctx.strokeStyle = 'rgba(15, 23, 42, 0.4)';
-        ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+
+        // 부드러운 풀잎 결
+        ctx.strokeStyle = '#a7c957';
+        ctx.lineWidth = 1.2;
+        if (seed < 4) {
+          ctx.beginPath();
+          ctx.moveTo(px + 12, py + 28); ctx.lineTo(px + 10, py + 22);
+          ctx.moveTo(px + 14, py + 28); ctx.lineTo(px + 17, py + 23);
+          ctx.stroke();
+        }
+        // 작은 들꽃 포인트
+        if (seed === 1 || seed === 7) {
+          ctx.fillStyle = seed === 1 ? '#fef08a' : '#fbcfe8';
+          ctx.beginPath();
+          ctx.arc(px + 26, py + 14, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(px + 26, py + 14, 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
   }
 
-  // 2. 오브젝트
+  // 2. 아기자기한 마을 건축물 & 자연 오브젝트 렌더링
   obstacles.forEach(obs => {
     const px = obs.x * TILE_SIZE;
     const py = obs.y * TILE_SIZE;
 
-    if (obs.type === 'building') {
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(px + 6, py + 6, 12, 10);
-      ctx.fillRect(px + 22, py + 6, 12, 10);
-      ctx.fillRect(px + 6, py + 22, 12, 12);
-      ctx.fillRect(px + 22, py + 22, 12, 12);
-    } else if (obs.type === 'tree') {
-      ctx.fillStyle = '#15803d';
+    // 바닥 그림자 공통
+    ctx.fillStyle = 'rgba(25, 45, 20, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(px + 20, py + 36, 17, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 붉은 박공지붕 목조 주택 / 공방
+    if (obs.type === 'building' || obs.type === 'fireplace') {
+      // 크림색 회벽 몸체
+      ctx.fillStyle = '#faedcd';
+      ctx.strokeStyle = '#7f5539';
+      ctx.lineWidth = 1.5;
+      drawRoundedRect(ctx, px + 3, py + 14, 34, 24, 3);
+      ctx.fill(); ctx.stroke();
+
+      // 목조 기둥 장식
+      ctx.fillStyle = '#9c6644';
+      ctx.fillRect(px + 5, py + 14, 3, 24);
+      ctx.fillRect(px + 32, py + 14, 3, 24);
+
+      // 따뜻한 테라코타 지붕
+      const roofGrad = ctx.createLinearGradient(px, py, px, py + 18);
+      roofGrad.addColorStop(0, '#bc4749');
+      roofGrad.addColorStop(1, '#8c2f39');
+      ctx.fillStyle = roofGrad;
       ctx.beginPath();
-      ctx.arc(px + 20, py + 18, 14, 0, Math.PI * 2);
+      ctx.moveTo(px + 20, py - 2);
+      ctx.lineTo(px + 39, py + 16);
+      ctx.lineTo(px + 1, py + 16);
+      ctx.closePath();
       ctx.fill();
-      ctx.fillStyle = '#78350f';
-      ctx.fillRect(px + 17, py + 24, 6, 14);
-    } else if (obs.type === 'bench') {
-      ctx.fillStyle = '#b45309';
-      ctx.fillRect(px + 6, py + 18, 28, 8);
-      ctx.fillStyle = '#475569';
-      ctx.fillRect(px + 8, py + 26, 4, 6);
-      ctx.fillRect(px + 28, py + 26, 4, 6);
-    } else if (obs.type === 'street_lamp') {
-      ctx.fillStyle = '#64748b';
-      ctx.fillRect(px + 18, py + 6, 4, 30);
+      ctx.stroke();
+
+      // 불 켜진 아치형 창문
+      ctx.fillStyle = '#fde047';
+      drawRoundedRect(ctx, px + 11, py + 20, 7, 9, 3);
+      ctx.fill(); ctx.stroke();
+      drawRoundedRect(ctx, px + 22, py + 20, 7, 9, 3);
+      ctx.fill(); ctx.stroke();
+    }
+    // 베이커리 카페
+    else if (obs.type === 'cafe' || obs.type === 'armchair' || obs.type === 'tea_table') {
+      ctx.fillStyle = '#fefae0';
+      ctx.strokeStyle = '#606c38';
+      ctx.lineWidth = 1.5;
+      drawRoundedRect(ctx, px + 3, py + 12, 34, 26, 4);
+      ctx.fill(); ctx.stroke();
+
+      // 초록 & 흰색 스트라이프 차양(어닝)
+      for (let i = 0; i < 4; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#2d6a4f' : '#ffffff';
+        ctx.fillRect(px + 3 + i * 8.5, py + 10, 8.5, 7);
+      }
+
+      // 따뜻한 유리창
+      ctx.fillStyle = '#ffedd5';
+      ctx.fillRect(px + 8, py + 21, 24, 12);
+      ctx.fillStyle = '#2d6a4f';
+      ctx.font = 'bold 9px "DungGeunMo"';
+      ctx.textAlign = 'center';
+      ctx.fillText('CAFE', px + 20, py + 30);
+    }
+    // 잡화점 상점
+    else if (obs.type === 'convenience' || obs.type === 'bookshelf') {
+      ctx.fillStyle = '#e0f2fe';
+      ctx.strokeStyle = '#0369a1';
+      ctx.lineWidth = 1.5;
+      drawRoundedRect(ctx, px + 3, py + 12, 34, 26, 4);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#0284c7';
+      drawRoundedRect(ctx, px + 2, py + 7, 36, 8, 3);
+      ctx.fill();
+
       ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 9px "DungGeunMo"';
+      ctx.textAlign = 'center';
+      ctx.fillText('SHOP', px + 20, py + 14);
+
+      ctx.fillStyle = '#bae6fd';
+      ctx.fillRect(px + 8, py + 20, 24, 14);
+    }
+    // 클래식 기차역 / 정류장 아치
+    else if (obs.type === 'subway' || obs.type === 'bus_stop' || obs.type === 'snow_window') {
+      ctx.fillStyle = '#d4a373';
+      ctx.strokeStyle = '#7f5539';
+      ctx.lineWidth = 1.5;
+      drawRoundedRect(ctx, px + 4, py + 8, 32, 30, 6);
+      ctx.fill(); ctx.stroke();
+
+      // 아치형 입구
+      ctx.fillStyle = '#283618';
       ctx.beginPath();
-      ctx.arc(px + 20, py + 8, 6, 0, Math.PI * 2);
+      ctx.arc(px + 20, py + 26, 9, Math.PI, 0);
+      ctx.lineTo(px + 29, py + 38);
+      ctx.lineTo(px + 11, py + 38);
+      ctx.closePath();
       ctx.fill();
-    } else if (obs.type === 'mentor_npc') {
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+
+      // 시계탑 장식
+      ctx.fillStyle = '#fefae0';
       ctx.beginPath();
-      ctx.ellipse(px + 20, py + 34, 12, 4, 0, 0, Math.PI * 2);
+      ctx.arc(px + 20, py + 13, 4.5, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+    }
+    // 자전거 대여소
+    else if (obs.type === 'ttareungi') {
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(px + 12, py + 28, 6, 0, Math.PI * 2);
+      ctx.arc(px + 28, py + 28, 6, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.moveTo(px + 12, py + 28);
+      ctx.lineTo(px + 20, py + 19);
+      ctx.lineTo(px + 28, py + 28);
+      ctx.stroke();
+    }
+    // 풍성하고 입체적인 수채화 나무
+    else if (obs.type === 'tree' || obs.type === 'xmas_tree') {
+      // 나무 기둥
+      ctx.fillStyle = '#7f5539';
+      ctx.fillRect(px + 16, py + 22, 8, 15);
+
+      // 3단 구름형 잎사귀 군집
+      const sway = Math.sin(time * 0.002 + px) * 1.2;
+      ctx.fillStyle = '#2d6a4f';
+      ctx.beginPath();
+      ctx.arc(px + 13 + sway, py + 19, 10, 0, Math.PI * 2);
+      ctx.arc(px + 27 + sway, py + 19, 10, 0, Math.PI * 2);
       ctx.fill();
+
+      ctx.fillStyle = '#40916c';
+      ctx.beginPath();
+      ctx.arc(px + 20 + sway, py + 12, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 햇살 받는 상단 하이라이트 잎
+      ctx.fillStyle = '#74c69d';
+      ctx.beginPath();
+      ctx.arc(px + 17 + sway, py + 9, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // 원목 공원 벤치
+    else if (obs.type === 'bench' || obs.type === 'firewood') {
+      ctx.fillStyle = '#9c6644';
+      ctx.strokeStyle = '#582f0e';
+      ctx.lineWidth = 1.2;
+      drawRoundedRect(ctx, px + 5, py + 16, 30, 7, 2);
+      ctx.fill(); ctx.stroke();
+      drawRoundedRect(ctx, px + 4, py + 23, 32, 5, 2);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(px + 8, py + 28, 3, 6);
+      ctx.fillRect(px + 29, py + 28, 3, 6);
+    }
+    // 따뜻한 황금빛 앤틱 가로등
+    else if (obs.type === 'street_lamp' || obs.type === 'lamp_pole') {
+      // 빛 번짐 후광
+      const glow = ctx.createRadialGradient(px + 20, py + 9, 2, px + 20, py + 9, 22);
+      glow.addColorStop(0, 'rgba(254, 240, 138, 0.75)');
+      glow.addColorStop(1, 'rgba(254, 240, 138, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(px + 20, py + 9, 22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 주철 기둥
       ctx.fillStyle = '#1e293b';
-      ctx.fillRect(px + 10, py + 16, 20, 18);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(px + 19, py + 18, 2, 10);
-      ctx.fillStyle = '#ffdfba';
-      ctx.fillRect(px + 13, py + 6, 14, 10);
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(px + 11, py + 4, 18, 5);
+      ctx.fillRect(px + 18.5, py + 10, 3, 26);
+      ctx.fillRect(px + 15, py + 34, 10, 3);
+
+      // 등불 갓
+      ctx.fillStyle = '#fef08a';
+      ctx.strokeStyle = '#ca8a04';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(px + 20, py + 9, 5.5, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+    }
+    // 아기자기한 꽃마차 / 상점 마차
+    else if (obs.type === 'foodtruck' || obs.type === 'gift_box') {
+      ctx.fillStyle = '#f43f5e';
+      ctx.strokeStyle = '#881337';
+      ctx.lineWidth = 1.2;
+      drawRoundedRect(ctx, px + 4, py + 10, 32, 22, 5);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#fff1f2';
+      drawRoundedRect(ctx, px + 8, py + 14, 18, 10, 2);
+      ctx.fill();
+
+      // 나무 수레바퀴
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.arc(px + 12, py + 33, 4.5, 0, Math.PI * 2);
+      ctx.arc(px + 28, py + 33, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // 꽃밭 화단
+    else if (obs.type === 'flowerbed' || obs.type === 'garland' || obs.type === 'rudolph_statue') {
+      ctx.fillStyle = '#b08968';
+      drawRoundedRect(ctx, px + 3, py + 16, 34, 18, 5);
+      ctx.fill();
+      ctx.fillStyle = '#52b788';
+      drawRoundedRect(ctx, px + 5, py + 14, 30, 16, 5);
+      ctx.fill();
+
+      // 알록달록 꽃송이
+      const colors = ['#f43f5e', '#facc15', '#c084fc', '#fb923c'];
+      for (let i = 0; i < 4; i++) {
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.arc(px + 10 + i * 6.5, py + 21 + (i % 2) * 3, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // 마을 안내자 NPC
+    else if (obs.type === 'mentor_npc' || obs.type === 'santa_npc') {
+      drawCharacterSprite(px, py, { x: obs.x, y: obs.y, dir: 'down', character: {} }, true, time);
 
       ctx.font = 'bold 11px "DungGeunMo"';
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#38bdf8';
-      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#fde047';
+      ctx.strokeStyle = '#1e293b';
       ctx.lineWidth = 3;
-      ctx.strokeText('멘토 김과장', px + 20, py - 4);
-      ctx.fillText('멘토 김과장', px + 20, py - 4);
+      ctx.strokeText('마을 안내자', px + 20, py - 8);
+      ctx.fillText('마을 안내자', px + 20, py - 8);
     }
   });
 
-  // 3. 플레이어
+  // 3. 플레이어 캐릭터 렌더링
   const sortedPlayers = Object.values(players).sort((a, b) => a.y - b.y);
   sortedPlayers.forEach(p => {
     const targetX = p.x * TILE_SIZE;
@@ -1560,62 +1988,36 @@ function drawGame() {
     const ry = p.renderY;
     const c = p.character || {};
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(rx + 20, ry + 36, 12, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
+    drawCharacterSprite(rx, ry, p, false, time);
 
-    ctx.fillStyle = p.color || '#2563eb';
-    ctx.fillRect(rx + 10, ry + 18, 20, 18);
-
-    ctx.fillStyle = '#ffdfba';
-    ctx.fillRect(rx + 12, ry + 6, 16, 14);
-
-    ctx.fillStyle = '#1e1b18';
-    ctx.fillRect(rx + 10, ry + 4, 20, 6);
-    ctx.fillRect(rx + 17, ry + 1, 6, 4);
-
-    ctx.fillStyle = '#000';
-    if (p.dir === 'down') {
-      ctx.fillRect(rx + 15, ry + 13, 2, 3);
-      ctx.fillRect(rx + 23, ry + 13, 2, 3);
-    } else if (p.dir === 'left') {
-      ctx.fillRect(rx + 13, ry + 13, 2, 3);
-      ctx.fillRect(rx + 18, ry + 13, 2, 3);
-    } else if (p.dir === 'right') {
-      ctx.fillRect(rx + 20, ry + 13, 2, 3);
-      ctx.fillRect(rx + 25, ry + 13, 2, 3);
-    } else if (p.dir === 'up') {
-      ctx.fillStyle = '#1e1b18';
-      ctx.fillRect(rx + 11, ry + 6, 18, 12);
-    }
-
+    // 머리 위 인생 스펙 칭호
     const wealthTitle = getStatTitle('wealth', c.wealth || 0);
     const eduTitle = getStatTitle('education', c.education || 0);
     const mainTitle = (c.wealth >= 10 || c.education >= 15) ? `[${wealthTitle}]` : `[${eduTitle}]`;
 
     ctx.font = 'bold 11px "DungGeunMo"';
     ctx.textAlign = 'center';
-    ctx.fillStyle = (c.wealth >= 15 || c.education >= 20) ? '#f43f5e' : '#facc15';
-    ctx.strokeStyle = '#000';
+    ctx.fillStyle = (c.wealth >= 15 || c.education >= 20) ? '#fb7185' : '#fde047';
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.lineWidth = 3;
-    ctx.strokeText(mainTitle, rx + 20, ry - 18);
-    ctx.fillText(mainTitle, rx + 20, ry - 18);
+    ctx.strokeText(mainTitle, rx + 20, ry - 20);
+    ctx.fillText(mainTitle, rx + 20, ry - 20);
 
+    // 닉네임
     ctx.font = '12px "DungGeunMo"';
     ctx.textAlign = 'center';
-    ctx.fillStyle = (p.id === myId) ? '#67e8f9' : '#ffffff';
-    ctx.strokeStyle = '#000';
+    ctx.fillStyle = (p.id === myId) ? '#7dd3fc' : '#ffffff';
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.lineWidth = 3;
-    ctx.strokeText(p.name, rx + 20, ry - 5);
-    ctx.fillText(p.name, rx + 20, ry - 5);
+    ctx.strokeText(p.name, rx + 20, ry - 7);
+    ctx.fillText(p.name, rx + 20, ry - 7);
 
     if (p.chatText) {
-      drawSpeechBubble(rx + 20, ry - 30, p.chatText);
+      drawSpeechBubble(rx + 20, ry - 32, p.chatText);
     }
   });
 
-  // 4. 360도 전신 축복 오라 방출 이펙트
+  // 4. 360도 전신 축복 오라 폭발 렌더링
   burstEffects = burstEffects.filter(eff => {
     const elapsed = time - eff.born;
     if (elapsed > eff.duration) return false;
@@ -1629,7 +2031,6 @@ function drawGame() {
     ctx.shadowColor = eff.glowColor;
     ctx.shadowBlur = 18 * (1 - progress);
 
-    // 2중 에너지 링
     ctx.beginPath();
     ctx.arc(0, 0, eff.maxRadius * progress, 0, Math.PI * 2);
     ctx.strokeStyle = eff.primaryColor;
@@ -1643,7 +2044,6 @@ function drawGame() {
     ctx.lineWidth = 2 * (1 - progress);
     ctx.stroke();
 
-    // 360도 회전 별빛 파티클
     eff.particles.forEach(pt => {
       ctx.fillStyle = pt.color;
       ctx.globalAlpha = alpha;
@@ -1666,33 +2066,58 @@ function drawGame() {
     return true;
   });
 
+  // 5. 바람에 흩날리는 꽃잎 & 따스한 햇살 입자
+  ctx.save();
+  ambientPetals.forEach(pt => {
+    pt.x += pt.vx + Math.sin(time * 0.001 + pt.phase) * 0.25;
+    pt.y += pt.vy;
+    if (pt.x > canvas.width) pt.x = -10;
+    if (pt.y > canvas.height) pt.y = -10;
+
+    if (pt.type === 'petal') {
+      ctx.fillStyle = 'rgba(255, 228, 230, 0.75)';
+      ctx.beginPath();
+      ctx.ellipse(pt.x, pt.y, pt.r, pt.r * 0.6, time * 0.002 + pt.phase, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = 'rgba(254, 249, 195, 0.55)';
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.r * 0.9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // 상단 좌측에서 비치는 따스한 햇살 그라데이션 필터
+  const sunGrad = ctx.createRadialGradient(0, 0, 40, 0, 0, 500);
+  sunGrad.addColorStop(0, 'rgba(254, 243, 199, 0.16)');
+  sunGrad.addColorStop(1, 'rgba(254, 243, 199, 0)');
+  ctx.fillStyle = sunGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
   requestAnimationFrame(drawGame);
 }
 
 function drawSpeechBubble(cx, cy, text) {
   ctx.font = '13px "DungGeunMo"';
   const textWidth = ctx.measureText(text).width;
-  const bw = Math.max(textWidth + 14, 30);
-  const bh = 22;
+  const bw = Math.max(textWidth + 16, 34);
+  const bh = 24;
   const bx = cx - bw / 2;
   const by = cy - bh;
 
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(bx, by, bw, bh);
-  ctx.strokeStyle = '#38bdf8';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(bx, by, bw, bh);
-
-  ctx.fillStyle = '#0f172a';
-  ctx.beginPath();
-  ctx.moveTo(cx - 4, by + bh);
-  ctx.lineTo(cx + 4, by + bh);
-  ctx.lineTo(cx, by + bh + 4);
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 251, 235, 0.95)';
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 1.8;
+  drawRoundedRect(ctx, bx, by, bw, bh, 8);
   ctx.fill();
+  ctx.stroke();
 
-  ctx.fillStyle = '#f8fafc';
+  ctx.fillStyle = '#451a03';
   ctx.textAlign = 'center';
-  ctx.fillText(text, cx, by + 15);
+  ctx.fillText(text, cx, by + 16);
+  ctx.restore();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
