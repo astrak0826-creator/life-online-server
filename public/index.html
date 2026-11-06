@@ -3,17 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>인생온라인</title>
+<title>인생온라인 - 구릿빛노루 기숙사</title>
 <script src="/socket.io/socket.io.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&family=DungGeunMo&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;900&family=DungGeunMo&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-color: #07090e;
-    --game-border: #223249;
-    --ui-gold: #f59e0b;
-    --ui-blue: #38bdf8;
-    --ui-emerald: #10b981;
-    --ui-purple: #a855f7;
+    --bg-color: #050406;
+    --panel-bg: #0c090d;
+    --game-border: #5c1d24;
+    --copper-gold: #d97706;
+    --crimson: #dc2626;
+    --eva-orange: #f59e0b;
+    --eva-neon: #10b981;
+    --eva-cyan: #06b6d4;
   }
   * { 
     box-sizing: border-box; 
@@ -23,10 +25,10 @@
   }
   body {
     margin: 0;
-    padding: 6px;
+    padding: 4px;
     background-color: var(--bg-color);
-    color: #f1f5f9;
-    font-family: 'DungGeunMo', monospace;
+    color: #f8fafc;
+    font-family: 'DungGeunMo', 'Pretendard', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -40,63 +42,83 @@
     flex-direction: column;
     align-items: center;
     border: 2px solid var(--game-border);
-    background: #090e17;
-    box-shadow: 0 14px 35px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08);
+    background: var(--panel-bg);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 15px rgba(185, 28, 28, 0.2);
     position: relative;
     max-width: 100%;
     width: 800px;
-    border-radius: 12px;
+    border-radius: 6px;
     overflow: hidden;
   }
 
-  /* 상단 HUD */
+  /* 상단 HUD: 맵을 전혀 가리지 않는 독립 전술 바 */
   .hud-bar {
     width: 100%;
-    background: linear-gradient(180deg, #101a2d 0%, #0a101d 100%);
-    border-bottom: 2px solid #1e293b;
-    padding: 10px 14px;
+    background: linear-gradient(90deg, #160a0e 0%, #240f15 50%, #160a0e 100%);
+    border-bottom: 2px solid #7f1d1d;
+    padding: 8px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 14px;
+    font-size: 13px;
     box-sizing: border-box;
     z-index: 10;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .hud-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hud-dorm-badge {
+    background: #7f1d1d;
+    border: 1px solid var(--eva-orange);
+    color: #fef08a;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
   }
   .hud-nick {
-    color: #38bdf8;
+    color: var(--eva-orange);
     font-weight: bold;
-    letter-spacing: 0.5px;
-    text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
   }
-  .hud-tokens {
+  .hud-chances {
     color: #38bdf8;
     font-weight: bold;
+    font-size: 13px;
+    flex-shrink: 0;
   }
 
-  /* 캔버스 & 채팅창 격리 래퍼 (조작부 침범 원천 방지) */
+  /* 캔버스 & 채팅창 격리 래퍼 */
   .canvas-area {
     position: relative;
     width: 100%;
     max-width: 800px;
     line-height: 0;
     overflow: hidden;
+    background: #090508;
   }
 
   #gameCanvas {
     display: block;
-    background-color: #5a8f56;
     width: 100%;
     max-width: 800px;
     height: auto;
     aspect-ratio: 4 / 3;
+    cursor: pointer;
   }
 
   #chatLog {
     position: absolute;
-    bottom: 8px;
-    left: 8px;
-    width: min(260px, 68%);
-    max-height: 92px;
+    bottom: 6px;
+    left: 6px;
+    width: min(250px, 64%);
+    max-height: 82px;
     overflow-y: hidden;
     pointer-events: none;
     display: flex;
@@ -104,33 +126,32 @@
     justify-content: flex-end;
     gap: 3px;
     z-index: 5;
-    line-height: 1.35;
+    line-height: 1.3;
   }
   .chat-msg {
-    background: rgba(10, 16, 28, 0.78);
-    backdrop-filter: blur(2px);
-    padding: 3px 8px;
-    border-radius: 6px;
+    background: rgba(10, 6, 12, 0.82);
+    padding: 3px 7px;
+    border-radius: 3px;
     font-size: 11px;
-    color: #f8fafc;
-    border-left: 3px solid var(--ui-blue);
-    text-shadow: 1px 1px 1px #000;
+    color: #f1f5f9;
+    border-left: 2px solid var(--eva-orange);
+    text-shadow: 1px 1px 0 #000;
     word-break: break-all;
   }
   .chat-author {
-    color: #fde047;
+    color: var(--eva-orange);
     font-weight: bold;
     margin-right: 4px;
   }
 
-  /* 데스크톱 하단 컨트롤 바 */
+  /* 데스크톱 하단 바 */
   .desktop-bottom-bar {
     width: 100%;
-    background: #0c111c;
-    border-top: 2px solid #1e293b;
-    padding: 8px 14px;
+    background: #0d080b;
+    border-top: 2px solid #451a1c;
+    padding: 8px 12px;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
   }
   .desktop-bottom-bar .chat-box {
@@ -139,16 +160,16 @@
     gap: 6px;
   }
 
-  /* 모바일 통합 컨트롤 패널 (우측 버튼 잘림 방지 최적화) */
+  /* 모바일 통합 컨트롤 패널 */
   .mobile-controller-panel {
     display: none;
     width: 100%;
-    background: radial-gradient(circle at 50% 0%, #111a2e 0%, #070a12 100%);
-    border-top: 2px solid #1c273c;
-    padding: 14px 12px;
+    background: linear-gradient(180deg, #130b10 0%, #080507 100%);
+    border-top: 2px solid #5c1d24;
+    padding: 10px 10px;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     box-sizing: border-box;
   }
 
@@ -156,295 +177,405 @@
   .dpad {
     display: grid;
     grid-template-columns: repeat(3, 42px);
-    grid-template-rows: repeat(3, 42px);
+    grid-template-rows: repeat(2, 44px);
     gap: 4px;
     flex-shrink: 0;
   }
   .dbtn {
-    background: linear-gradient(145deg, #1a2232, #0d121c);
-    border: 1px solid #2a374f;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-    color: #94a3b8;
+    background: linear-gradient(145deg, #221319, #11090c);
+    border: 1px solid #6b212c;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
+    color: #fca5a5;
     font-size: 16px;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 9px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: 0.08s;
     padding: 0;
   }
   .dbtn:active {
-    background: #25334c;
-    color: #38bdf8;
-    transform: translateY(2px) scale(0.96);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.8), inset 0 2px 4px rgba(0,0,0,0.4);
+    background: #4c111b;
+    color: #fef08a;
+    transform: translateY(1px) scale(0.95);
   }
   .dbtn.up { grid-column: 2; grid-row: 1; }
   .dbtn.left { grid-column: 1; grid-row: 2; }
   .dbtn.down { grid-column: 2; grid-row: 2; }
   .dbtn.right { grid-column: 3; grid-row: 2; }
 
-  /* 2x2 기능 버튼 (반응형 너비로 화면 밖 잘림 방지) */
+  /* 모바일 우측 조작부 (상단 기운발산 연타 바 + 하단 2x2 그리드) */
+  .mobile-right-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    max-width: 185px;
+  }
+  .btn-aura-mobile {
+    width: 100%;
+    height: 32px;
+    background: linear-gradient(90deg, #7f1d1d 0%, #b91c1c 50%, #7f1d1d 100%);
+    border: 1px solid #f59e0b;
+    color: #fef08a;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-aura-mobile:active {
+    background: #dc2626;
+    transform: scale(0.96);
+  }
+
   .action-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 50px);
-    gap: 8px;
-    flex: 1;
-    max-width: 156px;
+    grid-template-rows: repeat(2, 36px);
+    gap: 5px;
+    width: 100%;
   }
   .btn-neo {
-    border-radius: 10px;
+    border-radius: 5px;
     font-family: 'DungGeunMo', monospace;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.12s ease;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     padding: 0 4px;
     white-space: nowrap;
   }
-  .btn-neo:active { transform: translateY(2px) scale(0.94); }
+  .btn-neo:active { transform: translateY(1px) scale(0.95); }
 
   .btn-info {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-    border: 1px solid #38bdf8;
-    color: #f0f9ff;
-    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+    background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
+    border: 1px solid #22d3ee;
+    color: #ecfeff;
   }
   .btn-enhance {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
     border: 1px solid #34d399;
     color: #ecfdf5;
-    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
   }
   .btn-rank {
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
     border: 1px solid #fbbf24;
     color: #fffbeb;
-    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
   }
   .btn-chat {
-    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
     border: 1px solid #c084fc;
     color: #faf5ff;
-    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
   }
 
   @media (hover: none) and (pointer: coarse), (max-width: 768px) {
     .desktop-bottom-bar { display: none; }
     .mobile-controller-panel { display: flex; }
     .guide { display: none; }
-    .hud-bar { font-size: 13px; padding: 8px 12px; }
+    .hud-bar { font-size: 12px; padding: 6px 10px; }
+    .hud-dorm-badge { font-size: 10px; padding: 1px 4px; }
   }
 
   input[type="text"], input[type="password"], select {
-    background: #151d2a;
-    border: 1px solid #334155;
+    background: #160d12;
+    border: 1px solid #5c1d24;
     color: #fff;
     padding: 7px 10px;
     font-family: 'DungGeunMo', monospace;
     font-size: 13px;
     outline: none;
-    border-radius: 6px;
+    border-radius: 4px;
     user-select: text;
     -webkit-user-select: text;
   }
   input[type="text"]:focus, input[type="password"]:focus, select:focus {
-    border-color: var(--ui-blue);
+    border-color: var(--eva-orange);
   }
+  button { font-family: 'DungGeunMo', monospace; cursor: pointer; }
 
-  button {
-    font-family: 'DungGeunMo', monospace;
-    cursor: pointer;
-  }
-
-  /* 모달 공통 레이아웃 */
+  /* 모달 공통 */
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(4, 2, 6, 0.88);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 50;
+    padding: 8px;
   }
-  .auth-card, .enhance-modal, .rank-modal, .npc-dialog-box {
-    background: #0d1422;
-    border: 2px solid #223249;
-    border-radius: 10px;
-    box-shadow: 0 12px 35px rgba(0,0,0,0.9);
+  .auth-card, .enhance-modal, .rank-modal, .npc-dialog-box, .info-modal-card {
+    background: #0e090c;
+    border: 2px solid #7f1d1d;
+    border-radius: 6px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.95), 0 0 20px rgba(220, 38, 38, 0.15);
   }
-  .auth-card { padding: 22px; width: 90%; max-width: 360px; text-align: center; }
-  .auth-card h2 { color: var(--ui-blue); margin: 0 0 12px; font-size: 18px; }
+  .auth-card { padding: 20px; width: 100%; max-width: 350px; text-align: center; }
+  .auth-card h2 { color: var(--eva-orange); margin: 0 0 12px; font-size: 18px; }
   .auth-card input, .auth-card select { width: 100%; margin-bottom: 8px; }
   .auth-tabs { display: flex; margin-bottom: 12px; gap: 4px; }
-  .auth-tabs button { flex: 1; background: #1a2333; border: 1px solid #334155; color: #94a3b8; font-size: 12px; padding: 6px 4px; border-radius: 4px; }
-  .auth-tabs button.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
+  .auth-tabs button { flex: 1; background: #1c1015; border: 1px solid #451a1c; color: #94a3b8; font-size: 12px; padding: 6px 4px; border-radius: 3px; }
+  .auth-tabs button.active { background: #7f1d1d; border-color: var(--eva-orange); color: #fef08a; }
   .auth-msg { font-size: 12px; color: #f87171; margin-top: 8px; min-height: 16px; }
   .auth-msg.success { color: #4ade80; }
 
-  /* 내 정보 모달 카드 */
-  .info-stat-card {
-    background: #141c2c;
-    border: 1px solid #223249;
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 12px;
+  /* [개편] 정육각형 레이더 차트 스탯 모달 */
+  .info-modal-card {
+    width: 100%;
+    max-width: 430px;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 14px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .info-header-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #451a1c;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+  }
+  .info-title-text {
+    color: var(--eva-orange);
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .hex-canvas-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2px 0 8px;
+  }
+  .info-stat-grid {
+    width: 100%;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    font-size: 13px;
+    gap: 6px;
+    margin-bottom: 12px;
   }
   .info-stat-item {
-    background: #0b111c;
-    padding: 8px 10px;
+    background: #160d12;
+    border: 1px solid #3b161c;
+    padding: 6px 8px;
     border-radius: 4px;
-    border: 1px solid #1a2536;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
-  .info-stat-name { color: #94a3b8; font-size: 11px; margin-bottom: 2px; }
-  .info-stat-val { color: var(--ui-gold); font-weight: bold; }
+  .info-stat-name { color: #fca5a5; font-size: 11px; display: flex; justify-content: space-between; }
+  .info-stat-val { color: #fef08a; font-size: 12px; font-weight: bold; }
+
+  /* 구석에 작게 배치된 로그아웃 / 캐릭삭제 컨트롤 */
+  .info-footer-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+  }
+  .corner-account-btns {
+    display: flex;
+    gap: 4px;
+  }
+  .btn-tiny-corner {
+    padding: 3px 6px;
+    font-size: 10px;
+    border-radius: 3px;
+    opacity: 0.75;
+  }
+  .btn-tiny-corner:hover { opacity: 1; }
 
   /* 6대 스펙 강화 모달 */
   .enhance-modal {
-    padding: 16px;
-    width: 95%;
-    max-width: 580px;
-    max-height: 90vh;
+    padding: 14px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 92vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
   }
-  .enhance-title { color: var(--ui-gold); font-size: 18px; margin: 0 0 10px; text-align: center; }
+  .enhance-title { color: var(--eva-orange); font-size: 17px; margin: 0 0 10px; text-align: center; }
   .stat-select-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 5px;
     margin-bottom: 10px;
   }
   @media (max-width: 480px) {
     .stat-select-grid { grid-template-columns: repeat(2, 1fr); }
   }
   .stat-tab-btn {
-    background: #172030;
-    border: 1px solid #2a3b55;
-    color: #94a3b8;
-    padding: 8px 4px;
-    font-size: 12px;
+    background: #190e13;
+    border: 1px solid #451a1c;
+    color: #cbd5e1;
+    padding: 7px 4px;
+    font-size: 11px;
     border-radius: 4px;
   }
   .stat-tab-btn.active {
-    background: #0284c7;
-    border-color: #38bdf8;
-    color: #fff;
+    background: #7f1d1d;
+    border-color: var(--eva-orange);
+    color: #fef08a;
     font-weight: bold;
   }
   .enhance-detail-box {
-    background: #131a28;
-    border: 1px solid #24334a;
-    border-radius: 6px;
-    padding: 14px;
+    background: #140b0f;
+    border: 1px solid #5c1d24;
+    border-radius: 5px;
+    padding: 12px;
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
-  .cur-stat-val { font-size: 24px; color: var(--ui-gold); font-weight: bold; margin: 4px 0; }
-  .cur-stat-desc { font-size: 14px; color: #38bdf8; margin-bottom: 8px; }
-  .cur-stat-rule { font-size: 12px; color: #cbd5e1; line-height: 1.5; background: #0b1019; padding: 8px; border-radius: 4px; }
+  .cur-stat-val { font-size: 22px; color: var(--eva-orange); font-weight: bold; margin: 4px 0; }
+  .cur-stat-desc { font-size: 13px; color: #38bdf8; margin-bottom: 6px; }
+  .cur-stat-rule { font-size: 11px; color: #e2e8f0; line-height: 1.45; background: #090507; padding: 7px; border-radius: 4px; }
   .enhance-result-box {
-    min-height: 28px;
-    font-size: 14px;
+    min-height: 26px;
+    font-size: 13px;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .enhance-result-box.success { color: #4ade80; text-shadow: 0 0 8px #22c55e; }
-  .enhance-result-box.fail { color: #f87171; text-shadow: 0 0 8px #ef4444; }
+  .enhance-result-box.fail { color: #f87171; }
   .enhance-result-box.catastrophe { color: #ff0055; animation: blink 0.5s infinite; }
   @keyframes blink { 50% { opacity: 0.3; } }
 
-  /* 랭킹 모달 */
+  /* [가독성 대폭 개선] 랭킹 모달 */
   .rank-modal {
-    padding: 16px;
-    width: 95%;
-    max-width: 620px;
-    max-height: 85vh;
+    padding: 14px;
+    width: 100%;
+    max-width: 580px;
+    max-height: 88vh;
     display: flex;
     flex-direction: column;
   }
   .rank-title {
-    color: var(--ui-gold);
-    font-size: 18px;
+    color: var(--eva-orange);
+    font-size: 17px;
     text-align: center;
-    margin: 0 0 12px;
-    border-bottom: 1px solid #223249;
-    padding-bottom: 8px;
+    margin: 0 0 6px;
   }
-  .rank-header {
-    display: grid;
-    grid-template-columns: 45px 95px repeat(6, 1fr) 50px;
-    padding: 6px 8px;
-    background: #141c2c;
-    color: var(--ui-blue);
-    font-size: 11px;
-    font-weight: bold;
-    border: 1px solid #223249;
+  .rank-sub-hint {
     text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 8px;
   }
   .rank-list {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid #223249;
-    border-top: none;
-    background: #090e17;
+    border: 1px solid #451a1c;
+    background: #080507;
+    border-radius: 4px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
-  .rank-item {
-    display: grid;
-    grid-template-columns: 45px 95px repeat(6, 1fr) 50px;
-    padding: 6px 8px;
-    font-size: 11px;
-    border-bottom: 1px solid #141c2c;
+  .rank-card {
+    background: #140b10;
+    border: 1px solid #33151a;
+    border-radius: 5px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: 0.12s;
+  }
+  .rank-card:hover { border-color: var(--eva-orange); background: #1d1017; }
+  .rank-card.top1 { border-color: #facc15; background: rgba(250, 204, 21, 0.08); }
+  .rank-card.top2 { border-color: #cbd5e1; }
+  .rank-card.top3 { border-color: #d97706; }
+  .rank-card-top {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    text-align: center;
+    margin-bottom: 6px;
   }
-  .rank-item:nth-child(even) { background: rgba(255,255,255,0.02); }
-  .rank-item.top1 { color: #facc15; font-weight: bold; background: rgba(250,204,21,0.08); }
-  .rank-item.top2 { color: #e2e8f0; font-weight: bold; }
-  .rank-item.top3 { color: #fdba74; font-weight: bold; }
+  .rank-user-ident {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #f8fafc;
+  }
+  .rank-total-badge {
+    background: #451a03;
+    border: 1px solid var(--eva-orange);
+    color: #fef08a;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .rank-stat-pills {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+  }
+  @media (max-width: 480px) {
+    .rank-stat-pills {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .rank-pill {
+    background: #0b0609;
+    border: 1px solid #291217;
+    border-radius: 3px;
+    padding: 3px 4px;
+    font-size: 11px;
+    text-align: center;
+    color: #cbd5e1;
+    white-space: nowrap;
+  }
+  .rank-pill b { color: #38bdf8; margin-left: 2px; }
 
   /* NPC 모달 */
-  .npc-dialog-box { padding: 16px; width: 90%; max-width: 480px; }
+  .npc-dialog-box { padding: 16px; width: 100%; max-width: 460px; }
   .npc-dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #223249;
+    border-bottom: 1px solid #5c1d24;
     padding-bottom: 8px;
     margin-bottom: 12px;
   }
-  .npc-name-tag { color: var(--ui-blue); font-size: 15px; font-weight: bold; }
+  .npc-name-tag { color: var(--eva-orange); font-size: 15px; font-weight: bold; }
   .npc-dialog-body { display: flex; gap: 14px; align-items: center; min-height: 80px; }
   .npc-portrait {
     width: 60px;
     height: 60px;
-    background: #162030;
-    border: 2px solid var(--ui-blue);
+    background: #1a0d12;
+    border: 2px solid var(--eva-orange);
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 6px;
-    font-size: 32px;
+    font-size: 28px;
+    flex-shrink: 0;
   }
-  .npc-text-content { flex: 1; font-size: 14px; line-height: 1.6; color: #f8fafc; white-space: pre-line; }
+  .npc-text-content { flex: 1; font-size: 13px; line-height: 1.6; color: #f8fafc; white-space: pre-line; }
 
   .hidden { display: none !important; }
-  .guide { margin-top: 10px; font-size: 13px; color: #64748b; text-align: center; }
+  .guide { margin-top: 8px; font-size: 12px; color: #94a3b8; text-align: center; }
 </style>
 </head>
 <body>
@@ -452,7 +583,7 @@
 <!-- 인증 모달 -->
 <div id="authModal" class="modal-overlay">
   <div class="auth-card">
-    <h2 id="modalTitle">인생온라인</h2>
+    <h2 id="modalTitle">인생온라인 : 구릿빛노루</h2>
     <div class="auth-tabs">
       <button id="tabLogin" class="active">로그인</button>
       <button id="tabRegister">회원가입</button>
@@ -462,19 +593,19 @@
     <div id="loginFormSection">
       <input type="text" id="authUsername" placeholder="아이디" maxlength="15">
       <input type="password" id="authPassword" placeholder="비밀번호" maxlength="20">
-      <button id="authSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#0284c7; border:none; border-radius:6px; color:#fff; font-weight:bold;">접속하기</button>
+      <button id="authSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#991b1b; border:1px solid #f59e0b; border-radius:4px; color:#fef08a; font-weight:bold;">기숙사 진입하기</button>
     </div>
 
     <div id="registerFormSection" class="hidden">
       <input type="text" id="regUsername" placeholder="아이디 (3자 이상)" maxlength="15">
       <input type="password" id="regPassword" placeholder="비밀번호 (4자 이상)" maxlength="20">
       <input type="text" id="regNickname" placeholder="닉네임 (최대 8자)" maxlength="8">
-      <div style="text-align:left; font-size:11px; color:#94a3b8; margin:4px 0 2px;">성별 선택</div>
+      <div style="text-align:left; font-size:11px; color:#fca5a5; margin:4px 0 2px;">성별 선택</div>
       <select id="regGender">
         <option value="male">남성</option>
         <option value="female">여성</option>
       </select>
-      <div style="text-align:left; font-size:11px; color:#94a3b8; margin:4px 0 2px;">분실 대비 보안 질문</div>
+      <div style="text-align:left; font-size:11px; color:#fca5a5; margin:4px 0 2px;">분실 대비 보안 질문</div>
       <select id="regSecurityQuestion">
         <option value="내가 가장 소중하게 생각하는 것은?">내가 가장 소중하게 생각하는 것은?</option>
         <option value="내가 졸업한 초등학교 이름은?">내가 졸업한 초등학교 이름은?</option>
@@ -482,7 +613,7 @@
         <option value="나만의 비밀 암호 단어는?">나만의 비밀 암호 단어는?</option>
       </select>
       <input type="text" id="regSecurityAnswer" placeholder="보안 질문 답변" maxlength="20">
-      <button id="regSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#059669; border:none; border-radius:6px; color:#fff; font-weight:bold;">캐릭터 생성</button>
+      <button id="regSubmitBtn" style="width:100%; padding: 10px; margin-top: 4px; background:#065f46; border:1px solid #34d399; border-radius:4px; color:#fff; font-weight:bold;">입학 등록 완료</button>
     </div>
 
     <div id="recoveryFormSection" class="hidden">
@@ -493,63 +624,74 @@
       <div id="findIdBox">
         <input type="text" id="findIdNick" placeholder="가입 시 등록한 닉네임" maxlength="8">
         <input type="text" id="findIdAnswer" placeholder="보안 질문 답변" maxlength="20">
-        <button id="findIdBtn" style="width:100%; padding: 8px; background:#1e293b; border:1px solid #334155; color:#fff;">아이디 확인</button>
+        <button id="findIdBtn" style="width:100%; padding: 8px; background:#1c1015; border:1px solid #5c1d24; color:#fff;">아이디 확인</button>
       </div>
       <div id="resetPwBox" class="hidden">
         <input type="text" id="resetPwUsername" placeholder="내 아이디" maxlength="15">
         <input type="text" id="resetPwAnswer" placeholder="보안 질문 답변" maxlength="20">
         <input type="password" id="resetPwNewPassword" placeholder="새로운 비밀번호" maxlength="20">
-        <button id="resetPwBtn" style="width:100%; padding: 8px; background:#1e293b; border:1px solid #334155; color:#fff;">비밀번호 변경</button>
+        <button id="resetPwBtn" style="width:100%; padding: 8px; background:#1c1015; border:1px solid #5c1d24; color:#fff;">비밀번호 변경</button>
       </div>
     </div>
     <div id="authMsg" class="auth-msg"></div>
   </div>
 </div>
 
-<!-- 내 정보 모달 (로그아웃 / 캐릭터 탈퇴 통합) -->
+<!-- [개편] 정육각형 레이더 차트 스탯창 (나 & 상대방 겸용, 단축키 S) -->
 <div id="infoModal" class="modal-overlay hidden">
-  <div class="auth-card" style="max-width: 420px; text-align: left;">
-    <h3 style="color:var(--ui-blue); margin:0 0 14px; text-align:center; font-size:17px;">📋 내 캐릭터 상세 정보</h3>
-    <div class="info-stat-card" id="infoStatCardList"></div>
-    <div style="background:#090e17; border:1px dashed #334155; padding:8px 12px; border-radius:6px; font-size:12px; color:#94a3b8; margin-bottom:14px; text-align:center;">
-      계정 보호를 위해 로그아웃 및 탈퇴는 이 창에서만 진행됩니다.
+  <div class="info-modal-card">
+    <div class="info-header-bar">
+      <span class="info-title-text" id="infoModalTitle">📊 육각형 스펙 분석</span>
+      <span id="infoTotalScoreBadge" style="background:#7f1d1d; border:1px solid #f59e0b; color:#fef08a; font-size:12px; padding:2px 8px; border-radius:4px;">종합 100점</span>
     </div>
-    <div style="display:flex; gap:6px;">
-      <button id="infoCloseBtn" style="flex:1; padding:8px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px;">닫기</button>
-      <button id="logoutBtn" style="flex:1; padding:8px; background:#334155; border:1px solid #475569; color:#f1f5f9; border-radius:6px;">로그아웃</button>
-      <button id="deleteAccountBtn" style="flex:1; padding:8px; background:#7f1d1d; border:1px solid #ef4444; color:#fca5a5; border-radius:6px;">캐릭삭제</button>
+
+    <!-- 정육각형 6축 레이더 그래프 캔버스 -->
+    <div class="hex-canvas-wrap">
+      <canvas id="hexRadarCanvas" width="260" height="230"></canvas>
+    </div>
+
+    <!-- 6대 스펙 & 신체 부위 진화 현황 -->
+    <div class="info-stat-grid" id="infoStatCardList"></div>
+
+    <!-- 하단 닫기 및 구석 소형 로그아웃/캐릭삭제 버튼 -->
+    <div class="info-footer-row">
+      <button id="infoCloseBtn" style="padding:7px 18px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:12px;">닫기 (S / ESC)</button>
+      <div class="corner-account-btns" id="myAccountCornerBtns">
+        <button id="logoutBtn" class="btn-tiny-corner" style="background:#1f2937; border:1px solid #4b5563; color:#cbd5e1;">로그아웃</button>
+        <button id="deleteAccountBtn" class="btn-tiny-corner" style="background:#450a0a; border:1px solid #dc2626; color:#fca5a5;">캐릭삭제</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- 6대 인생 스펙 강화 모달 -->
+<!-- 6대 스펙 강화 모달 -->
 <div id="enhanceModal" class="modal-overlay hidden">
   <div class="enhance-modal">
-    <h3 class="enhance-title">🌟 인생 스펙 강화 센터 🌟</h3>
+    <h3 class="enhance-title">⚡ 구릿빛노루 육체·마도 연성소 ⚡</h3>
     <div class="stat-select-grid">
-      <button class="stat-tab-btn active" data-stat="education">🎓 학력</button>
-      <button class="stat-tab-btn" data-stat="appearance">✨ 외모</button>
-      <button class="stat-tab-btn" data-stat="wealth">💰 재력</button>
-      <button class="stat-tab-btn" data-stat="iq">🧠 지능</button>
-      <button class="stat-tab-btn" data-stat="stamina">💪 체력</button>
-      <button class="stat-tab-btn" data-stat="personality">🍀 성격</button>
+      <button class="stat-tab-btn active" data-stat="education">🎓 학력 (오른팔)</button>
+      <button class="stat-tab-btn" data-stat="appearance">✨ 외모 (오른다리)</button>
+      <button class="stat-tab-btn" data-stat="wealth">💰 재력 (왼팔)</button>
+      <button class="stat-tab-btn" data-stat="iq">🧠 지능 (머리)</button>
+      <button class="stat-tab-btn" data-stat="stamina">💪 체력 (몸통)</button>
+      <button class="stat-tab-btn" data-stat="personality">🍀 성격 (왼다리)</button>
     </div>
 
     <div class="enhance-detail-box">
-      <div id="curStatName" style="font-size:13px; color:#94a3b8;">학력 스탯 현황</div>
+      <div id="curStatName" style="font-size:12px; color:#fca5a5;">학력 스탯 현황 (오른쪽 팔 진화)</div>
       <div id="curStatLevel" class="cur-stat-val">+0강</div>
       <div id="curStatTitle" class="cur-stat-desc">문맹</div>
       <div id="curStatRule" class="cur-stat-rule">성공 1% (+1강) | 유지 99% (하락 없음)</div>
-      <div style="margin-top:8px; font-size:13px; color:var(--ui-blue);">
-        소모 토큰: 1개 (보유: <span id="modalTokenCount">120</span>/120)
+      <div style="margin-top:8px; font-size:13px; color:#38bdf8;">
+        소모 기회: 1회 (남은 기회: <span id="modalChanceCount">120</span>/120)
       </div>
     </div>
 
-    <div id="enhanceResultMsg" class="enhance-result-box">스펙을 강화하여 최고의 칭호를 획득해 보세요!</div>
+    <div id="enhanceResultMsg" class="enhance-result-box">25강 달성 시 부위별 초고밀도 아케인 이펙트가 각성됩니다!</div>
 
     <div style="display:flex; gap:8px;">
-      <button id="enhanceCloseBtn" style="flex:1; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; padding:8px;">닫기 (ESC)</button>
-      <button id="enhanceExecuteBtn" style="flex:2; background:#0284c7; border:1px solid #38bdf8; color:#fff; border-radius:6px; padding:8px; font-weight:bold;">스펙 강화 시도 (C)</button>
+      <button id="enhanceCloseBtn" style="flex:1; background:#1c1015; border:1px solid #5c1d24; color:#fff; border-radius:4px; padding:8px;">닫기 (ESC)</button>
+      <button id="enhanceExecuteBtn" style="flex:2; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:8px; font-weight:bold;">강화 시도 (C)</button>
     </div>
   </div>
 </div>
@@ -558,37 +700,27 @@
 <div id="npcDialogModal" class="modal-overlay hidden">
   <div class="npc-dialog-box">
     <div class="npc-dialog-header">
-      <span class="npc-name-tag" id="npcNameTag">[마을 안내자]</span>
-      <span style="font-size: 11px; color: #64748b;">(Space / Enter: 다음, ESC: 닫기)</span>
+      <span class="npc-name-tag" id="npcNameTag">[NPC]</span>
+      <span style="font-size: 11px; color: #94a3b8;">(Space / Enter: 다음, ESC: 닫기)</span>
     </div>
     <div class="npc-dialog-body">
-      <div class="npc-portrait" id="npcPortraitIcon">🌿</div>
+      <div class="npc-portrait" id="npcPortraitIcon">⚡</div>
       <div class="npc-text-content" id="npcSpeechText"></div>
     </div>
     <div class="npc-dialog-footer" style="display:flex; justify-content:flex-end; margin-top:10px;">
-      <button id="npcNextBtn" style="background:#0284c7; border:none; padding:6px 14px; border-radius:4px; color:#fff;">다음 ▶</button>
+      <button id="npcNextBtn" style="background:#991b1b; border:1px solid #f59e0b; padding:6px 14px; border-radius:4px; color:#fef08a;">다음 ▶</button>
     </div>
   </div>
 </div>
 
-<!-- 랭킹 모달 -->
+<!-- 랭킹 모달 (모바일 가독성 최적화 & 클릭 시 상대 스탯창 열람) -->
 <div id="rankModal" class="modal-overlay hidden">
   <div class="rank-modal">
-    <h3 class="rank-title">🏆 종합 인생 랭킹 TOP 50 🏆</h3>
-    <div class="rank-header">
-      <div>순위</div>
-      <div>닉네임</div>
-      <div>학력</div>
-      <div>외모</div>
-      <div>재력</div>
-      <div>지능</div>
-      <div>체력</div>
-      <div>성격</div>
-      <div>종합</div>
-    </div>
+    <h3 class="rank-title">🏆 구릿빛노루 기숙사 서열 TOP 50 🏆</h3>
+    <div class="rank-sub-hint">유저 카드를 클릭(터치)하면 해당 유저의 정육각형 스탯창을 볼 수 있습니다.</div>
     <div class="rank-list" id="rankListBody"></div>
     <div style="margin-top: 10px; display:flex; justify-content: flex-end;">
-      <button id="rankCloseBtn" style="background:#1e293b; border:1px solid #334155; color:#fff; padding:6px 16px; border-radius:4px;">닫기 (ESC)</button>
+      <button id="rankCloseBtn" style="background:#1c1015; border:1px solid #5c1d24; color:#fff; padding:6px 16px; border-radius:4px;">닫기 (ESC)</button>
     </div>
   </div>
 </div>
@@ -596,11 +728,14 @@
 <!-- 메인 게임 컨테이너 -->
 <div class="game-container">
   <div class="hud-bar">
-    <div class="hud-nick" id="hudNick">[게스트]</div>
-    <div class="hud-tokens" id="hudTokens">토큰: 120/120 (00:00)</div>
+    <div class="hud-left">
+      <span class="hud-dorm-badge">구릿빛노루</span>
+      <span class="hud-nick" id="hudNick">[게스트]</span>
+    </div>
+    <div class="hud-chances" id="hudChances">기회: 120/120 (00:00)</div>
   </div>
 
-  <!-- 캔버스 전용 영역: 채팅창이 조작 패널을 침범하지 않도록 격리 -->
+  <!-- 캔버스 전용 영역 -->
   <div class="canvas-area">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div id="chatLog"></div>
@@ -608,12 +743,13 @@
 
   <!-- 데스크톱 하단 바 -->
   <div class="desktop-bottom-bar">
-    <button id="dBtnInfo" style="background:#0284c7; border:1px solid #38bdf8; color:#fff; padding:6px 12px; border-radius:4px;">정보</button>
-    <button id="dBtnEnhance" style="background:#059669; border:1px solid #34d399; color:#fff; padding:6px 12px; border-radius:4px;">스펙업(C)</button>
-    <button id="dBtnRank" style="background:#d97706; border:1px solid #fbbf24; color:#fff; padding:6px 12px; border-radius:4px;">순위(R)</button>
+    <button id="dBtnInfo" style="background:#0e7490; border:1px solid #22d3ee; color:#fff; padding:6px 11px; border-radius:4px;">정보(S)</button>
+    <button id="dBtnEnhance" style="background:#047857; border:1px solid #34d399; color:#fff; padding:6px 11px; border-radius:4px;">스펙업(C)</button>
+    <button id="dBtnRank" style="background:#b45309; border:1px solid #fbbf24; color:#fff; padding:6px 11px; border-radius:4px;">순위(R)</button>
+    <button id="dBtnAura" style="background:#991b1b; border:1px solid #f59e0b; color:#fef08a; padding:6px 11px; border-radius:4px;">기운발산(Space)</button>
     <div class="chat-box">
-      <input type="text" id="chatInput" placeholder="채팅 입력 (Enter)" maxlength="35">
-      <button id="sendBtn" style="background:#1e293b; border:1px solid #334155; color:#fff; padding:6px 12px; border-radius:4px;">전송</button>
+      <input type="text" id="chatInput" placeholder="채팅 입력 (Enter) / 타 캐릭터 클릭 시 스탯 열람" maxlength="35">
+      <button id="sendBtn" style="background:#1c1015; border:1px solid #5c1d24; color:#fff; padding:6px 12px; border-radius:4px;">전송</button>
     </div>
   </div>
 
@@ -626,28 +762,34 @@
       <button class="dbtn right" data-dir="right">▶</button>
     </div>
 
-    <div class="action-grid">
-      <button class="btn-neo btn-info" id="mBtnInfo">정보</button>
-      <button class="btn-neo btn-enhance" id="mBtnEnhance">스펙업</button>
-      <button class="btn-neo btn-rank" id="mBtnRank">순위</button>
-      <button class="btn-neo btn-chat" id="mBtnChat">채팅</button>
+    <div class="mobile-right-controls">
+      <button class="btn-aura-mobile" id="mBtnAura">⚡ 기운발산 / 대화 (누르고 있으면 연타)</button>
+      <div class="action-grid">
+        <button class="btn-neo btn-info" id="mBtnInfo">정보(S)</button>
+        <button class="btn-neo btn-enhance" id="mBtnEnhance">스펙업</button>
+        <button class="btn-neo btn-rank" id="mBtnRank">순위</button>
+        <button class="btn-neo btn-chat" id="mBtnChat">채팅</button>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="guide">
-  이동: [방향키] | 360° 기운 발산 및 대화: [Space] | 스펙 강화: [C] | 순위: [R] | 채팅: [Enter]
+  이동: [방향키] | 기운발산(연타)·대화: [Space] | 내 육각형 정보: [S] | 스펙업: [C] | 순위: [R] | 상대 캐릭터 클릭: 상대 스탯창 보기
 </div>
 
 <script>
 let socket = null;
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const hexCanvas = document.getElementById('hexRadarCanvas');
+const hexCtx = hexCanvas.getContext('2d');
+
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 const chatLog = document.getElementById('chatLog');
 const hudNick = document.getElementById('hudNick');
-const hudTokens = document.getElementById('hudTokens');
+const hudChances = document.getElementById('hudChances');
 
 // 인증 UI
 const authModal = document.getElementById('authModal');
@@ -680,14 +822,17 @@ const resetPwAnswer = document.getElementById('resetPwAnswer');
 const resetPwNewPassword = document.getElementById('resetPwNewPassword');
 const resetPwBtn = document.getElementById('resetPwBtn');
 
-// 내 정보 모달
+// 육각형 정보 모달
 const infoModal = document.getElementById('infoModal');
+const infoModalTitle = document.getElementById('infoModalTitle');
+const infoTotalScoreBadge = document.getElementById('infoTotalScoreBadge');
 const infoStatCardList = document.getElementById('infoStatCardList');
 const infoCloseBtn = document.getElementById('infoCloseBtn');
+const myAccountCornerBtns = document.getElementById('myAccountCornerBtns');
 const logoutBtn = document.getElementById('logoutBtn');
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
-// 스펙 강화 모달
+// 강화 모달
 const enhanceModal = document.getElementById('enhanceModal');
 const enhanceCloseBtn = document.getElementById('enhanceCloseBtn');
 const enhanceExecuteBtn = document.getElementById('enhanceExecuteBtn');
@@ -695,41 +840,89 @@ const curStatName = document.getElementById('curStatName');
 const curStatLevel = document.getElementById('curStatLevel');
 const curStatTitle = document.getElementById('curStatTitle');
 const curStatRule = document.getElementById('curStatRule');
-const modalTokenCount = document.getElementById('modalTokenCount');
+const modalChanceCount = document.getElementById('modalChanceCount');
 const enhanceResultMsg = document.getElementById('enhanceResultMsg');
 
-// 랭킹 모달
+// 랭킹 & NPC 모달
 const rankModal = document.getElementById('rankModal');
 const rankCloseBtn = document.getElementById('rankCloseBtn');
 const rankListBody = document.getElementById('rankListBody');
-
-// NPC 모달
 const npcDialogModal = document.getElementById('npcDialogModal');
+const npcNameTag = document.getElementById('npcNameTag');
+const npcPortraitIcon = document.getElementById('npcPortraitIcon');
 const npcSpeechText = document.getElementById('npcSpeechText');
 const npcNextBtn = document.getElementById('npcNextBtn');
 
 const TILE_SIZE = 40;
 let myId = null;
+let myNickname = '게스트';
 let mapW = 20, mapH = 15;
 let obstacles = [];
 let players = {};
 let burstEffects = [];
 let currentSelectedStat = 'education';
 
-// 바람에 날리는 꽃잎 & 햇살 부유 입자
-const ambientPetals = Array.from({ length: 26 }, () => ({
-  x: Math.random() * 800,
-  y: Math.random() * 600,
-  r: Math.random() * 2.5 + 1.5,
-  vx: Math.random() * 0.45 + 0.15,
-  vy: Math.random() * 0.35 + 0.1,
-  phase: Math.random() * Math.PI * 2,
-  type: Math.random() > 0.45 ? 'petal' : 'light'
+// 구릿빛노루 기숙사 고정 3인 마법사 NPC 정의 (서버 장애물 버전과 무관하게 항상 렌더링 및 대화 보장)
+const DORM_NPCS = [
+  {
+    x: 4, y: 3,
+    id: 'npc_helicopter',
+    name: '헬리콥터',
+    portrait: '👓⚡',
+    dialogs: [
+      "여기는 마법학교 '구릿빛노루' 기숙사 휴게실이다. 어수선하게 굴지 마라.",
+      "이 기숙사에선 6대 스펙이 곧 마도 연산력이자 신체 개조율이다. [C] 키로 한계를 시험해 봐.",
+      "스페이스바를 누르고 있으면 전신에서 360도 파동이 연타로 방출된다. 다른 학생들 눈에도 그대로 보이지."
+    ]
+  },
+  {
+    x: 15, y: 3,
+    id: 'npc_nong',
+    name: '농 잊을리',
+    portrait: '🦊🔥',
+    dialogs: [
+      "오, 왔구나! 내 주근깨 보지 말고 벽난로 위 구릿빛노루 문장 좀 봐. 꽤 근사하지?",
+      "기회는 최대 120번까지 주어지고 1분마다 1번씩 다시 차올라. 아끼지 말고 질러 보라고!",
+      "각 스탯이 25강을 돌파하면 해당 신체 부위에서 엄청난 아케인 이펙트가 뿜어져 나와. 35강, 50강 갈수록 더 미쳐 날뛰지!"
+    ]
+  },
+  {
+    x: 10, y: 11,
+    id: 'npc_haerin',
+    name: '해린이언니',
+    portrait: '✨📖',
+    dialogs: [
+      "구릿빛노루 기숙사에 온 걸 환영해. 각 스탯이 어느 신체 부위를 진화시키는지 알고 있니?",
+      "학력은 [오른팔], 외모는 [오른다리], 재력은 [왼팔], 지능은 [머리], 체력은 [몸통], 성격은 [왼다리]를 단계별로 각성시켜.",
+      "[S] 키를 누르면 네 정육각형 스탯 그래프를 볼 수 있고, 지나가는 다른 학생을 클릭하면 그 사람의 육각형 스탯창도 분석할 수 있어."
+    ]
+  }
+];
+
+let activeNpc = null;
+let activeNpcDialogIdx = 0;
+
+// 부유하는 기숙사 마법 촛불 & 불티 입자
+const floatingCandles = Array.from({ length: 18 }, (_, i) => ({
+  x: 70 + (i * 41) % 660,
+  y: 35 + (i * 29) % 120,
+  phase: i * 0.7,
+  scale: 0.8 + (i % 3) * 0.2
 }));
 
-const MAX_TOKENS = 120;
+const emberParticles = Array.from({ length: 32 }, () => ({
+  x: Math.random() * 800,
+  y: Math.random() * 600,
+  vx: (Math.random() - 0.5) * 0.4,
+  vy: -(Math.random() * 0.6 + 0.2),
+  size: Math.random() * 2.2 + 0.8,
+  alpha: Math.random() * 0.7 + 0.2,
+  color: Math.random() > 0.3 ? '#f59e0b' : '#ef4444'
+}));
+
+const MAX_CHANCES = 120;
 const REFILL_INTERVAL_MS = 60 * 1000;
-let myTokens = MAX_TOKENS;
+let myChances = MAX_CHANCES;
 let myLastRefill = Date.now();
 let myCharacter = {
   gender: 'male',
@@ -746,11 +939,11 @@ const EDU_TITLES = [
   "초등 4학년", "초등 5학년", "초등 6학년", "중학 1학년", "중학 2학년", "중학 3학년",
   "고등 1학년", "고등 2학년", "고등 3학년", "학사 1학년", "학사 2학년", "학사 3학년",
   "학사 4학년", "석사 1년차", "석사 2년차", "박사 1년차", "박사 2년차", "박사 3년차",
-  "박사 4년차", "박사 수료"
+  "박사 4년차", "아케인 대석학"
 ];
 const APP_TITLES = {
-  male: ["많이 섭섭함", "꽤나 서운함", "조금 아쉬움", "애매함", "평범", "훈남", "귀염상", "멋짐", "미남", "꽃미남", "절세미남"],
-  female: ["많이 섭섭함", "꽤나 서운함", "조금 아쉬움", "애매함", "평범", "훈녀", "귀염상", "예쁨", "미녀", "꽃미녀", "절세미녀"]
+  male: ["많이 섭섭함", "꽤나 서운함", "조금 아쉬움", "애매함", "평범", "훈남", "귀염상", "멋짐", "미남", "꽃미남", "초월적 조각미남"],
+  female: ["많이 섭섭함", "꽤나 서운함", "조금 아쉬움", "애매함", "평범", "훈녀", "귀염상", "예쁨", "미녀", "꽃미녀", "초월적 여신"]
 };
 const WEALTH_TITLES = [
   "빈민", "빈민", "저소득층", "저소득층", "중산층", "중산층", "중산층",
@@ -759,35 +952,46 @@ const WEALTH_TITLES = [
   "조만장자"
 ];
 const STA_TITLES = [
-  "유리몸 (침대와 한 몸)", "만성 피로", "저질 체력", "계단 호흡 곤란", "평범한 몸",
+  "유리몸", "만성 피로", "저질 체력", "계단 호흡 곤란", "평범한 몸",
   "가벼운 발걸음", "바른 자세", "기초 체력", "지치지 않는 활력", "탄탄한 잔근육",
   "군살 없는 체형", "복근 윤곽", "솟구치는 스태미나", "단단한 근골", "폭발적 순발력",
   "돌덩이 복근", "무쇠 허벅지", "강철 심폐력", "통증 둔감", "무한 동력",
   "괴력의 소유자", "한계 돌파", "불사신급 회복력", "걸어 다니는 요새", "신체 완성체",
-  "지상 최강의 피지컬"
+  "S2 코어 초인"
 ];
 const PER_TITLES = [
   "인성 파탄", "상시 분노 모드", "매사 불평불만", "까칠하고 예민함", "소심하고 위축됨",
   "평범하고 무던함", "둥글둥글함", "예의 바른 태도", "주변 살피는 눈치", "다정다감함",
   "솔선수범의 미덕", "깊은 공감 능력", "따뜻한 온기", "흔들리지 않는 평정심", "넓은 포용력",
   "바다 같은 이해심", "무한한 인내심", "강철 멘탈", "온화한 카리스마", "자비로운 품성",
-  "어떤 시련에도 무덤덤", "이타적인 마음", "절대적 평화주의", "해탈의 경지", "성인군자의 품격"
+  "어떤 시련에도 무덤덤", "이타적인 마음", "절대적 평화주의", "해탈의 경지", "성인군자의 품격",
+  "절대 영역(AT)의 성자"
 ];
 
 function getStatTitle(stat, val, gender = 'male') {
   if (stat === 'education') return EDU_TITLES[Math.min(val, 25)];
   if (stat === 'appearance') {
     const list = APP_TITLES[gender] || APP_TITLES.male;
-    return list[Math.min(val, 10)];
+    return val >= 25 ? "신화적 절대미" : list[Math.min(val, 10)];
   }
   if (stat === 'wealth') return WEALTH_TITLES[Math.min(val, 25)];
-  if (stat === 'iq') return val >= 150 ? '멘사급 천재' : (val >= 130 ? '명석한 두뇌' : (val >= 115 ? '우수' : '보통 지능'));
+  if (stat === 'iq') return val >= 150 ? '초월 지성체' : (val >= 125 ? '각성한 천재' : (val >= 115 ? '명석한 두뇌' : '보통 지능'));
   if (stat === 'stamina') return STA_TITLES[Math.min(val, 25)];
   if (stat === 'personality') return PER_TITLES[Math.min(val, 25)];
   return '';
 }
 
-// 인증 탭 제어
+// 스탯의 실질 강화 단계 계산 (지능은 100 기준 +강 환산)
+function getEffectiveLevel(statKey, c) {
+  if (!c) return 0;
+  if (statKey === 'iq') {
+    const raw = c.iq !== undefined ? c.iq : 100;
+    return raw >= 100 ? (raw - 100) : raw;
+  }
+  return c[statKey] || 0;
+}
+
+// 인증 탭 전환
 function showAuthTab(tab) {
   tabLogin.classList.remove('active');
   tabRegister.classList.remove('active');
@@ -821,7 +1025,6 @@ subTabFindId.addEventListener('click', () => {
   resetPwBox.classList.add('hidden');
   authMsg.textContent = '';
 });
-
 subTabResetPw.addEventListener('click', () => {
   subTabResetPw.classList.add('active');
   subTabFindId.classList.remove('active');
@@ -834,12 +1037,10 @@ authSubmitBtn.addEventListener('click', async () => {
   const username = authUsername.value.trim();
   const password = authPassword.value.trim();
   if (!username || !password) {
-    authMsg.className = 'auth-msg';
     authMsg.textContent = '아이디와 비밀번호를 입력해주세요.';
     return;
   }
-  authMsg.textContent = '서버 접속 중...';
-
+  authMsg.textContent = '구릿빛노루 기숙사 접속 중...';
   try {
     const res = await fetch('/api/login', {
       method: 'POST',
@@ -848,13 +1049,11 @@ authSubmitBtn.addEventListener('click', async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-
     localStorage.setItem('azaekaban_token', data.token);
     localStorage.setItem('azaekaban_username', username);
     localStorage.setItem('azaekaban_nickname', data.user.nickname);
     connectSocketGame(data.token, data.user.nickname);
   } catch (err) {
-    authMsg.className = 'auth-msg';
     authMsg.textContent = err.message;
   }
 });
@@ -866,13 +1065,10 @@ regSubmitBtn.addEventListener('click', async () => {
   const gender = regGender.value;
   const securityQuestion = regSecurityQuestion.value;
   const securityAnswer = regSecurityAnswer.value.trim();
-
   if (!username || !password || !nickname || !securityAnswer) {
-    authMsg.className = 'auth-msg';
     authMsg.textContent = '모든 항목과 보안 답변을 입력해주세요.';
     return;
   }
-
   try {
     const res = await fetch('/api/register', {
       method: 'POST',
@@ -881,12 +1077,10 @@ regSubmitBtn.addEventListener('click', async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-
     alert(data.message);
     showAuthTab('login');
     authUsername.value = username;
   } catch (err) {
-    authMsg.className = 'auth-msg';
     authMsg.textContent = err.message;
   }
 });
@@ -895,11 +1089,9 @@ findIdBtn.addEventListener('click', async () => {
   const nickname = findIdNick.value.trim();
   const securityAnswer = findIdAnswer.value.trim();
   if (!nickname || !securityAnswer) {
-    authMsg.className = 'auth-msg';
     authMsg.textContent = '닉네임과 보안 답변을 입력해주세요.';
     return;
   }
-
   try {
     const res = await fetch('/api/find-id', {
       method: 'POST',
@@ -908,7 +1100,6 @@ findIdBtn.addEventListener('click', async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-
     authMsg.className = 'auth-msg success';
     authMsg.textContent = `아이디는 [ ${data.username} ] 입니다!`;
   } catch (err) {
@@ -921,13 +1112,10 @@ resetPwBtn.addEventListener('click', async () => {
   const username = resetPwUsername.value.trim();
   const securityAnswer = resetPwAnswer.value.trim();
   const newPassword = resetPwNewPassword.value.trim();
-
   if (!username || !securityAnswer || !newPassword) {
-    authMsg.className = 'auth-msg';
     authMsg.textContent = '모든 항목을 입력해주세요.';
     return;
   }
-
   try {
     const res = await fetch('/api/reset-password', {
       method: 'POST',
@@ -936,59 +1124,204 @@ resetPwBtn.addEventListener('click', async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-
     alert(data.message);
     showAuthTab('login');
     authUsername.value = username;
   } catch (err) {
-    authMsg.className = 'auth-msg';
     authMsg.textContent = err.message;
   }
 });
 
-// 내 정보 모달
-function openInfoModal() {
-  const c = myCharacter || {};
+// ================= [1 & 2. 정육각형 레이더 차트 스탯창 (본인 & 타인 열람)] =================
+function drawHexagonRadar(c) {
+  hexCtx.clearRect(0, 0, hexCanvas.width, hexCanvas.height);
+  const cx = hexCanvas.width / 2;
+  const cy = hexCanvas.height / 2 + 4;
+  const maxR = 78;
+
+  // 6축 정의: 상단부터 시계방향
+  const axes = [
+    { key: 'iq',          label: '지능(머리)',   val: getEffectiveLevel('iq', c) },
+    { key: 'education',   label: '학력(오른팔)', val: getEffectiveLevel('education', c) },
+    { key: 'appearance',  label: '외모(오른다리)', val: getEffectiveLevel('appearance', c) },
+    { key: 'stamina',     label: '체력(몸통)',   val: getEffectiveLevel('stamina', c) },
+    { key: 'personality', label: '성격(왼다리)', val: getEffectiveLevel('personality', c) },
+    { key: 'wealth',      label: '재력(왼팔)',   val: getEffectiveLevel('wealth', c) }
+  ];
+
+  // 기준 최대치 (기본 25강, 만약 25강 초과 스탯이 있으면 그에 맞춰 스케일 확장)
+  const highestVal = Math.max(25, ...axes.map(a => a.val));
+
+  // 5단계 동심 정육각형 가이드라인
+  for (let step = 1; step <= 5; step++) {
+    const r = (maxR / 5) * step;
+    hexCtx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = -Math.PI / 2 + (Math.PI * 2 / 6) * i;
+      const px = cx + Math.cos(angle) * r;
+      const py = cy + Math.sin(angle) * r;
+      if (i === 0) hexCtx.moveTo(px, py);
+      else hexCtx.lineTo(px, py);
+    }
+    hexCtx.closePath();
+    hexCtx.strokeStyle = step === 5 ? '#991b1b' : 'rgba(148, 163, 184, 0.2)';
+    hexCtx.lineWidth = step === 5 ? 1.5 : 1;
+    hexCtx.stroke();
+  }
+
+  // 중심에서 뻗어나가는 6개 축선 & 라벨
+  axes.forEach((axis, i) => {
+    const angle = -Math.PI / 2 + (Math.PI * 2 / 6) * i;
+    const ex = cx + Math.cos(angle) * maxR;
+    const ey = cy + Math.sin(angle) * maxR;
+
+    hexCtx.beginPath();
+    hexCtx.moveTo(cx, cy);
+    hexCtx.lineTo(ex, ey);
+    hexCtx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+    hexCtx.lineWidth = 1;
+    hexCtx.stroke();
+
+    // 축 이름 및 강화 수치 표시
+    const lx = cx + Math.cos(angle) * (maxR + 24);
+    const ly = cy + Math.sin(angle) * (maxR + 18);
+    hexCtx.font = 'bold 11px "DungGeunMo"';
+    hexCtx.textAlign = 'center';
+    hexCtx.textBaseline = 'middle';
+    hexCtx.fillStyle = axis.val >= 25 ? '#facc15' : '#e2e8f0';
+    hexCtx.fillText(`${axis.label}`, lx, ly - 5);
+    hexCtx.fillStyle = axis.val >= 25 ? '#f43f5e' : '#38bdf8';
+    hexCtx.fillText(`+${axis.val}`, lx, ly + 7);
+  });
+
+  // 유저 스탯 다각형 렌더링
+  hexCtx.beginPath();
+  axes.forEach((axis, i) => {
+    const angle = -Math.PI / 2 + (Math.PI * 2 / 6) * i;
+    const ratio = Math.min(1, Math.max(0.08, axis.val / highestVal));
+    const vx = cx + Math.cos(angle) * (maxR * ratio);
+    const vy = cy + Math.sin(angle) * (maxR * ratio);
+    if (i === 0) hexCtx.moveTo(vx, vy);
+    else hexCtx.lineTo(vx, vy);
+  });
+  hexCtx.closePath();
+  hexCtx.fillStyle = 'rgba(220, 38, 38, 0.42)';
+  hexCtx.fill();
+  hexCtx.strokeStyle = '#f59e0b';
+  hexCtx.lineWidth = 2;
+  hexCtx.stroke();
+
+  // 각 꼭짓점 발광 노드
+  axes.forEach((axis, i) => {
+    const angle = -Math.PI / 2 + (Math.PI * 2 / 6) * i;
+    const ratio = Math.min(1, Math.max(0.08, axis.val / highestVal));
+    const vx = cx + Math.cos(angle) * (maxR * ratio);
+    const vy = cy + Math.sin(angle) * (maxR * ratio);
+    hexCtx.fillStyle = axis.val >= 25 ? '#fef08a' : '#38bdf8';
+    hexCtx.beginPath();
+    hexCtx.arc(vx, vy, 3.5, 0, Math.PI * 2);
+    hexCtx.fill();
+  });
+}
+
+function getPartTierText(lv) {
+  if (lv >= 50) return '🔥 신화 각성(50+)';
+  if (lv >= 35) return '⚡ 초월 이펙트(35+)';
+  if (lv >= 25) return '✨ 오라 개방(25+)';
+  if (lv >= 15) return '상급 마도구';
+  if (lv >= 5) return '수련생 무장';
+  return '기본 교복';
+}
+
+function openInfoModal(targetUser = null) {
+  const isMe = !targetUser || targetUser.id === myId || targetUser.nickname === myNickname;
+  const name = isMe ? myNickname : (targetUser.name || targetUser.nickname || '모험가');
+  const c = isMe ? (myCharacter || {}) : (targetUser.character || targetUser);
   const g = c.gender || 'male';
-  const totalScore = (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.iq || 100) + (c.stamina || 0) + (c.personality || 0);
+
+  const edu = c.education || 0;
+  const app = c.appearance || 0;
+  const wea = c.wealth || 0;
+  const iq = c.iq !== undefined ? c.iq : 100;
+  const sta = c.stamina || 0;
+  const per = c.personality || 0;
+  const totalScore = edu + app + wea + iq + sta + per;
+
+  infoModalTitle.textContent = isMe ? `📊 [${name}] 내 육각형 스펙` : `🔍 [${name}] 님의 스펙 분석`;
+  infoTotalScoreBadge.textContent = `종합 ${totalScore}점`;
+
+  // 타인의 스탯창을 볼 때는 로그아웃/캐릭삭제 버튼 숨김
+  if (isMe) myAccountCornerBtns.classList.remove('hidden');
+  else myAccountCornerBtns.classList.add('hidden');
+
+  drawHexagonRadar(c);
 
   infoStatCardList.innerHTML = `
     <div class="info-stat-item">
-      <div class="info-stat-name">🎓 학력</div>
-      <div class="info-stat-val">+${c.education || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('education', c.education || 0)})</span></div>
+      <div class="info-stat-name"><span>🎓 학력 (오른팔)</span><span>${getPartTierText(edu)}</span></div>
+      <div class="info-stat-val">+${edu}강 · ${getStatTitle('education', edu, g)}</div>
     </div>
     <div class="info-stat-item">
-      <div class="info-stat-name">✨ 외모</div>
-      <div class="info-stat-val">+${c.appearance || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('appearance', c.appearance || 0, g)})</span></div>
+      <div class="info-stat-name"><span>✨ 외모 (오른다리)</span><span>${getPartTierText(app)}</span></div>
+      <div class="info-stat-val">+${app}강 · ${getStatTitle('appearance', app, g)}</div>
     </div>
     <div class="info-stat-item">
-      <div class="info-stat-name">💰 재력</div>
-      <div class="info-stat-val">+${c.wealth || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('wealth', c.wealth || 0)})</span></div>
+      <div class="info-stat-name"><span>💰 재력 (왼팔)</span><span>${getPartTierText(wea)}</span></div>
+      <div class="info-stat-val">+${wea}강 · ${getStatTitle('wealth', wea, g)}</div>
     </div>
     <div class="info-stat-item">
-      <div class="info-stat-name">🧠 지능</div>
-      <div class="info-stat-val">IQ ${c.iq || 100} <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('iq', c.iq || 100)})</span></div>
+      <div class="info-stat-name"><span>🧠 지능 (머리)</span><span>${getPartTierText(getEffectiveLevel('iq', c))}</span></div>
+      <div class="info-stat-val">IQ ${iq} (+${getEffectiveLevel('iq', c)}) · ${getStatTitle('iq', iq, g)}</div>
     </div>
     <div class="info-stat-item">
-      <div class="info-stat-name">💪 체력</div>
-      <div class="info-stat-val">+${c.stamina || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('stamina', c.stamina || 0)})</span></div>
+      <div class="info-stat-name"><span>💪 체력 (몸통)</span><span>${getPartTierText(sta)}</span></div>
+      <div class="info-stat-val">+${sta}강 · ${getStatTitle('stamina', sta, g)}</div>
     </div>
     <div class="info-stat-item">
-      <div class="info-stat-name">🍀 성격</div>
-      <div class="info-stat-val">+${c.personality || 0}강 <span style="font-size:11px; color:#38bdf8;">(${getStatTitle('personality', c.personality || 0)})</span></div>
-    </div>
-    <div class="info-stat-item" style="grid-column: span 2; background:#1c2536; text-align:center;">
-      <div class="info-stat-name" style="color:var(--ui-gold);">🏆 종합 스펙 점수</div>
-      <div class="info-stat-val" style="font-size:17px; color:#facc15;">${totalScore} 점</div>
+      <div class="info-stat-name"><span>🍀 성격 (왼다리)</span><span>${getPartTierText(per)}</span></div>
+      <div class="info-stat-val">+${per}강 · ${getStatTitle('personality', per, g)}</div>
     </div>
   `;
+
   infoModal.classList.remove('hidden');
 }
 
 function closeInfoModal() { infoModal.classList.add('hidden'); }
 infoCloseBtn.addEventListener('click', closeInfoModal);
-document.getElementById('dBtnInfo').addEventListener('click', openInfoModal);
-document.getElementById('mBtnInfo').addEventListener('click', openInfoModal);
+document.getElementById('dBtnInfo').addEventListener('click', () => openInfoModal(null));
+document.getElementById('mBtnInfo').addEventListener('click', () => openInfoModal(null));
+
+// 캔버스 클릭 시 다른 플레이어 캐릭터 또는 NPC 클릭 판정
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const clickX = (e.clientX - rect.left) * scaleX;
+  const clickY = (e.clientY - rect.top) * scaleY;
+
+  // 1. 플레이어 클릭 확인 (상대방 또는 나)
+  const clickedPlayer = Object.values(players).find(p => {
+    const px = p.renderX + 20;
+    const py = p.renderY + 20;
+    return Math.hypot(clickX - px, clickY - py) <= 24;
+  });
+
+  if (clickedPlayer) {
+    openInfoModal(clickedPlayer);
+    return;
+  }
+
+  // 2. NPC 클릭 시 대화 오픈
+  const clickedNpc = DORM_NPCS.find(n => {
+    const nx = n.x * TILE_SIZE + 20;
+    const ny = n.y * TILE_SIZE + 20;
+    return Math.hypot(clickX - nx, clickY - ny) <= 26;
+  });
+
+  if (clickedNpc) {
+    openNpcDialog(clickedNpc);
+  }
+});
 
 logoutBtn.addEventListener('click', () => {
   if (!confirm('로그아웃 하시겠습니까?')) return;
@@ -1001,8 +1334,7 @@ logoutBtn.addEventListener('click', () => {
 deleteAccountBtn.addEventListener('click', async () => {
   const username = localStorage.getItem('azaekaban_username');
   if (!username) return alert('로그인 정보가 없습니다.');
-
-  if (!confirm('정말로 캐릭터를 영구 삭제하시겠습니까?\n모든 스펙과 랭킹이 완전히 사라지며 복구할 수 없습니다.')) return;
+  if (!confirm('정말로 캐릭터를 영구 삭제하시겠습니까?\n모든 스펙과 서열 기록이 소멸됩니다.')) return;
   const passwordConfirm = prompt('본인 확인을 위해 비밀번호를 입력해주세요:');
   if (!passwordConfirm) return;
 
@@ -1015,26 +1347,24 @@ deleteAccountBtn.addEventListener('click', async () => {
     const data = await res.json();
     if (res.ok && data.success) {
       alert(data.message);
-      localStorage.removeItem('azaekaban_token');
-      localStorage.removeItem('azaekaban_username');
-      localStorage.removeItem('azaekaban_nickname');
+      localStorage.clear();
       location.reload();
     } else {
       alert(data.message || '삭제 실패');
     }
   } catch (err) {
-    alert('삭제 요청 네트워크 오류');
+    alert('삭제 요청 오류');
   }
 });
 
-// 스펙 강화 모달
+// ================= [스펙 강화 모달] =================
 const STAT_RULES = {
-  education: { name: "학력 (0~25강+)", rule: "성공 1% (+1강) | 유지 99% (하락 없음)" },
-  appearance: { name: "외모 (0~10강+)", rule: "성공 1% (+1강) | 유지 98% | 실패 1% (-1강, 0강 보호)" },
-  wealth: { name: "재력 (0~25강+)", rule: "대성공 0.9% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨대실패 0.1% (0강 초기화)" },
-  iq: { name: "지능 (IQ 100 기본)", rule: "대성공 1% (+2 IQ) | 성공 1% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ, 0 IQ 보호)" },
-  stamina: { name: "체력 (0~25강+)", rule: "성공 3% (+1강) | 유지 96.5% | 실패 0.5% (-1강, 0강 보호) [고효율 성장형]" },
-  personality: { name: "성격 (0~25강+)", rule: "대성공 1% (+2강) | 성공 2% (+1강) | 유지 96% | 실패 1% (-1강, 0강 보호)" }
+  education: { name: "학력 (오른쪽 팔 무장 진화)", rule: "성공 1% (+1강) | 유지 99% (하락 없음) · 25강 달성 시 오른팔 아케인 뇌전 각성" },
+  appearance: { name: "외모 (오른쪽 다리 각반 진화)", rule: "성공 1% (+1강) | 유지 98% | 실패 1% (-1강) · 25강 달성 시 오른다리 홍련 화염 각성" },
+  wealth: { name: "재력 (왼쪽 팔 황금장갑 진화)", rule: "대성공 0.9% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨대실패 0.1% (초기화)" },
+  iq: { name: "지능 (머리 헤일로·서클릿 진화)", rule: "대성공 1% (+2 IQ) | 성공 1% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · IQ 125(+25) 헤일로 각성" },
+  stamina: { name: "체력 (몸통 로브·코어 날개 진화)", rule: "성공 3% (+1강) | 유지 96.5% | 실패 0.5% (-1강) · 25강 달성 시 흉부 코어 및 빛의 날개 각성" },
+  personality: { name: "성격 (왼쪽 다리 역장 진화)", rule: "대성공 1% (+2강) | 성공 2% (+1강) | 유지 96% | 실패 1% (-1강) · 25강 달성 시 왼다리 중력 파동 각성" }
 };
 
 document.querySelectorAll('.stat-tab-btn').forEach(btn => {
@@ -1049,11 +1379,8 @@ document.querySelectorAll('.stat-tab-btn').forEach(btn => {
 function openEnhance() {
   if (!socket) return;
   enhanceModal.classList.remove('hidden');
-  enhanceResultMsg.textContent = '스펙을 강화하여 최고의 칭호를 획득해 보세요!';
-  enhanceResultMsg.className = 'enhance-result-box';
   renderEnhanceUI();
 }
-
 function closeEnhance() { enhanceModal.classList.add('hidden'); }
 
 function renderEnhanceUI() {
@@ -1062,35 +1389,35 @@ function renderEnhanceUI() {
   const info = STAT_RULES[statKey];
 
   curStatName.textContent = info.name;
-  curStatLevel.textContent = statKey === 'iq' ? `IQ ${statVal}` : `+${statVal}강`;
+  curStatLevel.textContent = statKey === 'iq' ? `IQ ${statVal} (+${getEffectiveLevel('iq', myCharacter)}강)` : `+${statVal}강`;
   curStatTitle.textContent = getStatTitle(statKey, statVal, myCharacter.gender);
   curStatRule.textContent = info.rule;
-  modalTokenCount.textContent = myTokens;
+  modalChanceCount.textContent = myChances;
 }
 
 function executeEnhance() {
   if (!socket) return;
-  if (myTokens < 1) {
+  if (myChances < 1) {
     enhanceResultMsg.className = 'enhance-result-box fail';
-    enhanceResultMsg.textContent = '토큰이 부족합니다. (1분당 1개 충전)';
+    enhanceResultMsg.textContent = '남은 기회가 없습니다. (1분당 1회 충전)';
     return;
   }
 
   enhanceExecuteBtn.disabled = true;
-  enhanceResultMsg.textContent = '스펙 강화 진행 중...';
+  enhanceResultMsg.textContent = '마도 연성 진행 중...';
 
   socket.emit('tryEnhanceStat', currentSelectedStat, (res) => {
     enhanceExecuteBtn.disabled = false;
-
     if (!res.success && res.noTokens) {
       enhanceResultMsg.className = 'enhance-result-box fail';
-      enhanceResultMsg.textContent = res.message;
+      enhanceResultMsg.textContent = '기회가 부족합니다.';
       return;
     }
 
-    myTokens = res.tokens;
+    myChances = res.tokens;
     myLastRefill = res.lastRefill;
     myCharacter = res.character;
+    if (players[myId]) players[myId].character = res.character;
     updateHUD();
     renderEnhanceUI();
 
@@ -1098,13 +1425,13 @@ function executeEnhance() {
       enhanceResultMsg.className = 'enhance-result-box catastrophe';
     } else if (res.result.type.includes('success')) {
       enhanceResultMsg.className = 'enhance-result-box success';
-      if (players[myId]) trigger360AuraBurst(players[myId].renderX, players[myId].renderY);
+      if (players[myId]) trigger360AuraBurst(players[myId]);
+      socket.emit('emitAura');
     } else if (res.result.type === 'fail') {
       enhanceResultMsg.className = 'enhance-result-box fail';
     } else {
       enhanceResultMsg.className = 'enhance-result-box';
     }
-
     enhanceResultMsg.textContent = res.result.message;
   });
 }
@@ -1117,10 +1444,10 @@ document.getElementById('mBtnEnhance').addEventListener('click', () => {
 enhanceCloseBtn.addEventListener('click', closeEnhance);
 enhanceExecuteBtn.addEventListener('click', executeEnhance);
 
-// 랭킹 모달
+// ================= [6. 모바일 가독성 개선 랭킹 모달 + 클릭 시 상대 스탯창 열람] =================
 async function openRankModal() {
   rankModal.classList.remove('hidden');
-  rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">랭킹 집계 중...</div>';
+  rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">기숙사 서열 데이터 수신 중...</div>';
 
   try {
     const res = await fetch('/api/rankings');
@@ -1128,31 +1455,42 @@ async function openRankModal() {
     rankListBody.innerHTML = '';
 
     if (!data.rankings || data.rankings.length === 0) {
-      rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">등록된 캐릭터가 없습니다.</div>';
+      rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">등록된 학생이 없습니다.</div>';
       return;
     }
 
     data.rankings.forEach(item => {
-      const row = document.createElement('div');
+      const card = document.createElement('div');
       let topClass = '';
       let medal = `${item.rank}위`;
       if (item.rank === 1) { topClass = 'top1'; medal = '🥇 1위'; }
       else if (item.rank === 2) { topClass = 'top2'; medal = '🥈 2위'; }
       else if (item.rank === 3) { topClass = 'top3'; medal = '🥉 3위'; }
 
-      row.className = `rank-item ${topClass}`;
-      row.innerHTML = `
-        <div>${medal}</div>
-        <div style="text-align:left; padding-left:4px;">${item.nickname}</div>
-        <div>+${item.education}</div>
-        <div>+${item.appearance}</div>
-        <div>+${item.wealth}</div>
-        <div>${item.iq}</div>
-        <div>+${item.stamina}</div>
-        <div>+${item.personality}</div>
-        <div style="color:var(--ui-gold); font-weight:bold;">${item.totalScore}</div>
+      card.className = `rank-card ${topClass}`;
+      card.innerHTML = `
+        <div class="rank-card-top">
+          <div class="rank-user-ident">
+            <span>${medal}</span>
+            <span style="color:#fef08a;">${item.nickname}</span>
+            <span style="font-size:10px; color:#94a3b8; font-weight:normal;">[스탯창 보기]</span>
+          </div>
+          <div class="rank-total-badge">종합 ${item.totalScore}</div>
+        </div>
+        <div class="rank-stat-pills">
+          <div class="rank-pill">학력 <b>+${item.education}</b></div>
+          <div class="rank-pill">외모 <b>+${item.appearance}</b></div>
+          <div class="rank-pill">재력 <b>+${item.wealth}</b></div>
+          <div class="rank-pill">지능 <b>${item.iq}</b></div>
+          <div class="rank-pill">체력 <b>+${item.stamina}</b></div>
+          <div class="rank-pill">성격 <b>+${item.personality}</b></div>
+        </div>
       `;
-      rankListBody.appendChild(row);
+      card.addEventListener('click', () => {
+        closeRankModal();
+        openInfoModal(item);
+      });
+      rankListBody.appendChild(card);
     });
   } catch (err) {
     rankListBody.innerHTML = '<div style="padding:20px; text-align:center; color:#ef4444;">랭킹 로드 실패</div>';
@@ -1165,49 +1503,52 @@ document.getElementById('mBtnRank').addEventListener('click', openRankModal);
 rankCloseBtn.addEventListener('click', closeRankModal);
 
 document.getElementById('mBtnChat').addEventListener('click', () => {
-  const msg = prompt('외칠 말을 입력하세요:');
+  const msg = prompt('기숙사에 외칠 말을 입력하세요:');
   if (msg && msg.trim() && socket) {
     socket.emit('sendChat', msg.trim());
   }
 });
 
-// 360도 전신 축복 오라 폭발
-function trigger360AuraBurst(rx, ry) {
-  const c = myCharacter || {};
-  const total = (c.wealth || 0) + (c.education || 0) + (c.appearance || 0) + (c.stamina || 0) + (c.personality || 0);
+// ================= [3. 360도 기운 발산 (전 유저 공유 + 꾹 눌러 연타)] =================
+function trigger360AuraBurst(targetPlayer) {
+  if (!targetPlayer) return;
+  const rx = targetPlayer.renderX !== undefined ? targetPlayer.renderX : targetPlayer.x * TILE_SIZE;
+  const ry = targetPlayer.renderY !== undefined ? targetPlayer.renderY : targetPlayer.y * TILE_SIZE;
+  const c = targetPlayer.character || {};
+  const total = (c.wealth || 0) + (c.education || 0) + (c.appearance || 0) + (c.stamina || 0) + (c.personality || 0) + getEffectiveLevel('iq', c);
 
-  let primaryColor = '#fde047';
-  let ringColor = '#38bdf8';
-  let glowColor = 'rgba(253, 224, 71, 0.85)';
+  let primaryColor = '#f59e0b';
+  let ringColor = '#dc2626';
+  let glowColor = 'rgba(245, 158, 11, 0.9)';
 
-  if (total >= 50) {
+  if (total >= 120) {
     primaryColor = '#f43f5e';
+    ringColor = '#22d3ee';
+    glowColor = 'rgba(244, 63, 94, 0.95)';
+  } else if (total >= 60) {
+    primaryColor = '#a855f7';
     ringColor = '#fde047';
-    glowColor = 'rgba(244, 63, 94, 0.9)';
+    glowColor = 'rgba(168, 85, 247, 0.9)';
   } else if (total >= 25) {
-    primaryColor = '#38bdf8';
-    ringColor = '#c084fc';
-    glowColor = 'rgba(56, 189, 248, 0.9)';
-  } else if (total >= 10) {
-    primaryColor = '#4ade80';
-    ringColor = '#fef08a';
-    glowColor = 'rgba(74, 222, 128, 0.85)';
+    primaryColor = '#10b981';
+    ringColor = '#facc15';
+    glowColor = 'rgba(16, 185, 129, 0.85)';
   }
 
   const centerX = rx + 20;
   const centerY = ry + 20;
 
   const particles = [];
-  const pCount = 32;
+  const pCount = 28;
   for (let i = 0; i < pCount; i++) {
-    const angle = (Math.PI * 2 / pCount) * i + (Math.random() * 0.2 - 0.1);
-    const speed = Math.random() * 4.8 + 2.6;
+    const angle = (Math.PI * 2 / pCount) * i + (Math.random() * 0.15 - 0.075);
+    const speed = Math.random() * 5.2 + 2.8;
     particles.push({
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      size: Math.random() * 4 + 2.5,
+      size: Math.random() * 3.5 + 2,
       color: (i % 2 === 0) ? primaryColor : ringColor,
-      isStar: Math.random() > 0.35
+      isCross: i % 3 === 0
     });
   }
 
@@ -1215,8 +1556,8 @@ function trigger360AuraBurst(rx, ry) {
     cx: centerX,
     cy: centerY,
     born: Date.now(),
-    duration: 480,
-    maxRadius: 58,
+    duration: 460,
+    maxRadius: 64,
     ringColor,
     primaryColor,
     glowColor,
@@ -1224,27 +1565,85 @@ function trigger360AuraBurst(rx, ry) {
   });
 }
 
-function handleSpaceAction() {
+function openNpcDialog(npc) {
+  activeNpc = npc;
+  activeNpcDialogIdx = 0;
+  npcNameTag.textContent = `[${npc.name}]`;
+  npcPortraitIcon.textContent = npc.portrait;
+  npcSpeechText.textContent = npc.dialogs[0];
+  npcDialogModal.classList.remove('hidden');
+}
+
+function advanceNpcDialog() {
+  if (!activeNpc) {
+    npcDialogModal.classList.add('hidden');
+    return;
+  }
+  activeNpcDialogIdx++;
+  if (activeNpcDialogIdx < activeNpc.dialogs.length) {
+    npcSpeechText.textContent = activeNpc.dialogs[activeNpcDialogIdx];
+  } else {
+    npcDialogModal.classList.add('hidden');
+    activeNpc = null;
+  }
+}
+npcNextBtn.addEventListener('click', advanceNpcDialog);
+
+function handleSpaceAction(isHoldRepeat = false) {
   if (!socket || !players[myId]) return;
   const me = players[myId];
 
-  const isFacingNPC = (me.dir === 'up' && me.y === 2 && (me.x >= 7 && me.x <= 10));
-  if (isFacingNPC) {
-    if (!npcDialogModal.classList.contains('hidden')) {
-      npcDialogModal.classList.add('hidden');
-    } else {
-      npcSpeechText.textContent = "평화로운 마을 광장에 오신 것을 환영합니다!\n[C] 키나 스펙업 버튼으로 6가지 인생 스펙을 키우고, [Space] 키로 찬란한 기운을 뿜어보세요.";
-      npcDialogModal.classList.remove('hidden');
+  if (!npcDialogModal.classList.contains('hidden')) {
+    if (!isHoldRepeat) advanceNpcDialog();
+    return;
+  }
+
+  // 첫 입력 시 인접한 NPC가 있으면 대화 시작
+  if (!isHoldRepeat) {
+    const nearNpc = DORM_NPCS.find(n => Math.abs(me.x - n.x) + Math.abs(me.y - n.y) <= 1);
+    if (nearNpc) {
+      openNpcDialog(nearNpc);
+      return;
     }
-  } else {
-    trigger360AuraBurst(me.renderX, me.renderY);
+  }
+
+  // 내 화면에 360도 오라 즉시 방출 + 서버를 통해 모든 상대방에게도 방출
+  trigger360AuraBurst(me);
+  socket.emit('emitAura');
+}
+
+// 키보드 Space 및 모바일/데스크톱 기운발산 버튼 홀드 연타 제어
+let auraSpamTimer = null;
+function startAuraHold(e) {
+  if (e && e.cancelable) e.preventDefault();
+  if (auraSpamTimer) return;
+  handleSpaceAction(false);
+  auraSpamTimer = setInterval(() => {
+    handleSpaceAction(true);
+  }, 150);
+}
+function stopAuraHold() {
+  if (auraSpamTimer) {
+    clearInterval(auraSpamTimer);
+    auraSpamTimer = null;
   }
 }
-npcNextBtn.addEventListener('click', () => npcDialogModal.classList.add('hidden'));
 
-// 소켓 연결
+const mBtnAura = document.getElementById('mBtnAura');
+const dBtnAura = document.getElementById('dBtnAura');
+[mBtnAura, dBtnAura].forEach(btn => {
+  btn.addEventListener('touchstart', startAuraHold, { passive: false });
+  btn.addEventListener('touchend', stopAuraHold);
+  btn.addEventListener('touchcancel', stopAuraHold);
+  btn.addEventListener('mousedown', startAuraHold);
+  btn.addEventListener('mouseup', stopAuraHold);
+  btn.addEventListener('mouseleave', stopAuraHold);
+});
+
+// ================= [소켓 연결 및 동기화] =================
 function connectSocketGame(token, nickname) {
   authModal.classList.add('hidden');
+  myNickname = nickname;
   hudNick.textContent = `[${nickname}]`;
 
   socket = io({ auth: { token } });
@@ -1259,7 +1658,7 @@ function connectSocketGame(token, nickname) {
     myId = data.myId;
     mapW = data.mapWidth;
     mapH = data.mapHeight;
-    obstacles = data.obstacles;
+    obstacles = data.obstacles || [];
     players = {};
 
     Object.values(data.players).forEach(p => {
@@ -1272,7 +1671,7 @@ function connectSocketGame(token, nickname) {
 
     if (players[myId]) {
       myCharacter = players[myId].character || myCharacter;
-      myTokens = players[myId].enhanceTokens;
+      myChances = players[myId].enhanceTokens;
       myLastRefill = players[myId].lastTokenRefill;
       updateHUD();
     }
@@ -1284,7 +1683,7 @@ function connectSocketGame(token, nickname) {
       renderX: p.x * TILE_SIZE,
       renderY: p.y * TILE_SIZE
     };
-    addChatLog('알림', `${p.name} 님이 광장에 찾아왔습니다.`);
+    addChatLog('기숙사', `${p.name} 학생이 구릿빛노루 휴게실에 들어왔습니다.`);
   });
 
   socket.on('playerMoved', (data) => {
@@ -1306,8 +1705,15 @@ function connectSocketGame(token, nickname) {
     }
   });
 
+  // 상대방이 스페이스바(기운발산)를 눌렀을 때 내 화면에도 동일하게 이펙트 출력
+  socket.on('playerAura', (data) => {
+    if (data && data.id !== myId && players[data.id]) {
+      trigger360AuraBurst(players[data.id]);
+    }
+  });
+
   socket.on('serverAnnouncement', (msg) => {
-    addChatLog('소식', msg);
+    addChatLog('기숙사 속보', msg);
   });
 
   socket.on('playerChat', (data) => {
@@ -1321,7 +1727,7 @@ function connectSocketGame(token, nickname) {
 
   socket.on('playerLeft', (id) => {
     if (players[id]) {
-      addChatLog('알림', `${players[id].name} 님이 떠났습니다.`);
+      addChatLog('기숙사', `${players[id].name} 학생이 나갔습니다.`);
       delete players[id];
     }
   });
@@ -1335,39 +1741,40 @@ function addChatLog(author, message) {
   if (chatLog.children.length > 4) chatLog.removeChild(chatLog.children[0]);
 }
 
-function updateTokensClient() {
+function updateChancesClient() {
   const now = Date.now();
-  if (myTokens >= MAX_TOKENS) {
-    myTokens = MAX_TOKENS;
+  if (myChances >= MAX_CHANCES) {
+    myChances = MAX_CHANCES;
     myLastRefill = now;
     return;
   }
   const elapsed = now - myLastRefill;
   const gained = Math.floor(elapsed / REFILL_INTERVAL_MS);
   if (gained > 0) {
-    myTokens = Math.min(MAX_TOKENS, myTokens + gained);
+    myChances = Math.min(MAX_CHANCES, myChances + gained);
     myLastRefill += gained * REFILL_INTERVAL_MS;
-    if (myTokens >= MAX_TOKENS) myLastRefill = now;
+    if (myChances >= MAX_CHANCES) myLastRefill = now;
   }
 }
 
 function updateHUD() {
-  let tokenStr = `토큰: ${myTokens}/${MAX_TOKENS}`;
-  if (myTokens < MAX_TOKENS) {
+  let chanceStr = `기회: ${myChances}/${MAX_CHANCES}`;
+  if (myChances < MAX_CHANCES) {
     const s = Math.ceil(Math.max(0, REFILL_INTERVAL_MS - (Date.now() - myLastRefill)) / 1000);
     const mm = String(Math.floor(s / 60)).padStart(2, '0');
     const ss = String(s % 60).padStart(2, '0');
-    tokenStr += ` (${mm}:${ss})`;
+    chanceStr += ` (${mm}:${ss})`;
   }
-  hudTokens.textContent = tokenStr;
-  modalTokenCount.textContent = myTokens;
+  hudChances.textContent = chanceStr;
+  modalChanceCount.textContent = myChances;
 }
 
 setInterval(() => {
-  updateTokensClient();
+  updateChancesClient();
   updateHUD();
 }, 1000);
 
+// 키보드 단축키 (정보창 S, 스펙업 C, 순위 R, 기운발산 Space 연타, 방향키 이동)
 window.addEventListener('keydown', (e) => {
   const activeEl = document.activeElement;
   const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
@@ -1388,6 +1795,11 @@ window.addEventListener('keydown', (e) => {
   if (!authModal.classList.contains('hidden')) return;
 
   if (e.key === 'Enter') {
+    if (!npcDialogModal.classList.contains('hidden')) {
+      e.preventDefault();
+      advanceNpcDialog();
+      return;
+    }
     e.preventDefault();
     chatInput.focus();
     return;
@@ -1403,18 +1815,26 @@ window.addEventListener('keydown', (e) => {
 
   if (e.code === 'Space') {
     e.preventDefault();
-    handleSpaceAction();
+    startAuraHold();
     return;
   }
 
-  if (e.key === 'c' || e.key === 'C') {
+  // [요구사항 9] 정보창 단축키 S
+  if (e.key === 's' || e.key === 'S' || e.key === 'ㄴ') {
+    e.preventDefault();
+    if (infoModal.classList.contains('hidden')) openInfoModal(null);
+    else closeInfoModal();
+    return;
+  }
+
+  if (e.key === 'c' || e.key === 'C' || e.key === 'ㅊ') {
     e.preventDefault();
     if (enhanceModal.classList.contains('hidden')) openEnhance();
     else executeEnhance();
     return;
   }
 
-  if (e.key === 'r' || e.key === 'R') {
+  if (e.key === 'r' || e.key === 'R' || e.key === 'ㄱ') {
     e.preventDefault();
     if (rankModal.classList.contains('hidden')) openRankModal();
     else closeRankModal();
@@ -1422,14 +1842,20 @@ window.addEventListener('keydown', (e) => {
   }
 
   let dir = null;
-  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') dir = 'up';
-  else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') dir = 'down';
-  else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') dir = 'left';
-  else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') dir = 'right';
+  if (e.key === 'ArrowUp') dir = 'up';
+  else if (e.key === 'ArrowDown') dir = 'down';
+  else if (e.key === 'ArrowLeft') dir = 'left';
+  else if (e.key === 'ArrowRight') dir = 'right';
 
   if (dir && socket) {
     e.preventDefault();
     socket.emit('move', dir);
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    stopAuraHold();
   }
 });
 
@@ -1454,528 +1880,634 @@ function sendChatMessage() {
 }
 sendBtn.addEventListener('click', sendChatMessage);
 
-// ================= [회화풍 일러스트 그래픽 & 캐릭터 렌더링 엔진] =================
+// ================= [5, 7, 10. 에반게리온풍 고대비 작화 & 구릿빛노루 기숙사 & 6부위 진화 렌더링] =================
 
-function drawRoundedRect(ctx, x, y, w, h, r) {
+// 구릿빛노루 기숙사 문장 (기하학적 황동 노루 엠블럼)
+function drawBronzeDeerCrest(cx, cy, scale = 1, time = 0) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  // 외부 육각 실드
+  ctx.strokeStyle = '#d97706';
+  ctx.fillStyle = 'rgba(69, 10, 10, 0.85)';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
+  for (let i = 0; i < 6; i++) {
+    const a = -Math.PI / 2 + (Math.PI * 2 / 6) * i;
+    const x = Math.cos(a) * 18;
+    const y = Math.sin(a) * 18;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
   ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 날카로운 기하학적 구릿빛 노루 머리 & 뿔
+  ctx.strokeStyle = '#fbbf24';
+  ctx.fillStyle = '#f59e0b';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(0, 10);
+  ctx.lineTo(-6, -1);
+  ctx.lineTo(0, -6);
+  ctx.lineTo(6, -1);
+  ctx.closePath();
+  ctx.fill();
+
+  // 노루 뿔 (좌우 대칭 각진 가지)
+  ctx.beginPath();
+  ctx.moveTo(-3, -4); ctx.lineTo(-10, -13); ctx.lineTo(-13, -9);
+  ctx.moveTo(-7, -9); ctx.lineTo(-5, -15);
+  ctx.moveTo(3, -4); ctx.lineTo(10, -13); ctx.lineTo(13, -9);
+  ctx.moveTo(7, -9); ctx.lineTo(5, -15);
+  ctx.stroke();
+
+  ctx.restore();
 }
 
-// 아기자기한 일러스트풍 캐릭터 그리기 함수
-function drawCharacterSprite(rx, ry, p, isNPC = false, time = 0) {
+// 3명의 고정 마법사 NPC 렌더링 (헬리콥터, 농 잊을리, 해린이언니)
+function drawWizardNPC(npc, time) {
+  const rx = npc.x * TILE_SIZE;
+  const ry = npc.y * TILE_SIZE;
   const cx = rx + 20;
-  const cy = ry + 20;
-
-  // 이동 여부 및 걸음걸이/숨쉬기 리듬 계산
-  const dx = (p.x * TILE_SIZE) - rx;
-  const dy = (p.y * TILE_SIZE) - ry;
-  const isMoving = Math.hypot(dx, dy) > 1.2;
-  const walkSwing = isMoving ? Math.sin(time * 0.022) * 4 : 0;
-  const breathe = Math.sin(time * 0.004 + (rx * 0.1)) * 1.2;
+  const breathe = Math.sin(time * 0.003 + npc.x) * 1;
 
   ctx.save();
 
-  // 1. 부드러운 바닥 그림자
-  ctx.fillStyle = 'rgba(20, 40, 20, 0.32)';
+  // 날카로운 블랙 셀 섀도우
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.beginPath();
-  ctx.ellipse(cx, ry + 36, 12, 4.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, ry + 36, 13, 4.5, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 종합 스펙에 따른 은은한 발밑 후광
-  const c = p.character || {};
-  const totalSpec = (c.wealth || 0) + (c.education || 0) + (c.appearance || 0) + (c.stamina || 0) + (c.personality || 0);
-  if (!isNPC && totalSpec >= 10) {
-    const auraGrad = ctx.createRadialGradient(cx, ry + 35, 2, cx, ry + 35, 18);
-    auraGrad.addColorStop(0, totalSpec >= 30 ? 'rgba(253, 224, 71, 0.55)' : 'rgba(56, 189, 248, 0.45)');
-    auraGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = auraGrad;
-    ctx.beginPath();
-    ctx.ellipse(cx, ry + 35, 18, 7, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 2. 다리 & 가죽 부츠 (걸을 때 앞뒤로 귀여운 교차)
-  ctx.fillStyle = '#451a03';
-  ctx.strokeStyle = '#271206';
-  ctx.lineWidth = 1.2;
-  // 왼발
-  drawRoundedRect(ctx, cx - 7, ry + 29 + walkSwing * 0.6, 5.5, 7, 2.5);
-  ctx.fill(); ctx.stroke();
-  // 오른발
-  drawRoundedRect(ctx, cx + 1.5, ry + 29 - walkSwing * 0.6, 5.5, 7, 2.5);
-  ctx.fill(); ctx.stroke();
-
-  // 3. 의상 (따뜻한 튜닉 코트 & 망토 디테일)
-  const coatColor = isNPC ? '#2d6a4f' : (p.color || '#3b82f6');
-  const bodyY = ry + 16 + breathe * 0.5;
-
-  // 몸통 코트 그라데이션
-  const bodyGrad = ctx.createLinearGradient(cx, bodyY, cx, bodyY + 16);
-  bodyGrad.addColorStop(0, coatColor);
-  bodyGrad.addColorStop(1, '#1e293b');
-  ctx.fillStyle = bodyGrad;
-  ctx.strokeStyle = '#1e1b18';
-  ctx.lineWidth = 1.5;
-
+  // 구릿빛노루 마법사 로브 (고대비 크림슨 & 블랙 셰이딩)
+  const bodyY = ry + 15 + breathe;
+  ctx.fillStyle = '#110b10';
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 1.4;
   ctx.beginPath();
-  ctx.moveTo(cx - 8, bodyY + 2);
-  ctx.quadraticCurveTo(cx - 11, bodyY + 14, cx - 9, bodyY + 15);
-  ctx.lineTo(cx + 9, bodyY + 15);
-  ctx.quadraticCurveTo(cx + 11, bodyY + 14, cx + 8, bodyY + 2);
+  ctx.moveTo(cx - 8, bodyY);
+  ctx.lineTo(cx - 12, bodyY + 20);
+  ctx.lineTo(cx + 12, bodyY + 20);
+  ctx.lineTo(cx + 8, bodyY);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // 허리 벨트와 금장 버클
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(cx - 8.5, bodyY + 10, 17, 2.5);
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(cx - 2, bodyY + 9.5, 4, 3.5);
-
-  // 양팔 (걸을 때 흔들림)
-  ctx.fillStyle = coatColor;
-  drawRoundedRect(ctx, cx - 12, bodyY + 2 - walkSwing * 0.4, 4.5, 10, 2);
-  ctx.fill(); ctx.stroke();
-  drawRoundedRect(ctx, cx + 7.5, bodyY + 2 + walkSwing * 0.4, 4.5, 10, 2);
-  ctx.fill(); ctx.stroke();
-
-  // 목도리 / 스카프
-  ctx.fillStyle = isNPC ? '#fde047' : '#f43f5e';
-  drawRoundedRect(ctx, cx - 7.5, bodyY - 0.5, 15, 4.5, 2);
+  // 로브 안감 크림슨 & 구릿빛 타바드
+  ctx.fillStyle = '#7f1d1d';
+  ctx.beginPath();
+  ctx.moveTo(cx - 3, bodyY);
+  ctx.lineTo(cx - 5, bodyY + 20);
+  ctx.lineTo(cx + 5, bodyY + 20);
+  ctx.lineTo(cx + 3, bodyY);
+  ctx.closePath();
   ctx.fill();
 
-  // 4. 머리 & 얼굴 (부드러운 곡선형 윤곽)
+  // 두상 (날카로운 턱선의 애니메 스타일)
   const headY = ry + 8 + breathe;
-
-  // 뒷머리 볼륨
-  const hairColor = isNPC ? '#5c4033' : (c.gender === 'female' ? '#4a2511' : '#2c1d11');
-  ctx.fillStyle = hairColor;
+  ctx.fillStyle = '#fde6d2';
+  ctx.strokeStyle = '#090507';
+  ctx.lineWidth = 1.3;
   ctx.beginPath();
-  ctx.arc(cx, headY, 11.5, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 피부톤 얼굴
-  const skinGrad = ctx.createRadialGradient(cx, headY - 1, 2, cx, headY + 1, 10);
-  skinGrad.addColorStop(0, '#fff3e0');
-  skinGrad.addColorStop(1, '#ffe0b2');
-  ctx.fillStyle = skinGrad;
-  ctx.strokeStyle = '#5d4037';
-  ctx.lineWidth = 1.2;
-
-  ctx.beginPath();
-  ctx.arc(cx, headY + 1, 9.5, 0, Math.PI * 2);
+  ctx.moveTo(cx - 7.5, headY - 3);
+  ctx.lineTo(cx - 6.5, headY + 5);
+  ctx.lineTo(cx, headY + 9);
+  ctx.lineTo(cx + 6.5, headY + 5);
+  ctx.lineTo(cx + 7.5, headY - 3);
+  ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // 5. 표정 (방향별 눈동자, 하이라이트, 발그레한 볼터치)
-  if (p.dir === 'up') {
-    // 뒷모습일 때 풍성한 뒷머리 덮기
-    ctx.fillStyle = hairColor;
+  // NPC별 고유 외형 디테일
+  if (npc.id === 'npc_helicopter') {
+    // 1. 헬리콥터: 어두운 갈색 더벅머리 + 동그란 뿔테 안경
+    ctx.fillStyle = '#2e1a12';
     ctx.beginPath();
-    ctx.arc(cx, headY + 0.5, 10.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#1e140c';
-    ctx.stroke();
-  } else {
-    const eyeOffsetX = (p.dir === 'left') ? -2.2 : (p.dir === 'right' ? 2.2 : 0);
-
-    // 발그레한 수채화 볼터치
-    ctx.fillStyle = 'rgba(244, 114, 182, 0.45)';
-    ctx.beginPath();
-    ctx.ellipse(cx - 5.5 + eyeOffsetX * 0.5, headY + 3.5, 2.4, 1.4, 0, 0, Math.PI * 2);
-    ctx.ellipse(cx + 5.5 + eyeOffsetX * 0.5, headY + 3.5, 2.4, 1.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 눈동자 (초롱초롱한 다크 브라운 + 흰색 하이라이트 점)
-    ctx.fillStyle = '#1f1209';
-    ctx.beginPath();
-    ctx.ellipse(cx - 3.6 + eyeOffsetX, headY + 1.2, 1.7, 2.3, 0, 0, Math.PI * 2);
-    ctx.ellipse(cx + 3.6 + eyeOffsetX, headY + 1.2, 1.7, 2.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 눈 속 반짝이는 빛망울
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(cx - 4.1 + eyeOffsetX, headY + 0.3, 0.75, 0, Math.PI * 2);
-    ctx.arc(cx + 3.1 + eyeOffsetX, headY + 0.3, 0.75, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 미소 짓는 입매
-    ctx.strokeStyle = '#7c2d12';
-    ctx.lineWidth = 1.1;
-    ctx.beginPath();
-    ctx.arc(cx + eyeOffsetX * 0.6, headY + 3.8, 1.6, 0.15 * Math.PI, 0.85 * Math.PI);
-    ctx.stroke();
-
-    // 앞머리 & 옆머리 결
-    ctx.fillStyle = hairColor;
-    ctx.beginPath();
-    ctx.arc(cx, headY - 1.5, 10.2, Math.PI * 0.95, Math.PI * 2.05);
-    ctx.quadraticCurveTo(cx + 6, headY + 1, cx + 3, headY - 3);
-    ctx.quadraticCurveTo(cx, headY + 1.5, cx - 3, headY - 3);
-    ctx.quadraticCurveTo(cx - 6, headY + 1, cx - 10, headY - 1);
+    ctx.moveTo(cx - 9, headY);
+    ctx.lineTo(cx - 11, headY - 6);
+    ctx.lineTo(cx - 5, headY - 9);
+    ctx.lineTo(cx, headY - 11);
+    ctx.lineTo(cx + 6, headY - 9);
+    ctx.lineTo(cx + 11, headY - 5);
+    ctx.lineTo(cx + 8, headY + 1);
+    ctx.lineTo(cx + 4, headY - 3);
+    ctx.lineTo(cx, headY);
+    ctx.lineTo(cx - 4, headY - 3);
     ctx.closePath();
     ctx.fill();
 
-    // 머리 위 포인트 장식 (NPC는 베레모, 고스펙 유저는 황금 왕관, 일반은 새싹/리본)
-    if (isNPC) {
-      ctx.fillStyle = '#d97706';
+    // 동그란 검은 뿔테 안경
+    ctx.strokeStyle = '#090507';
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.35)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(cx - 3.3, headY + 2.5, 2.8, 0, Math.PI * 2);
+    ctx.arc(cx + 3.3, headY + 2.5, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - 0.5, headY + 2.5);
+    ctx.lineTo(cx + 0.5, headY + 2.5);
+    ctx.stroke();
+  } 
+  else if (npc.id === 'npc_nong') {
+    // 2. 농 잊을리: 오렌지색 머리 + 얼굴 주근깨
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath();
+    ctx.moveTo(cx - 9, headY + 1);
+    ctx.lineTo(cx - 9, headY - 7);
+    ctx.lineTo(cx, headY - 10);
+    ctx.lineTo(cx + 9, headY - 7);
+    ctx.lineTo(cx + 9, headY + 1);
+    ctx.lineTo(cx + 5, headY - 3);
+    ctx.lineTo(cx, headY - 1);
+    ctx.lineTo(cx - 5, headY - 3);
+    ctx.closePath();
+    ctx.fill();
+
+    // 눈매
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(cx - 4.5, headY + 1.5, 2, 2.2);
+    ctx.fillRect(cx + 2.5, headY + 1.5, 2, 2.2);
+
+    // 주근깨 도트
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(cx - 5.5, headY + 4.5, 1, 1);
+    ctx.fillRect(cx - 3.8, headY + 5.2, 1, 1);
+    ctx.fillRect(cx + 3.8, headY + 4.5, 1, 1);
+    ctx.fillRect(cx + 5.2, headY + 5.2, 1, 1);
+  } 
+  else if (npc.id === 'npc_haerin') {
+    // 3. 해린이언니: 밝은 갈색 풍성한 곱슬머리 여자 마법사
+    ctx.fillStyle = '#a16207';
+    // 양옆으로 흘러내리는 웨이브 컬
+    ctx.beginPath();
+    ctx.arc(cx - 7.5, headY + 3, 4.5, 0, Math.PI * 2);
+    ctx.arc(cx + 7.5, headY + 3, 4.5, 0, Math.PI * 2);
+    ctx.arc(cx - 8, headY + 8, 4, 0, Math.PI * 2);
+    ctx.arc(cx + 8, headY + 8, 4, 0, Math.PI * 2);
+    ctx.arc(cx, headY - 4, 9, Math.PI, 0);
+    ctx.fill();
+
+    // 날카롭고 총명한 눈동자
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(cx - 4.5, headY + 1.5, 2.2, 2.5);
+    ctx.fillRect(cx + 2.3, headY + 1.5, 2.2, 2.5);
+  }
+
+  // NPC 이름 태그
+  ctx.font = 'bold 11px "DungGeunMo"';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#facc15';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 3;
+  ctx.strokeText(`[NPC] ${npc.name}`, cx, ry - 7);
+  ctx.fillText(`[NPC] ${npc.name}`, cx, ry - 7);
+
+  ctx.restore();
+}
+
+// 플레이어 마법학교 학생 & 6대 스탯 부위별 진화 + 25강 이상 다단계 이펙트 렌더링
+function drawEvolvedStudent(rx, ry, p, time) {
+  const cx = rx + 20;
+  const cy = ry + 20;
+  const c = p.character || {};
+
+  // 6대 부위별 실질 강화 수치
+  const rArmLv = getEffectiveLevel('education', c);   // 학력 -> 오른쪽 팔
+  const rLegLv = getEffectiveLevel('appearance', c);  // 외모 -> 오른쪽 다리
+  const lArmLv = getEffectiveLevel('wealth', c);      // 재력 -> 왼쪽 팔
+  const headLv = getEffectiveLevel('iq', c);          // 지능 -> 머리
+  const torsoLv = getEffectiveLevel('stamina', c);    // 체력 -> 몸통
+  const lLegLv = getEffectiveLevel('personality', c); // 성격 -> 왼쪽 다리
+
+  const dx = (p.x * TILE_SIZE) - rx;
+  const dy = (p.y * TILE_SIZE) - ry;
+  const isMoving = Math.hypot(dx, dy) > 1.2;
+  const swing = isMoving ? Math.sin(time * 0.024) * 4.5 : 0;
+  const breathe = Math.sin(time * 0.004 + rx * 0.1) * 1;
+
+  ctx.save();
+
+  // 0. 고대비 바닥 그림자
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+  ctx.beginPath();
+  ctx.ellipse(cx, ry + 36, 13, 4.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ====== [몸통(체력) 25강+ 배후 이펙트: 에반게리온풍 빛의 날개 & 기하학 코어] ======
+  if (torsoLv >= 25) {
+    const wingTier = torsoLv >= 50 ? 3 : (torsoLv >= 35 ? 2 : 1);
+    const wingSpan = 22 + wingTier * 9 + Math.sin(time * 0.008) * 3;
+    ctx.save();
+    ctx.translate(cx, ry + 20 + breathe);
+    ctx.strokeStyle = wingTier >= 2 ? '#f43f5e' : '#38bdf8';
+    ctx.fillStyle = wingTier >= 3 ? 'rgba(244, 63, 94, 0.35)' : 'rgba(56, 189, 248, 0.28)';
+    ctx.lineWidth = 2;
+
+    for (let w = 0; w < wingTier; w++) {
+      const angleOffset = (w - (wingTier - 1) / 2) * 0.32;
+      // 좌측 날개
       ctx.beginPath();
-      ctx.ellipse(cx, headY - 9, 9, 4, -0.15, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    } else if (totalSpec >= 20) {
-      ctx.fillStyle = '#facc15';
-      ctx.strokeStyle = '#854d0e';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(cx - 5, headY - 9);
-      ctx.lineTo(cx - 6, headY - 15);
-      ctx.lineTo(cx - 2, headY - 12);
-      ctx.lineTo(cx, headY - 16);
-      ctx.lineTo(cx + 2, headY - 12);
-      ctx.lineTo(cx + 6, headY - 15);
-      ctx.lineTo(cx + 5, headY - 9);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-wingSpan, -14 + angleOffset * 20);
+      ctx.lineTo(-wingSpan * 0.75, -2 + angleOffset * 20);
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    } else {
-      // 귀여운 초록 두 잎 새싹
-      ctx.strokeStyle = '#15803d';
-      ctx.lineWidth = 1.5;
+      ctx.fill(); ctx.stroke();
+      // 우측 날개
       ctx.beginPath();
-      ctx.moveTo(cx, headY - 9);
-      ctx.quadraticCurveTo(cx + 1, headY - 14, cx + 4, headY - 14);
-      ctx.stroke();
-      ctx.fillStyle = '#4ade80';
+      ctx.moveTo(0, 0);
+      ctx.lineTo(wingSpan, -14 + angleOffset * 20);
+      ctx.lineTo(wingSpan * 0.75, -2 + angleOffset * 20);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ====== [1. 왼쪽 다리 (성격: lLegLv) & 오른쪽 다리 (외모: rLegLv)] ======
+  const lLegY = ry + 28 + swing * 0.6;
+  const rLegY = ry + 28 - swing * 0.6;
+
+  // 왼쪽 다리 (성격) 단계별 외형
+  ctx.fillStyle = lLegLv >= 20 ? '#581c87' : (lLegLv >= 10 ? '#334155' : '#1c1917');
+  ctx.strokeStyle = lLegLv >= 15 ? '#c084fc' : '#090507';
+  ctx.lineWidth = 1.3;
+  ctx.fillRect(cx - 6.5, lLegY, 5, 8);
+  ctx.strokeRect(cx - 6.5, lLegY, 5, 8);
+
+  // 왼쪽 다리 25강+ 이펙트 (자수정/에메랄드 중력 역장 파동)
+  if (lLegLv >= 25) {
+    const lTier = lLegLv >= 50 ? 3 : (lLegLv >= 35 ? 2 : 1);
+    ctx.strokeStyle = lTier >= 2 ? '#a855f7' : '#10b981';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(cx - 4, lLegY + 7, 6 + lTier * 2.5, 2.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // 오른쪽 다리 (외모) 단계별 외형
+  ctx.fillStyle = rLegLv >= 20 ? '#991b1b' : (rLegLv >= 10 ? '#78350f' : '#1c1917');
+  ctx.strokeStyle = rLegLv >= 15 ? '#fbbf24' : '#090507';
+  ctx.lineWidth = 1.3;
+  ctx.fillRect(cx + 1.5, rLegY, 5, 8);
+  ctx.strokeRect(cx + 1.5, rLegY, 5, 8);
+
+  // 오른쪽 다리 25강+ 이펙트 (홍련/황금 화염 스텝 오라)
+  if (rLegLv >= 25) {
+    const rTier = rLegLv >= 50 ? 3 : (rLegLv >= 35 ? 2 : 1);
+    ctx.fillStyle = rTier >= 2 ? '#f43f5e' : '#f59e0b';
+    for (let f = 0; f < rTier + 1; f++) {
+      const fy = ((time * 0.03 + f * 5) % 10);
+      ctx.fillRect(cx + 2 + (f % 2) * 3, rLegY + 6 - fy, 2.2, 3.5);
+    }
+  }
+
+  // ====== [2. 몸통 (체력: torsoLv) - 구릿빛노루 마법학도 제복 & 아케인 아머] ======
+  const bodyY = ry + 15 + breathe * 0.6;
+  let robeColor = '#181115'; // 기본 기숙사 다크 로브
+  let trimColor = '#b45309'; // 구릿빛 테두리
+  if (torsoLv >= 20) { robeColor = '#31102f'; trimColor = '#f43f5e'; }
+  else if (torsoLv >= 10) { robeColor = '#27171c'; trimColor = '#f59e0b'; }
+
+  ctx.fillStyle = robeColor;
+  ctx.strokeStyle = trimColor;
+  ctx.lineWidth = torsoLv >= 15 ? 1.8 : 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 7.5, bodyY);
+  ctx.lineTo(cx - 10.5, bodyY + 15);
+  ctx.lineTo(cx + 10.5, bodyY + 15);
+  ctx.lineTo(cx + 7.5, bodyY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 기숙사 붉은 넥타이 & V넥
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath();
+  ctx.moveTo(cx - 2, bodyY);
+  ctx.lineTo(cx, bodyY + 9);
+  ctx.lineTo(cx + 2, bodyY);
+  ctx.closePath();
+  ctx.fill();
+
+  // 몸통 15강+ 흉부 코어 장갑판 & 25강+ S2 아케인 코어 발광
+  if (torsoLv >= 15) {
+    ctx.fillStyle = torsoLv >= 25 ? '#ef4444' : '#d97706';
+    ctx.beginPath();
+    ctx.arc(cx, bodyY + 6, torsoLv >= 25 ? 3.2 : 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ====== [3. 왼쪽 팔 (재력: lArmLv) & 오른쪽 팔 (학력: rArmLv)] ======
+  const lArmX = cx - 11.5;
+  const lArmY = bodyY + 1 - swing * 0.4;
+  const rArmX = cx + 7.5;
+  const rArmY = bodyY + 1 + swing * 0.4;
+
+  // 왼쪽 팔 (재력) 단계별 진화
+  ctx.fillStyle = lArmLv >= 20 ? '#facc15' : (lArmLv >= 10 ? '#b45309' : robeColor);
+  ctx.strokeStyle = lArmLv >= 10 ? '#fef08a' : '#090507';
+  ctx.lineWidth = 1.2;
+  ctx.fillRect(lArmX, lArmY, 4, 11);
+  ctx.strokeRect(lArmX, lArmY, 4, 11);
+
+  // 왼쪽 팔 25강+ 이펙트 (황금 육각 절대영역 방패 & 황금 입자 궤도)
+  if (lArmLv >= 25) {
+    const wTier = lArmLv >= 50 ? 3 : (lArmLv >= 35 ? 2 : 1);
+    const rot = time * 0.005;
+    ctx.save();
+    ctx.translate(lArmX + 2, lArmY + 6);
+    ctx.rotate(rot);
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 1.5;
+    const rad = 7 + wTier * 2.5;
+    ctx.strokeRect(-rad / 2, -rad / 2, rad, rad);
+    if (wTier >= 2) {
+      ctx.rotate(Math.PI / 4);
+      ctx.strokeStyle = '#fef08a';
+      ctx.strokeRect(-rad / 2, -rad / 2, rad, rad);
+    }
+    ctx.restore();
+  }
+
+  // 오른쪽 팔 (학력) 단계별 진화 + 마법 지팡이/아케인 건틀릿
+  ctx.fillStyle = rArmLv >= 20 ? '#0284c7' : (rArmLv >= 10 ? '#1e3a8a' : robeColor);
+  ctx.strokeStyle = rArmLv >= 10 ? '#38bdf8' : '#090507';
+  ctx.lineWidth = 1.2;
+  ctx.fillRect(rArmX, rArmY, 4, 11);
+  ctx.strokeRect(rArmX, rArmY, 4, 11);
+
+  // 오른손 마법 지팡이 / 25강+ 롱기누스풍 나선 마도 창 & 뇌전 이펙트
+  if (rArmLv >= 5) {
+    ctx.strokeStyle = rArmLv >= 25 ? '#f43f5e' : (rArmLv >= 15 ? '#38bdf8' : '#a16207');
+    ctx.lineWidth = rArmLv >= 25 ? 2.4 : 1.5;
+    ctx.beginPath();
+    ctx.moveTo(rArmX + 3, rArmY + 9);
+    ctx.lineTo(rArmX + 9, rArmY - (rArmLv >= 25 ? 10 : 3));
+    ctx.stroke();
+
+    if (rArmLv >= 25) {
+      const eTier = rArmLv >= 50 ? 3 : (rArmLv >= 35 ? 2 : 1);
+      // 뇌전 스파크
+      ctx.strokeStyle = eTier >= 2 ? '#22d3ee' : '#fde047';
+      ctx.lineWidth = 1.3;
       ctx.beginPath();
-      ctx.ellipse(cx + 4, headY - 14, 3, 1.8, -0.4, 0, Math.PI * 2);
-      ctx.ellipse(cx - 2, headY - 13, 2.5, 1.5, 0.5, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(rArmX + 6, rArmY + 2);
+      ctx.lineTo(rArmX + 12 + Math.sin(time * 0.05) * 3, rArmY - 4);
+      ctx.lineTo(rArmX + 8, rArmY - 10);
+      ctx.stroke();
+    }
+  }
+
+  // ====== [4. 머리 (지능: headLv) - 날카로운 애니메 페이셜 & 서클릿/기하학 헤일로] ======
+  const headY = ry + 8 + breathe;
+
+  // 얼굴 윤곽 (둥근 유아틱 형태가 아닌 샤프한 턱선)
+  ctx.fillStyle = '#fde6d2';
+  ctx.strokeStyle = '#090507';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.moveTo(cx - 7.5, headY - 3);
+  ctx.lineTo(cx - 6.5, headY + 5);
+  ctx.lineTo(cx, headY + 9);
+  ctx.lineTo(cx + 6.5, headY + 5);
+  ctx.lineTo(cx + 7.5, headY - 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  const hairCol = p.color || (c.gender === 'female' ? '#3b0764' : '#1e293b');
+
+  if (p.dir === 'up') {
+    ctx.fillStyle = hairCol;
+    ctx.beginPath();
+    ctx.arc(cx, headY, 8.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    const eyeOff = p.dir === 'left' ? -2 : (p.dir === 'right' ? 2 : 0);
+
+    // 날카로운 애니메 눈매 (지능 25강 이상일 때 붉은/푸른 각성 안광)
+    ctx.fillStyle = headLv >= 25 ? '#ef4444' : '#0f172a';
+    ctx.fillRect(cx - 4.8 + eyeOff, headY + 1.2, 2.4, 2.2);
+    ctx.fillRect(cx + 2.4 + eyeOff, headY + 1.2, 2.4, 2.2);
+
+    // 눈 위쪽 샤프한 아이라인
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 5.5 + eyeOff, headY + 1); ctx.lineTo(cx - 2 + eyeOff, headY + 1.3);
+    ctx.moveTo(cx + 2 + eyeOff, headY + 1.3); ctx.lineTo(cx + 5.5 + eyeOff, headY + 1);
+    ctx.stroke();
+
+    // 샤프한 레이어드 헤어컷
+    ctx.fillStyle = hairCol;
+    ctx.beginPath();
+    ctx.moveTo(cx - 9, headY + 2);
+    ctx.lineTo(cx - 8.5, headY - 6);
+    ctx.lineTo(cx, headY - 9.5);
+    ctx.lineTo(cx + 8.5, headY - 6);
+    ctx.lineTo(cx + 9, headY + 2);
+    ctx.lineTo(cx + 5, headY - 2);
+    ctx.lineTo(cx + 1, headY + 1);
+    ctx.lineTo(cx - 2, headY - 2.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // 머리 단계별 장식 (10강+: 이마 아케인 서클릿, 25강+: 공중 회전 기하학 헤일로)
+  if (headLv >= 10) {
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx - 6, headY - 3);
+    ctx.lineTo(cx, headY - 1);
+    ctx.lineTo(cx + 6, headY - 3);
+    ctx.stroke();
+  }
+  if (headLv >= 25) {
+    const hTier = headLv >= 50 ? 3 : (headLv >= 35 ? 2 : 1);
+    ctx.strokeStyle = hTier >= 2 ? '#f43f5e' : '#fef08a';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(cx, headY - 13, 9 + hTier * 2, 3, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    if (hTier >= 2) {
+      ctx.strokeStyle = '#22d3ee';
+      ctx.beginPath();
+      ctx.ellipse(cx, headY - 16, 6 + hTier * 2, 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
     }
   }
 
   ctx.restore();
 }
 
+// 메인 캔버스 렌더링 (구릿빛노루 기숙사 + 고대비 조명 + 움직이는 이펙트)
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const time = Date.now();
 
-  // 1. 수채화풍 자연 잔디밭과 따스한 돌담 산책로 렌더링
+  // 1. 기숙사 바닥 타일 (중후한 다크 스톤 & 중앙 크림슨-구릿빛 기숙사 카펫)
   for (let x = 0; x < mapW; x++) {
     for (let y = 0; y < mapH; y++) {
       const px = x * TILE_SIZE;
       const py = y * TILE_SIZE;
-      const seed = (x * 37 + y * 13) % 10;
 
-      // 중앙 산책로 (y: 6 ~ 8) -> 따뜻한 크림색 유럽풍 판석 거리
-      if (y >= 6 && y <= 8) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? '#e6ccb2' : '#ddb892';
+      // 상단 고딕 석조 벽면 (y <= 1)
+      if (y <= 1) {
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#161118' : '#120d14';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.strokeStyle = '#261c28';
+        ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+      }
+      // 중앙 구릿빛노루 기숙사 붉은 양탄자 구역 (x: 4~15, y: 4~12)
+      else if (x >= 4 && x <= 15 && y >= 4 && y <= 12) {
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#4c0d19' : '#420a14';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
 
-        // 판석 가장자리 부드러운 돌결 묘사
-        ctx.strokeStyle = 'rgba(127, 85, 57, 0.22)';
-        ctx.lineWidth = 1;
-        drawRoundedRect(ctx, px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4, 5);
-        ctx.stroke();
-
-        // 산책로 위아래 꽃무늬 경계석
-        if (y === 6) {
-          ctx.fillStyle = '#b08968';
-          ctx.fillRect(px, py, TILE_SIZE, 4);
-        } else if (y === 8) {
-          ctx.fillStyle = '#b08968';
-          ctx.fillRect(px, py + TILE_SIZE - 4, TILE_SIZE, 4);
-        }
-
-        // 중앙 징검다리 광장 보도 (x: 10, 11)
-        if (x === 10 || x === 11) {
-          ctx.fillStyle = '#fefae0';
-          drawRoundedRect(ctx, px + 5, py + 6, TILE_SIZE - 10, 10, 4);
-          ctx.fill();
-          drawRoundedRect(ctx, px + 5, py + 24, TILE_SIZE - 10, 10, 4);
-          ctx.fill();
-        }
-      } 
-      // 싱그러운 초록 잔디 타일 & 야생화
+        // 구릿빛 금장 테두리
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 1.5;
+        if (x === 4) { ctx.beginPath(); ctx.moveTo(px + 2, py); ctx.lineTo(px + 2, py + TILE_SIZE); ctx.stroke(); }
+        if (x === 15) { ctx.beginPath(); ctx.moveTo(px + TILE_SIZE - 2, py); ctx.lineTo(px + TILE_SIZE - 2, py + TILE_SIZE); ctx.stroke(); }
+        if (y === 4) { ctx.beginPath(); ctx.moveTo(px, py + 2); ctx.lineTo(px + TILE_SIZE, py + 2); ctx.stroke(); }
+        if (y === 12) { ctx.beginPath(); ctx.moveTo(px, py + TILE_SIZE - 2); ctx.lineTo(px + TILE_SIZE, py + TILE_SIZE - 2); ctx.stroke(); }
+      }
+      // 외곽 다크 오크 & 슬레이트 마루
       else {
-        ctx.fillStyle = (x + y) % 2 === 0 ? '#6a994e' : '#608c45';
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#1b141a' : '#150f14';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-
-        // 부드러운 풀잎 결
-        ctx.strokeStyle = '#a7c957';
-        ctx.lineWidth = 1.2;
-        if (seed < 4) {
-          ctx.beginPath();
-          ctx.moveTo(px + 12, py + 28); ctx.lineTo(px + 10, py + 22);
-          ctx.moveTo(px + 14, py + 28); ctx.lineTo(px + 17, py + 23);
-          ctx.stroke();
-        }
-        // 작은 들꽃 포인트
-        if (seed === 1 || seed === 7) {
-          ctx.fillStyle = seed === 1 ? '#fef08a' : '#fbcfe8';
-          ctx.beginPath();
-          ctx.arc(px + 26, py + 14, 2.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#f59e0b';
-          ctx.beginPath();
-          ctx.arc(px + 26, py + 14, 1, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
       }
     }
   }
 
-  // 2. 아기자기한 마을 건축물 & 자연 오브젝트 렌더링
+  // 2. 바닥 중앙 회전하는 에반게리온풍 기하학 구릿빛 마법진 (x: 10, y: 8 중심)
+  ctx.save();
+  ctx.translate(400, 320);
+  ctx.rotate(time * 0.0004);
+  ctx.strokeStyle = 'rgba(245, 158, 11, 0.32)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, 115, 0, Math.PI * 2);
+  ctx.arc(0, 0, 92, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 내부 정육각성(Hexagram) 라인
+  for (let t = 0; t < 2; t++) {
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const a = (t * Math.PI) + (Math.PI * 2 / 3) * i;
+      const vx = Math.cos(a) * 92;
+      const vy = Math.sin(a) * 92;
+      if (i === 0) ctx.moveTo(vx, vy);
+      else ctx.lineTo(vx, vy);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+  ctx.restore();
+  // 마법진 정중앙 구릿빛노루 문장
+  drawBronzeDeerCrest(400, 320, 1.3, time);
+
+  // 3. 상단 벽난로, 고딕 창문, 서가 등 기숙사 배경 구조물
+  // (a) 중앙 대형 아케인 벽난로 (x: 9~10, y: 1)
+  const fpX = 9 * TILE_SIZE;
+  const fpY = 1 * TILE_SIZE;
+  // 벽난로 화염 광원 후광
+  const fireGlow = ctx.createRadialGradient(fpX + 40, fpY + 28, 6, fpX + 40, fpY + 28, 130);
+  fireGlow.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
+  fireGlow.addColorStop(0.5, 'rgba(245, 158, 11, 0.18)');
+  fireGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = fireGlow;
+  ctx.beginPath();
+  ctx.arc(fpX + 40, fpY + 28, 130, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 벽난로 석조 외곽
+  ctx.fillStyle = '#271c22';
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 2;
+  ctx.fillRect(fpX - 6, fpY - 12, 92, 52);
+  ctx.strokeRect(fpX - 6, fpY - 12, 92, 52);
+
+  // 화구 내부 타오르는 고대비 불꽃 애니메이션
+  ctx.fillStyle = '#090406';
+  ctx.fillRect(fpX + 6, fpY + 4, 68, 34);
+  for (let i = 0; i < 5; i++) {
+    const fh = 14 + Math.sin(time * 0.015 + i * 1.3) * 8;
+    ctx.fillStyle = i % 2 === 0 ? '#dc2626' : '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(fpX + 12 + i * 12, fpY + 38);
+    ctx.lineTo(fpX + 18 + i * 12, fpY + 38 - fh);
+    ctx.lineTo(fpX + 24 + i * 12, fpY + 38);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // 벽난로 상단 구릿빛노루 현판
+  drawBronzeDeerCrest(fpX + 40, fpY - 16, 0.9, time);
+
+  // (b) 좌우 고딕 아치 창문 & 붉은 달빛 광선 (x: 2~3, x: 16~17)
+  [2 * TILE_SIZE, 16 * TILE_SIZE].forEach(wx => {
+    ctx.fillStyle = '#1e1b4b';
+    ctx.strokeStyle = '#92400e';
+    ctx.lineWidth = 2;
+    ctx.fillRect(wx + 6, 8, 68, 64);
+    ctx.strokeRect(wx + 6, 8, 68, 64);
+
+    // 창살 격자
+    ctx.beginPath();
+    ctx.moveTo(wx + 40, 8); ctx.lineTo(wx + 40, 72);
+    ctx.moveTo(wx + 6, 40); ctx.lineTo(wx + 74, 40);
+    ctx.stroke();
+
+    // 창문에서 사선으로 쏟아지는 드라마틱한 황혼 빛줄기
+    const beamGrad = ctx.createLinearGradient(wx + 40, 40, wx + 90, 220);
+    beamGrad.addColorStop(0, 'rgba(244, 63, 94, 0.16)');
+    beamGrad.addColorStop(1, 'rgba(244, 63, 94, 0)');
+    ctx.fillStyle = beamGrad;
+    ctx.beginPath();
+    ctx.moveTo(wx + 6, 72);
+    ctx.lineTo(wx + 74, 72);
+    ctx.lineTo(wx + 125, 240);
+    ctx.lineTo(wx + 35, 240);
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  // (c) 서버 장애물(서가, 기둥 등) 렌더링 (NPC 위치와 겹치지 않는 오브젝트)
   obstacles.forEach(obs => {
+    if (obs.type && obs.type.startsWith('npc_')) return;
+    const isNpcSpot = DORM_NPCS.some(n => n.x === obs.x && n.y === obs.y);
+    if (isNpcSpot) return;
+
     const px = obs.x * TILE_SIZE;
     const py = obs.y * TILE_SIZE;
 
-    // 바닥 그림자 공통
-    ctx.fillStyle = 'rgba(25, 45, 20, 0.25)';
-    ctx.beginPath();
-    ctx.ellipse(px + 20, py + 36, 17, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // 고딕 마법 서가 / 기둥으로 통일감 있게 표현
+    ctx.fillStyle = '#1c1015';
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(px + 5, py + 6, 30, 30);
+    ctx.strokeRect(px + 5, py + 6, 30, 30);
 
-    // 붉은 박공지붕 목조 주택 / 공방
-    if (obs.type === 'building' || obs.type === 'fireplace') {
-      // 크림색 회벽 몸체
-      ctx.fillStyle = '#faedcd';
-      ctx.strokeStyle = '#7f5539';
-      ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, px + 3, py + 14, 34, 24, 3);
-      ctx.fill(); ctx.stroke();
-
-      // 목조 기둥 장식
-      ctx.fillStyle = '#9c6644';
-      ctx.fillRect(px + 5, py + 14, 3, 24);
-      ctx.fillRect(px + 32, py + 14, 3, 24);
-
-      // 따뜻한 테라코타 지붕
-      const roofGrad = ctx.createLinearGradient(px, py, px, py + 18);
-      roofGrad.addColorStop(0, '#bc4749');
-      roofGrad.addColorStop(1, '#8c2f39');
-      ctx.fillStyle = roofGrad;
-      ctx.beginPath();
-      ctx.moveTo(px + 20, py - 2);
-      ctx.lineTo(px + 39, py + 16);
-      ctx.lineTo(px + 1, py + 16);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // 불 켜진 아치형 창문
-      ctx.fillStyle = '#fde047';
-      drawRoundedRect(ctx, px + 11, py + 20, 7, 9, 3);
-      ctx.fill(); ctx.stroke();
-      drawRoundedRect(ctx, px + 22, py + 20, 7, 9, 3);
-      ctx.fill(); ctx.stroke();
-    }
-    // 베이커리 카페
-    else if (obs.type === 'cafe' || obs.type === 'armchair' || obs.type === 'tea_table') {
-      ctx.fillStyle = '#fefae0';
-      ctx.strokeStyle = '#606c38';
-      ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, px + 3, py + 12, 34, 26, 4);
-      ctx.fill(); ctx.stroke();
-
-      // 초록 & 흰색 스트라이프 차양(어닝)
-      for (let i = 0; i < 4; i++) {
-        ctx.fillStyle = i % 2 === 0 ? '#2d6a4f' : '#ffffff';
-        ctx.fillRect(px + 3 + i * 8.5, py + 10, 8.5, 7);
-      }
-
-      // 따뜻한 유리창
-      ctx.fillStyle = '#ffedd5';
-      ctx.fillRect(px + 8, py + 21, 24, 12);
-      ctx.fillStyle = '#2d6a4f';
-      ctx.font = 'bold 9px "DungGeunMo"';
-      ctx.textAlign = 'center';
-      ctx.fillText('CAFE', px + 20, py + 30);
-    }
-    // 잡화점 상점
-    else if (obs.type === 'convenience' || obs.type === 'bookshelf') {
-      ctx.fillStyle = '#e0f2fe';
-      ctx.strokeStyle = '#0369a1';
-      ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, px + 3, py + 12, 34, 26, 4);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#0284c7';
-      drawRoundedRect(ctx, px + 2, py + 7, 36, 8, 3);
-      ctx.fill();
-
-      ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 9px "DungGeunMo"';
-      ctx.textAlign = 'center';
-      ctx.fillText('SHOP', px + 20, py + 14);
-
-      ctx.fillStyle = '#bae6fd';
-      ctx.fillRect(px + 8, py + 20, 24, 14);
-    }
-    // 클래식 기차역 / 정류장 아치
-    else if (obs.type === 'subway' || obs.type === 'bus_stop' || obs.type === 'snow_window') {
-      ctx.fillStyle = '#d4a373';
-      ctx.strokeStyle = '#7f5539';
-      ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, px + 4, py + 8, 32, 30, 6);
-      ctx.fill(); ctx.stroke();
-
-      // 아치형 입구
-      ctx.fillStyle = '#283618';
-      ctx.beginPath();
-      ctx.arc(px + 20, py + 26, 9, Math.PI, 0);
-      ctx.lineTo(px + 29, py + 38);
-      ctx.lineTo(px + 11, py + 38);
-      ctx.closePath();
-      ctx.fill();
-
-      // 시계탑 장식
-      ctx.fillStyle = '#fefae0';
-      ctx.beginPath();
-      ctx.arc(px + 20, py + 13, 4.5, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-    }
-    // 자전거 대여소
-    else if (obs.type === 'ttareungi') {
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(px + 12, py + 28, 6, 0, Math.PI * 2);
-      ctx.arc(px + 28, py + 28, 6, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#e11d48';
-      ctx.beginPath();
-      ctx.moveTo(px + 12, py + 28);
-      ctx.lineTo(px + 20, py + 19);
-      ctx.lineTo(px + 28, py + 28);
-      ctx.stroke();
-    }
-    // 풍성하고 입체적인 수채화 나무
-    else if (obs.type === 'tree' || obs.type === 'xmas_tree') {
-      // 나무 기둥
-      ctx.fillStyle = '#7f5539';
-      ctx.fillRect(px + 16, py + 22, 8, 15);
-
-      // 3단 구름형 잎사귀 군집
-      const sway = Math.sin(time * 0.002 + px) * 1.2;
-      ctx.fillStyle = '#2d6a4f';
-      ctx.beginPath();
-      ctx.arc(px + 13 + sway, py + 19, 10, 0, Math.PI * 2);
-      ctx.arc(px + 27 + sway, py + 19, 10, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#40916c';
-      ctx.beginPath();
-      ctx.arc(px + 20 + sway, py + 12, 12, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 햇살 받는 상단 하이라이트 잎
-      ctx.fillStyle = '#74c69d';
-      ctx.beginPath();
-      ctx.arc(px + 17 + sway, py + 9, 6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    // 원목 공원 벤치
-    else if (obs.type === 'bench' || obs.type === 'firewood') {
-      ctx.fillStyle = '#9c6644';
-      ctx.strokeStyle = '#582f0e';
-      ctx.lineWidth = 1.2;
-      drawRoundedRect(ctx, px + 5, py + 16, 30, 7, 2);
-      ctx.fill(); ctx.stroke();
-      drawRoundedRect(ctx, px + 4, py + 23, 32, 5, 2);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(px + 8, py + 28, 3, 6);
-      ctx.fillRect(px + 29, py + 28, 3, 6);
-    }
-    // 따뜻한 황금빛 앤틱 가로등
-    else if (obs.type === 'street_lamp' || obs.type === 'lamp_pole') {
-      // 빛 번짐 후광
-      const glow = ctx.createRadialGradient(px + 20, py + 9, 2, px + 20, py + 9, 22);
-      glow.addColorStop(0, 'rgba(254, 240, 138, 0.75)');
-      glow.addColorStop(1, 'rgba(254, 240, 138, 0)');
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(px + 20, py + 9, 22, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 주철 기둥
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(px + 18.5, py + 10, 3, 26);
-      ctx.fillRect(px + 15, py + 34, 10, 3);
-
-      // 등불 갓
-      ctx.fillStyle = '#fef08a';
-      ctx.strokeStyle = '#ca8a04';
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(px + 20, py + 9, 5.5, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-    }
-    // 아기자기한 꽃마차 / 상점 마차
-    else if (obs.type === 'foodtruck' || obs.type === 'gift_box') {
-      ctx.fillStyle = '#f43f5e';
-      ctx.strokeStyle = '#881337';
-      ctx.lineWidth = 1.2;
-      drawRoundedRect(ctx, px + 4, py + 10, 32, 22, 5);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#fff1f2';
-      drawRoundedRect(ctx, px + 8, py + 14, 18, 10, 2);
-      ctx.fill();
-
-      // 나무 수레바퀴
-      ctx.fillStyle = '#78350f';
-      ctx.beginPath();
-      ctx.arc(px + 12, py + 33, 4.5, 0, Math.PI * 2);
-      ctx.arc(px + 28, py + 33, 4.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    // 꽃밭 화단
-    else if (obs.type === 'flowerbed' || obs.type === 'garland' || obs.type === 'rudolph_statue') {
-      ctx.fillStyle = '#b08968';
-      drawRoundedRect(ctx, px + 3, py + 16, 34, 18, 5);
-      ctx.fill();
-      ctx.fillStyle = '#52b788';
-      drawRoundedRect(ctx, px + 5, py + 14, 30, 16, 5);
-      ctx.fill();
-
-      // 알록달록 꽃송이
-      const colors = ['#f43f5e', '#facc15', '#c084fc', '#fb923c'];
-      for (let i = 0; i < 4; i++) {
-        ctx.fillStyle = colors[i];
-        ctx.beginPath();
-        ctx.arc(px + 10 + i * 6.5, py + 21 + (i % 2) * 3, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    // 마을 안내자 NPC
-    else if (obs.type === 'mentor_npc' || obs.type === 'santa_npc') {
-      drawCharacterSprite(px, py, { x: obs.x, y: obs.y, dir: 'down', character: {} }, true, time);
-
-      ctx.font = 'bold 11px "DungGeunMo"';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#fde047';
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 3;
-      ctx.strokeText('마을 안내자', px + 20, py - 8);
-      ctx.fillText('마을 안내자', px + 20, py - 8);
-    }
+    // 마도서 책등 컬러 디테일
+    ctx.fillStyle = '#991b1b';
+    ctx.fillRect(px + 8, py + 10, 24, 6);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(px + 8, py + 19, 24, 6);
   });
 
-  // 3. 플레이어 캐릭터 렌더링
+  // 4. 3명의 마법사 NPC 렌더링 (헬리콥터, 농 잊을리, 해린이언니)
+  DORM_NPCS.forEach(npc => drawWizardNPC(npc, time));
+
+  // 5. 플레이어 캐릭터 렌더링 (Y좌표 정렬)
   const sortedPlayers = Object.values(players).sort((a, b) => a.y - b.y);
   sortedPlayers.forEach(p => {
     const targetX = p.x * TILE_SIZE;
@@ -1988,36 +2520,36 @@ function drawGame() {
     const ry = p.renderY;
     const c = p.character || {};
 
-    drawCharacterSprite(rx, ry, p, false, time);
+    drawEvolvedStudent(rx, ry, p, time);
 
-    // 머리 위 인생 스펙 칭호
+    // 머리 위 칭호
     const wealthTitle = getStatTitle('wealth', c.wealth || 0);
     const eduTitle = getStatTitle('education', c.education || 0);
     const mainTitle = (c.wealth >= 10 || c.education >= 15) ? `[${wealthTitle}]` : `[${eduTitle}]`;
 
     ctx.font = 'bold 11px "DungGeunMo"';
     ctx.textAlign = 'center';
-    ctx.fillStyle = (c.wealth >= 15 || c.education >= 20) ? '#fb7185' : '#fde047';
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.fillStyle = (c.wealth >= 25 || c.education >= 25) ? '#f43f5e' : '#f59e0b';
+    ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
-    ctx.strokeText(mainTitle, rx + 20, ry - 20);
-    ctx.fillText(mainTitle, rx + 20, ry - 20);
+    ctx.strokeText(mainTitle, rx + 20, ry - 22);
+    ctx.fillText(mainTitle, rx + 20, ry - 22);
 
     // 닉네임
     ctx.font = '12px "DungGeunMo"';
     ctx.textAlign = 'center';
-    ctx.fillStyle = (p.id === myId) ? '#7dd3fc' : '#ffffff';
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.fillStyle = (p.id === myId) ? '#38bdf8' : '#f8fafc';
+    ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
-    ctx.strokeText(p.name, rx + 20, ry - 7);
-    ctx.fillText(p.name, rx + 20, ry - 7);
+    ctx.strokeText(p.name, rx + 20, ry - 9);
+    ctx.fillText(p.name, rx + 20, ry - 9);
 
     if (p.chatText) {
-      drawSpeechBubble(rx + 20, ry - 32, p.chatText);
+      drawSpeechBubble(rx + 20, ry - 34, p.chatText);
     }
   });
 
-  // 4. 360도 전신 축복 오라 폭발 렌더링
+  // 6. 360도 전신 기운 발산 이펙트 (나 & 다른 유저 모두 표시)
   burstEffects = burstEffects.filter(eff => {
     const elapsed = time - eff.born;
     if (elapsed > eff.duration) return false;
@@ -2031,30 +2563,39 @@ function drawGame() {
     ctx.shadowColor = eff.glowColor;
     ctx.shadowBlur = 18 * (1 - progress);
 
+    // 외곽 정육각 AT-필드 파동 + 원형 충격파
     ctx.beginPath();
-    ctx.arc(0, 0, eff.maxRadius * progress, 0, Math.PI * 2);
+    const r = eff.maxRadius * progress;
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI * 2 / 6) * i + progress * 1.5;
+      const hx = Math.cos(a) * r;
+      const hy = Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(hx, hy);
+      else ctx.lineTo(hx, hy);
+    }
+    ctx.closePath();
     ctx.strokeStyle = eff.primaryColor;
-    ctx.lineWidth = 4 * (1 - progress);
+    ctx.lineWidth = 3.5 * (1 - progress);
     ctx.globalAlpha = alpha;
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.arc(0, 0, (eff.maxRadius * 0.65) * progress, 0, Math.PI * 2);
+    ctx.arc(0, 0, (eff.maxRadius * 0.68) * progress, 0, Math.PI * 2);
     ctx.strokeStyle = eff.ringColor;
     ctx.lineWidth = 2 * (1 - progress);
     ctx.stroke();
 
+    // 360도 방사형 십자광 & 입자
     eff.particles.forEach(pt => {
       ctx.fillStyle = pt.color;
       ctx.globalAlpha = alpha;
-
       const px = pt.vx * progress * 10;
       const py = pt.vy * progress * 10;
       const size = pt.size * (1 - progress * 0.4);
 
-      if (pt.isStar) {
-        ctx.fillRect(px - size, py - 1, size * 2, 2);
-        ctx.fillRect(px - 1, py - size, 2, size * 2);
+      if (pt.isCross) {
+        ctx.fillRect(px - size * 1.4, py - 0.8, size * 2.8, 1.6);
+        ctx.fillRect(px - 0.8, py - size * 1.4, 1.6, size * 2.8);
       } else {
         ctx.beginPath();
         ctx.arc(px, py, size, 0, Math.PI * 2);
@@ -2066,57 +2607,59 @@ function drawGame() {
     return true;
   });
 
-  // 5. 바람에 흩날리는 꽃잎 & 따스한 햇살 입자
+  // 7. 공중에 떠서 움직이는 마법 촛불 & 상승하는 불티(Ember) 이펙트
   ctx.save();
-  ambientPetals.forEach(pt => {
-    pt.x += pt.vx + Math.sin(time * 0.001 + pt.phase) * 0.25;
-    pt.y += pt.vy;
-    if (pt.x > canvas.width) pt.x = -10;
-    if (pt.y > canvas.height) pt.y = -10;
-
-    if (pt.type === 'petal') {
-      ctx.fillStyle = 'rgba(255, 228, 230, 0.75)';
-      ctx.beginPath();
-      ctx.ellipse(pt.x, pt.y, pt.r, pt.r * 0.6, time * 0.002 + pt.phase, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.fillStyle = 'rgba(254, 249, 195, 0.55)';
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, pt.r * 0.9, 0, Math.PI * 2);
-      ctx.fill();
-    }
+  floatingCandles.forEach(cd => {
+    const hoverY = cd.y + Math.sin(time * 0.003 + cd.phase) * 5;
+    // 촛불 몸통
+    ctx.fillStyle = '#fef3c7';
+    ctx.fillRect(cd.x - 1.5, hoverY, 3, 9 * cd.scale);
+    // 촛불 불꽃
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(cd.x, hoverY - 2.5, 2.2 * cd.scale, 0, Math.PI * 2);
+    ctx.fill();
+    // 은은한 광원
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.16)';
+    ctx.beginPath();
+    ctx.arc(cd.x, hoverY - 2, 9 * cd.scale, 0, Math.PI * 2);
+    ctx.fill();
   });
 
-  // 상단 좌측에서 비치는 따스한 햇살 그라데이션 필터
-  const sunGrad = ctx.createRadialGradient(0, 0, 40, 0, 0, 500);
-  sunGrad.addColorStop(0, 'rgba(254, 243, 199, 0.16)');
-  sunGrad.addColorStop(1, 'rgba(254, 243, 199, 0)');
-  ctx.fillStyle = sunGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  emberParticles.forEach(em => {
+    em.x += em.vx;
+    em.y += em.vy;
+    if (em.y < 0) { em.y = canvas.height; em.x = Math.random() * canvas.width; }
+    if (em.x < 0) em.x = canvas.width;
+    if (em.x > canvas.width) em.x = 0;
+
+    ctx.fillStyle = em.color;
+    ctx.globalAlpha = em.alpha;
+    ctx.fillRect(em.x, em.y, em.size, em.size);
+  });
   ctx.restore();
 
   requestAnimationFrame(drawGame);
 }
 
 function drawSpeechBubble(cx, cy, text) {
-  ctx.font = '13px "DungGeunMo"';
+  ctx.font = '12px "DungGeunMo"';
   const textWidth = ctx.measureText(text).width;
-  const bw = Math.max(textWidth + 16, 34);
-  const bh = 24;
+  const bw = Math.max(textWidth + 14, 34);
+  const bh = 22;
   const bx = cx - bw / 2;
   const by = cy - bh;
 
   ctx.save();
-  ctx.fillStyle = 'rgba(255, 251, 235, 0.95)';
-  ctx.strokeStyle = '#78350f';
-  ctx.lineWidth = 1.8;
-  drawRoundedRect(ctx, bx, by, bw, bh, 8);
-  ctx.fill();
-  ctx.stroke();
+  ctx.fillStyle = 'rgba(12, 8, 12, 0.92)';
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 1.5;
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.strokeRect(bx, by, bw, bh);
 
-  ctx.fillStyle = '#451a03';
+  ctx.fillStyle = '#fef08a';
   ctx.textAlign = 'center';
-  ctx.fillText(text, cx, by + 16);
+  ctx.fillText(text, cx, by + 15);
   ctx.restore();
 }
 
