@@ -283,35 +283,22 @@ const MAP_WIDTH = 20;
 const MAP_HEIGHT = 15;
 
 const OBSTACLES = [
-    // 상단: 고층 오피스 빌딩 및 카페 라인
-    { x: 1, y: 1, type: 'building' }, { x: 2, y: 1, type: 'building' },
-    { x: 4, y: 1, type: 'cafe' },     { x: 5, y: 1, type: 'cafe' },
-    { x: 7, y: 1, type: 'mentor_npc' }, // 서울 멘토 NPC (구 왈숙이)
-    { x: 9, y: 1, type: 'building' }, { x: 10, y: 1, type: 'building' },
-    { x: 14, y: 1, type: 'convenience' }, { x: 15, y: 1, type: 'convenience' }, // 24시 편의점
-    { x: 17, y: 1, type: 'building' }, { x: 18, y: 1, type: 'building' },
+    // 상단 중앙: 구릿빛노루 기숙사 대형 마법 벽난로
+    { x: 9, y: 1, type: 'fireplace' }, { x: 10, y: 1, type: 'fireplace' },
 
-    // 지하철 2호선 역 출입구
-    { x: 1, y: 4, type: 'subway' }, { x: 2, y: 4, type: 'subway' },
-    
-    // 버스 정류장 & 스마트 쉼터
-    { x: 17, y: 4, type: 'bus_stop' }, { x: 18, y: 4, type: 'bus_stop' },
+    // 상단 좌우: 고딕 아치 창문 & 서가
+    { x: 2, y: 1, type: 'window' }, { x: 3, y: 1, type: 'window' },
+    { x: 16, y: 1, type: 'window' }, { x: 17, y: 1, type: 'window' },
+    { x: 6, y: 1, type: 'bookshelf' }, { x: 13, y: 1, type: 'bookshelf' },
 
-    // 가로수 및 도심 벤치
-    { x: 4, y: 4, type: 'tree' },  { x: 8, y: 4, type: 'bench' },
-    { x: 12, y: 4, type: 'tree' }, { x: 15, y: 4, type: 'tree' },
+    // 3명의 마법사 NPC 고루 배치
+    { x: 4, y: 3, type: 'npc_helicopter' },  // 헬리콥터 (좌측 구역)
+    { x: 15, y: 3, type: 'npc_nong' },       // 농 잊을리 (우측 구역)
+    { x: 10, y: 11, type: 'npc_haerin' },    // 해린이언니 (하단 중앙 구역)
 
-    // 서울 따릉이 대여소
-    { x: 1, y: 9, type: 'ttareungi' }, { x: 2, y: 9, type: 'ttareungi' },
-
-    // 가로등 & 화단
-    { x: 5, y: 9, type: 'street_lamp' }, { x: 9, y: 9, type: 'flowerbed' },
-    { x: 14, y: 9, type: 'street_lamp' },
-
-    // 하단 푸드트럭 & 야외 테라스
-    { x: 16, y: 12, type: 'foodtruck' }, { x: 17, y: 12, type: 'foodtruck' },
-    { x: 4, y: 12, type: 'bench' }, { x: 8, y: 12, type: 'tree' },
-    { x: 12, y: 12, type: 'tree' }
+    // 기숙사 내부 기둥 및 마법 연구 테이블
+    { x: 3, y: 7, type: 'pillar' }, { x: 16, y: 7, type: 'pillar' },
+    { x: 3, y: 11, type: 'table' }, { x: 16, y: 11, type: 'table' }
 ];
 const players = {};
 
@@ -580,6 +567,12 @@ io.on('connection', async (socket) => {
                 io.emit('playerChatClear', { id: socket.id });
             }
         }, 4500);
+    });
+
+// 기운 발산(Space) 전체 유저에게 실시간 공유
+    socket.on('emitAura', () => {
+        if (!players[socket.id]) return;
+        socket.broadcast.emit('playerAura', { id: socket.id });
     });
 
     socket.on('disconnect', () => {
