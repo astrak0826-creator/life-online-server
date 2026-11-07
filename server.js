@@ -29,7 +29,7 @@ mongoose.connect(MONGO_URI)
 const MAX_TOKENS = 120;
 const REFILL_INTERVAL_MS = 60 * 1000; // 1분당 1개 충전
 
-// 토큰 자동 계산 헬퍼 함수
+// 기회(토큰) 자동 계산 헬퍼 함수
 function resolveTokens(charData) {
     const now = Date.now();
     const last = new Date(charData.lastTokenRefill || now).getTime();
@@ -90,6 +90,8 @@ app.post('/api/register', async (req, res) => {
                 iq: 100,
                 stamina: 0,
                 personality: 0,
+                titleStat: 'education',
+                auraColor: 'red',
                 enhanceTokens: MAX_TOKENS,
                 lastTokenRefill: new Date()
             }
@@ -267,6 +269,8 @@ app.get('/api/rankings', async (req, res) => {
                 iq: c.iq || 100,
                 stamina: c.stamina || 0,
                 personality: c.personality || 0,
+                titleStat: c.titleStat || 'education',
+                auraColor: c.auraColor || 'red',
                 totalScore
             };
         }).sort((a, b) => b.totalScore - a.totalScore).slice(0, 50).map((item, idx) => ({ rank: idx + 1, ...item }));
@@ -333,15 +337,18 @@ io.on('connection', async (socket) => {
     }
 
     const dbUser = await User.findById(userId);
-    const char = dbUser ? dbUser.character : { 
+    const char = dbUser ? dbUser.character : {
         gender: 'male', education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0,
-        enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date() 
+        titleStat: 'education', auraColor: 'red',
+        enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date()
     };
     const tokenState = resolveTokens(char);
 
     if (dbUser) {
         dbUser.character.enhanceTokens = tokenState.tokens;
         dbUser.character.lastTokenRefill = tokenState.lastRefill;
+        if (!dbUser.character.titleStat) dbUser.character.titleStat = 'education';
+        if (!dbUser.character.auraColor) dbUser.character.auraColor = 'red';
         await dbUser.save();
     }
 
@@ -395,6 +402,33 @@ io.on('connection', async (socket) => {
         io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir });
     });
 
+    // 유저 칭호 및 기운 발산 색상 변경 소켓 이벤트
+    socket.on('updatePreferences', async (prefs) => {
+        const p = players[socket.id];
+        if (!p) return;
+
+        const validStats = ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality'];
+        const validColors = ['red', 'yellow', 'blue', 'green'];
+
+        const u = await User.findById(userId);
+        if (!u) return;
+
+        if (prefs.titleStat && validStats.includes(prefs.titleStat)) {
+            u.character.titleStat = prefs.titleStat;
+        }
+        if (prefs.auraColor && validColors.includes(prefs.auraColor)) {
+            u.character.auraColor = prefs.auraColor;
+        }
+
+        await u.save();
+        p.character = u.character;
+
+        io.emit('playerStatUpdated', {
+            id: socket.id,
+            character: u.character
+        });
+    });
+
     // 6대 스탯 강화 소켓 이벤트
     socket.on('tryEnhanceStat', async (statType, callback) => {
         const p = players[socket.id];
@@ -410,7 +444,7 @@ io.on('connection', async (socket) => {
                 noTokens: true,
                 tokens: tokenState.tokens,
                 lastRefill: tokenState.lastRefill.getTime(),
-                message: '토큰이 부족합니다. (1분당 1개 충전)'
+                message: '기회가 부족합니다. (1분당 1회 충전)'
             });
         }
 
@@ -433,9 +467,9 @@ io.on('connection', async (socket) => {
                 break;
             }
 
-            // 2. 외모: 성공 1% (+1), 유지 98%, 실패 1% (-1) [0강 보호]
+            // 2. 외모: 성공 2% (+1), 유지 97%, 실패 1% (-1) [0강 보호]
             case 'appearance': {
-                if (rand < 1.0) {
+                if (rand < 2.0) {
                     u.character.appearance += 1;
                     result = { type: 'success', change: 1, message: '✨ 외모 관리 성공! 아우라가 달라졌습니다.' };
                 } else if (rand >= 99.0 && u.character.appearance > 0) {
@@ -445,13 +479,13 @@ io.on('connection', async (socket) => {
                 break;
             }
 
-            // 3. 재력: 성공 1% (+1), 대성공 0.9% (+2), 유지 97%, 실패 1% (-1), 대실패 0.1% (0강 초기화) [0강 보호]
+            // 3. 재력: 성공 1% (+1), 대성공 0.99% (+2), 유지 97%, 실패 1% (-1), 파산 0.01% (0강 초기화) [0강 보호]
             case 'wealth': {
                 if (u.character.wealth === 0) {
                     if (rand < 1.0) {
                         u.character.wealth += 1;
                         result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 소득이 늘었습니다.' };
-                    } else if (rand < 2.0) {
+                    } else if (rand < 1.99) {
                         u.character.wealth += 2;
                         result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 투자 대박 (+2강)!' };
                     }
@@ -459,15 +493,15 @@ io.on('connection', async (socket) => {
                     if (rand < 1.0) {
                         u.character.wealth += 1;
                         result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 자산이 증식되었습니다.' };
-                    } else if (rand < 1.9) {
+                    } else if (rand < 1.99) {
                         u.character.wealth += 2;
                         result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 벼락부자가 되었습니다 (+2강)!' };
-                    } else if (rand >= 98.9 && rand < 99.9) {
+                    } else if (rand >= 98.99 && rand < 99.99) {
                         u.character.wealth -= 1;
                         result = { type: 'fail', change: -1, message: '📉 투자 손실... 자산이 줄었습니다 (-1강).' };
-                    } else if (rand >= 99.9) {
+                    } else if (rand >= 99.99) {
                         u.character.wealth = 0;
-                        result = { type: 'catastrophe', change: 0, message: '🚨 0.1% 대폭망!! 전재산을 날려 0강(빈민)으로 초기화되었습니다!' };
+                        result = { type: 'catastrophe', change: 0, message: '🚨 0.01% 대파산!! 전재산을 날려 0강(빈민)으로 초기화되었습니다!' };
                     }
                 }
                 break;
@@ -528,19 +562,11 @@ io.on('connection', async (socket) => {
         p.enhanceTokens = currentTokens;
         p.lastTokenRefill = newLastRefill.getTime();
 
-        // 전체 플레이어에게 스탯 갱신 브로드캐스트
+        // 전체 플레이어에게 스탯 갱신 브로드캐스트 (기숙사 속보 채팅 알림은 제거됨)
         io.emit('playerStatUpdated', {
             id: socket.id,
             character: u.character
         });
-
-        // 초고강 달성 시 전체 서버 공지
-        if (result.type.includes('success')) {
-            const currentVal = u.character[statType];
-            if (currentVal >= 20) {
-                io.emit('serverAnnouncement', `[대경축] ${p.name} 님께서 [${statType.toUpperCase()} ${currentVal}단계]에 도달하셨습니다!`);
-            }
-        }
 
         callback({
             success: true,
@@ -569,7 +595,7 @@ io.on('connection', async (socket) => {
         }, 4500);
     });
 
-// 기운 발산(Space) 전체 유저에게 실시간 공유
+    // 기운 발산(Space) 전체 유저에게 실시간 공유
     socket.on('emitAura', () => {
         if (!players[socket.id]) return;
         socket.broadcast.emit('playerAura', { id: socket.id });
