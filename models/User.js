@@ -36,14 +36,26 @@ const userSchema = new mongoose.Schema({
             default: 'male'
         },
         // 6대 스탯
-        education: { type: Number, default: 0, min: 0 },    // 학력 (0강 시작)
-        appearance: { type: Number, default: 0, min: 0 },   // 외모 (0강 시작)
-        wealth: { type: Number, default: 0, min: 0 },       // 재력 (0강 시작)
-        iq: { type: Number, default: 100, min: 0 },         // 지능 (기본값 IQ 100)
-        stamina: { type: Number, default: 0, min: 0 },      // 체력 (0강 시작)
-        personality: { type: Number, default: 0, min: 0 },  // 성격 (0강 시작)
+        education: { type: Number, default: 0, min: 0 },    // 학력 (오른팔)
+        appearance: { type: Number, default: 0, min: 0 },   // 외모 (오른다리)
+        wealth: { type: Number, default: 0, min: 0 },       // 재력 (왼팔)
+        iq: { type: Number, default: 100, min: 0 },         // 지능 (머리, 기본 100)
+        stamina: { type: Number, default: 0, min: 0 },      // 체력 (몸통)
+        personality: { type: Number, default: 0, min: 0 },  // 성격 (왼다리)
 
-        // 토큰 시스템 (1분당 1충전, 최대 120개)
+        // 유저 커스텀 설정: 머리 위 표시 칭호 스탯 & 스페이스바 기운 색상
+        titleStat: {
+            type: String,
+            enum: ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality'],
+            default: 'education'
+        },
+        auraColor: {
+            type: String,
+            enum: ['red', 'yellow', 'blue', 'green'],
+            default: 'red'
+        },
+
+        // 기회 시스템 (1분당 1충전, 최대 120개)
         enhanceTokens: { type: Number, default: 120, max: 120 },
         lastTokenRefill: { type: Date, default: Date.now },
         color: { type: String, default: '#3b82f6' }
@@ -58,7 +70,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-// 빠른 랭킹 조회를 위한 복합 인덱스 (총점 및 주요 스탯 정렬 최적화)
+// 빠른 랭킹 조회를 위한 복합 인덱스
 userSchema.index({ "character.wealth": -1, "character.education": -1, updatedAt: 1 });
 
 module.exports = mongoose.model('User', userSchema);
