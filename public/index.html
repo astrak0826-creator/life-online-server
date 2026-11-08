@@ -889,7 +889,7 @@ document.getElementById('btnSoundToggle').addEventListener('click', (e) => {
 
 let socket = null;
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getElementById('gameCanvas').getContext('2d');
+const ctx = canvas.getContext('2d'); // ✅ canvas.getContext('2d')로 바로 호출
 const hexCanvas = document.getElementById('hexRadarCanvas');
 const hexCtx = hexCanvas.getContext('2d');
 
