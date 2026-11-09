@@ -29,7 +29,7 @@ mongoose.connect(MONGO_URI)
 const MAX_TOKENS = 120;
 const REFILL_INTERVAL_MS = 60 * 1000; // 1분당 1개 충전
 
-// [업데이트 5] 지팡이 0강 -> 1강부터 29강 -> 30강까지의 확률 테이블
+// 지팡이 0강 -> 1강부터 29강 -> 30강까지의 확률 테이블
 const ENHANCE_RATES = {
     0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
     5: 0.70,  6: 0.65,  7: 0.60,  8: 0.55,  9: 0.50,
@@ -90,8 +90,8 @@ function syncCharacterProgress(char) {
     }
 }
 
-// [업데이트 6] 종합점수(=최종 공격력) 계산: 6대 스탯 강화합 + (지팡이 강화단계 * 10)
-function calcTotalScoreAndAttack(c) {
+// 전투력 계산: 6대 스탯 강화합 + (지팡이 강화단계 * 10)
+function calcCombatPower(c) {
     if (!c) return 0;
     const iqLv = Math.max(0, (c.iq !== undefined ? c.iq : 100) - 100);
     const sixStatSum = iqLv + (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.stamina || 0) + (c.personality || 0);
@@ -309,7 +309,7 @@ app.post('/api/admin/delete-user', async (req, res) => {
     }
 });
 
-// 7. 종합 랭킹 조회 API (상위 50위, 지팡이 점수 반영)
+// 7. 서열 랭킹 조회 API (상위 50위, 전투력 기준)
 app.get('/api/rankings', async (req, res) => {
     try {
         const users = await User.find({})
@@ -318,7 +318,7 @@ app.get('/api/rankings', async (req, res) => {
 
         const rankingList = users.map(u => {
             const c = u.character || {};
-            const totalScore = calcTotalScoreAndAttack(c);
+            const totalScore = calcCombatPower(c);
             return {
                 nickname: u.nickname,
                 gender: c.gender || 'male',
@@ -344,11 +344,13 @@ app.get('/api/rankings', async (req, res) => {
     }
 });
 
-// ================= [월드 및 소켓 통신] =================
-const MAP_WIDTH = 20;
+// ================= [월드(40x15 확장) 및 사냥터 몬스터 시스템] =================
+const DORM_WIDTH = 20;
+const MAP_WIDTH = 40;  // 0~19: 기숙사 홀, 20~39: 동쪽 마법의 숲 사냥터
 const MAP_HEIGHT = 15;
 
 const OBSTACLES = [
+    // [좌측 0~19: 기숙사 내부 구조물]
     // 상단 중앙: 대형 마법 벽난로
     { x: 9, y: 1, type: 'fireplace' }, { x: 10, y: 1, type: 'fireplace' },
 
@@ -357,26 +359,183 @@ const OBSTACLES = [
     { x: 16, y: 1, type: 'window' }, { x: 17, y: 1, type: 'window' },
     { x: 6, y: 1, type: 'bookshelf' }, { x: 13, y: 1, type: 'bookshelf' },
 
-    // 3명의 마법사 NPC 고루 배치
+    // 3명의 마법사 NPC 배치
     { x: 4, y: 3, type: 'npc_helicopter' },  // 헬리콥터 (좌측 구역)
     { x: 15, y: 3, type: 'npc_nong' },       // 농 잊을리 (우측 구역)
     { x: 10, y: 11, type: 'npc_haerin' },    // 해린이언니 (하단 중앙 구역)
 
     // 내부 기둥 및 마법 연구 테이블
     { x: 3, y: 7, type: 'pillar' }, { x: 16, y: 7, type: 'pillar' },
-    { x: 3, y: 11, type: 'table' }, { x: 16, y: 11, type: 'table' }
-];
-const players = {};
+    { x: 3, y: 11, type: 'table' }, { x: 16, y: 11, type: 'table' },
 
-function isTileBlocked(x, y) {
+    // [경계선 X=20: 기숙사-사냥터 연결 아치 게이트 기둥 (중앙 통로 개방)]
+    { x: 20, y: 1, type: 'gate_pillar' },
+    { x: 20, y: 2, type: 'gate_pillar' },
+    { x: 20, y: 3, type: 'gate_pillar' },
+    { x: 20, y: 11, type: 'gate_pillar' },
+    { x: 20, y: 12, type: 'gate_pillar' },
+    { x: 20, y: 13, type: 'gate_pillar' },
+
+    // [우측 21~39: 사냥터 자연 장애물 (고목나무 & 마력 수정 바위)]
+    { x: 23, y: 3, type: 'forest_tree' },
+    { x: 28, y: 2, type: 'crystal_rock' },
+    { x: 34, y: 3, type: 'forest_tree' },
+    { x: 25, y: 7, type: 'crystal_rock' },
+    { x: 31, y: 7, type: 'forest_tree' },
+    { x: 37, y: 6, type: 'crystal_rock' },
+    { x: 24, y: 12, type: 'forest_tree' },
+    { x: 30, y: 12, type: 'crystal_rock' },
+    { x: 36, y: 11, type: 'forest_tree' }
+];
+
+const players = {};
+const monsters = {};
+
+// 사냥터 몬스터 3종 스펙 및 기회 드랍 확률 정의
+const MONSTER_SPECS = {
+    mandrake: {
+        type: 'mandrake',
+        name: '아기 맨드레이크',
+        maxHp: 500,
+        moveInterval: 2800, // 매우 느림 (약 2.8초당 1칸 배회)
+        dropRate: 0.10,     // 처치 시 10% 확률로 기회 +1
+        aggroRange: 0       // 선공/추적 없음
+    },
+    slime: {
+        type: 'slime',
+        name: '어둠의 마법 슬라임',
+        maxHp: 1500,
+        moveInterval: 1700, // 보통 속도 (약 1.7초당 1칸)
+        dropRate: 0.30,     // 처치 시 30% 확률로 기회 +1
+        aggroRange: 4       // 4칸 이내 유저 감지 시 접근
+    },
+    wolf: {
+        type: 'wolf',
+        name: '변종 늑대 마수',
+        maxHp: 3500,
+        moveInterval: 1100, // 약간 빠름 (약 1.1초당 1칸)
+        dropRate: 0.70,     // 처치 시 70% 확률로 기회 +1
+        aggroRange: 6       // 6칸 이내 유저 감지 시 추격
+    }
+};
+
+function isTileBlocked(x, y, ignoreMonsterId = null) {
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return true;
     if (OBSTACLES.some(obs => obs.x === x && obs.y === y)) return true;
     for (const id in players) {
         if (players[id].x === x && players[id].y === y) return true;
     }
+    for (const mid in monsters) {
+        if (mid === ignoreMonsterId) continue;
+        const m = monsters[mid];
+        if (m.alive && m.x === x && m.y === y) return true;
+    }
     return false;
 }
 
+function getRandomHuntingTile(ignoreMonsterId = null) {
+    for (let attempt = 0; attempt < 100; attempt++) {
+        const rx = 21 + Math.floor(Math.random() * 18); // X: 21 ~ 38
+        const ry = 2 + Math.floor(Math.random() * 12);  // Y: 2 ~ 13
+        if (!isTileBlocked(rx, ry, ignoreMonsterId)) {
+            return { x: rx, y: ry };
+        }
+    }
+    return { x: 26, y: 7 };
+}
+
+function initMonsters() {
+    const spawnPlan = [
+        'mandrake', 'mandrake', 'mandrake', 'mandrake',
+        'slime', 'slime', 'slime',
+        'wolf', 'wolf'
+    ];
+    spawnPlan.forEach((typeKey, idx) => {
+        const spec = MONSTER_SPECS[typeKey];
+        const id = `mon_${idx + 1}`;
+        const pos = getRandomHuntingTile(id);
+        monsters[id] = {
+            id,
+            type: spec.type,
+            name: spec.name,
+            x: pos.x,
+            y: pos.y,
+            dir: 'left',
+            hp: spec.maxHp,
+            maxHp: spec.maxHp,
+            moveInterval: spec.moveInterval,
+            dropRate: spec.dropRate,
+            aggroRange: spec.aggroRange,
+            alive: true,
+            lastMoveTime: Date.now() + Math.floor(Math.random() * 1500)
+        };
+    });
+}
+initMonsters();
+
+// 서버 사이드 몬스터 AI 이동 루프
+setInterval(() => {
+    const now = Date.now();
+    const dirs = ['up', 'down', 'left', 'right'];
+
+    for (const mid in monsters) {
+        const m = monsters[mid];
+        if (!m.alive) continue;
+        if (now - m.lastMoveTime < m.moveInterval) continue;
+        m.lastMoveTime = now;
+
+        let chosenDir = dirs[Math.floor(Math.random() * dirs.length)];
+
+        // 추격 반경(aggroRange)이 있는 몬스터는 사냥터 안의 가장 가까운 유저 방향으로 이동 시도
+        if (m.aggroRange > 0) {
+            let nearestPlayer = null;
+            let minDist = Infinity;
+            for (const pid in players) {
+                const pl = players[pid];
+                if (pl.x < 21) continue; // 기숙사 내부에 있는 유저는 추격하지 않음
+                const d = Math.abs(pl.x - m.x) + Math.abs(pl.y - m.y);
+                if (d <= m.aggroRange && d < minDist) {
+                    minDist = d;
+                    nearestPlayer = pl;
+                }
+            }
+
+            if (nearestPlayer && minDist > 1) {
+                const dx = nearestPlayer.x - m.x;
+                const dy = nearestPlayer.y - m.y;
+                if (Math.abs(dx) >= Math.abs(dy)) {
+                    chosenDir = dx > 0 ? 'right' : 'left';
+                } else {
+                    chosenDir = dy > 0 ? 'down' : 'up';
+                }
+            }
+        }
+
+        let tx = m.x;
+        let ty = m.y;
+        if (chosenDir === 'up') ty -= 1;
+        else if (chosenDir === 'down') ty += 1;
+        else if (chosenDir === 'left') tx -= 1;
+        else if (chosenDir === 'right') tx += 1;
+
+        m.dir = chosenDir;
+
+        // 사냥터 영역(X: 21~38, Y: 2~13) 내에서만 이동 허용
+        if (tx >= 21 && tx <= 38 && ty >= 2 && ty <= 13 && !isTileBlocked(tx, ty, m.id)) {
+            m.x = tx;
+            m.y = ty;
+        }
+
+        io.emit('monsterMoved', {
+            id: m.id,
+            x: m.x,
+            y: m.y,
+            dir: m.dir
+        });
+    }
+}, 200);
+
+// ================= [소켓 통신] =================
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
     if (!token) return next(new Error('인증 필요'));
@@ -414,9 +573,10 @@ io.on('connection', async (socket) => {
         await dbUser.save();
     }
 
-    let spawnX = 2, spawnY = 7;
+    // 스폰 위치는 항상 안전한 기숙사 내부 (X: 2 ~ 17, Y: 2 ~ 12)
+    let spawnX = 5, spawnY = 7;
     while (isTileBlocked(spawnX, spawnY)) {
-        spawnX = Math.floor(Math.random() * (MAP_WIDTH - 4)) + 2;
+        spawnX = Math.floor(Math.random() * (DORM_WIDTH - 4)) + 2;
         spawnY = Math.floor(Math.random() * (MAP_HEIGHT - 4)) + 2;
     }
 
@@ -442,12 +602,13 @@ io.on('connection', async (socket) => {
         mapWidth: MAP_WIDTH,
         mapHeight: MAP_HEIGHT,
         obstacles: OBSTACLES,
-        players: players
+        players: players,
+        monsters: monsters
     });
 
     socket.broadcast.emit('playerJoined', players[socket.id]);
 
-    // [업데이트 7] 이동 속도 제어 (기본 한 칸 이동 & 스페이스바 홀드 시 달리기 허용)
+    // 이동 속도 제어 (기본 한 칸 이동 & 스페이스바 홀드 시 달리기 허용)
     socket.on('move', (payload) => {
         const p = players[socket.id];
         if (!p) return;
@@ -481,7 +642,7 @@ io.on('connection', async (socket) => {
         io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir, sprint: isRunning });
     });
 
-    // [업데이트 5 & 6] 지팡이 마법 투사체 발사 (A키, 초당 1회)
+    // 지팡이 마법 투사체 발사 (A키, 초당 1회)
     socket.on('fireProjectile', () => {
         const p = players[socket.id];
         if (!p) return;
@@ -492,7 +653,7 @@ io.on('connection', async (socket) => {
 
         const c = p.character || {};
         const wandLv = c.wand || 0;
-        const attackPower = calcTotalScoreAndAttack(c);
+        const combatPower = calcCombatPower(c);
 
         io.emit('projectileFired', {
             ownerId: socket.id,
@@ -501,8 +662,83 @@ io.on('connection', async (socket) => {
             y: p.y,
             dir: p.dir,
             wandLv: wandLv,
-            attackPower: attackPower
+            attackPower: combatPower
         });
+    });
+
+    // 사냥터 몬스터 피격 및 처치 보상('기회' +1) 처리
+    socket.on('hitMonster', async (payload) => {
+        const p = players[socket.id];
+        if (!p || !payload || !payload.monsterId) return;
+
+        const m = monsters[payload.monsterId];
+        if (!m || !m.alive) return;
+
+        const damage = calcCombatPower(p.character);
+        m.hp = Math.max(0, m.hp - damage);
+
+        if (m.hp > 0) {
+            io.emit('monsterDamaged', {
+                id: m.id,
+                hp: m.hp,
+                maxHp: m.maxHp,
+                damage: damage,
+                attackerId: socket.id,
+                x: m.x,
+                y: m.y
+            });
+        } else {
+            m.alive = false;
+            const isRewarded = Math.random() < m.dropRate;
+            let updatedTokens = p.enhanceTokens;
+            let updatedLastRefill = p.lastTokenRefill;
+
+            if (isRewarded) {
+                try {
+                    const u = await User.findById(p.userId);
+                    if (u) {
+                        const tokenState = resolveTokens(u.character);
+                        const nextTokens = Math.min(MAX_TOKENS, tokenState.tokens + 1);
+                        const nextRefill = nextTokens >= MAX_TOKENS ? new Date() : tokenState.lastRefill;
+
+                        u.character.enhanceTokens = nextTokens;
+                        u.character.lastTokenRefill = nextRefill;
+                        await u.save();
+
+                        updatedTokens = nextTokens;
+                        updatedLastRefill = nextRefill.getTime();
+                        p.enhanceTokens = updatedTokens;
+                        p.lastTokenRefill = updatedLastRefill;
+                    }
+                } catch (err) {
+                    console.error('몬스터 보상 지급 오류:', err);
+                }
+            }
+
+            io.emit('monsterKilled', {
+                id: m.id,
+                name: m.name,
+                damage: damage,
+                attackerId: socket.id,
+                attackerName: p.name,
+                x: m.x,
+                y: m.y,
+                rewarded: isRewarded,
+                tokens: updatedTokens,
+                lastRefill: updatedLastRefill
+            });
+
+            // 4.5초 뒤 사냥터 내 무작위 빈 타일에 리스폰
+            setTimeout(() => {
+                const pos = getRandomHuntingTile(m.id);
+                m.x = pos.x;
+                m.y = pos.y;
+                m.hp = m.maxHp;
+                m.alive = true;
+                m.lastMoveTime = Date.now();
+                io.emit('monsterRespawned', m);
+            }, 4500);
+        }
     });
 
     // 유저 칭호(과거 거쳐간 칭호 포함) 및 기운 발산 색상 변경 소켓 이벤트
@@ -559,7 +795,7 @@ io.on('connection', async (socket) => {
                 noTokens: true,
                 tokens: tokenState.tokens,
                 lastRefill: tokenState.lastRefill.getTime(),
-                message: '기회가 부족합니다. (1분당 1회 충전)'
+                message: '기회가 부족합니다. (1분당 1회 충전 또는 사냥터 몬스터 처치)'
             });
         }
 
@@ -577,7 +813,7 @@ io.on('connection', async (socket) => {
             case 'education': {
                 if (rand < 1.0) {
                     u.character.education += 1;
-                    result = { type: 'success', change: 1, message: '🎉 학력 강화 성공! 학위가 올랐습니다.' };
+                    result = { type: 'success', change: 1, message: '🎉 학력 강화 성공! 학위가 올랐습니다. (전투력 +1)' };
                 }
                 break;
             }
@@ -586,37 +822,43 @@ io.on('connection', async (socket) => {
             case 'appearance': {
                 if (rand < 2.0) {
                     u.character.appearance += 1;
-                    result = { type: 'success', change: 1, message: '✨ 외모 관리 성공! 아우라가 달라졌습니다.' };
+                    result = { type: 'success', change: 1, message: '✨ 외모 관리 성공! 아우라가 달라졌습니다. (전투력 +1)' };
                 } else if (rand >= 99.0 && u.character.appearance > 0) {
                     u.character.appearance -= 1;
-                    result = { type: 'fail', change: -1, message: '💦 관리 소홀... 외모가 조금 서운해졌습니다.' };
+                    result = { type: 'fail', change: -1, message: '💦 관리 소홀... 외모가 조금 서운해졌습니다. (전투력 -1)' };
                 }
                 break;
             }
 
-            // 3. 재력: 성공 1% (+1), 대성공 0.99% (+2), 유지 97%, 실패 1% (-1), 파산 0.01% (0강 초기화) [0강 보호]
+            // 3. 재력: 성공 1% (+1), 대성공 0.99% (+2), 유지 97%, 실패 1% (-1), 대폭락 0.01% (-100강) [0강 보호]
             case 'wealth': {
                 if (u.character.wealth === 0) {
                     if (rand < 1.0) {
                         u.character.wealth += 1;
-                        result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 소득이 늘었습니다.' };
+                        result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 소득이 늘었습니다. (전투력 +1)' };
                     } else if (rand < 1.99) {
                         u.character.wealth += 2;
-                        result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 투자 대박 (+2강)!' };
+                        result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 투자 대박 (+2강 · 전투력 +2)!' };
                     }
                 } else {
                     if (rand < 1.0) {
                         u.character.wealth += 1;
-                        result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 자산이 증식되었습니다.' };
+                        result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 자산이 증식되었습니다. (전투력 +1)' };
                     } else if (rand < 1.99) {
                         u.character.wealth += 2;
-                        result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 벼락부자가 되었습니다 (+2강)!' };
+                        result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 벼락부자가 되었습니다 (+2강 · 전투력 +2)!' };
                     } else if (rand >= 98.99 && rand < 99.99) {
                         u.character.wealth -= 1;
-                        result = { type: 'fail', change: -1, message: '📉 투자 손실... 자산이 줄었습니다 (-1강).' };
+                        result = { type: 'fail', change: -1, message: '📉 투자 손실... 자산이 줄었습니다 (-1강 · 전투력 -1).' };
                     } else if (rand >= 99.99) {
-                        u.character.wealth = 0;
-                        result = { type: 'catastrophe', change: 0, message: '🚨 0.01% 대파산!! 전재산을 날려 0강(빈민)으로 초기화되었습니다!' };
+                        const prevWealth = u.character.wealth;
+                        u.character.wealth = Math.max(0, prevWealth - 100);
+                        const dropped = u.character.wealth - prevWealth;
+                        result = {
+                            type: 'catastrophe',
+                            change: dropped,
+                            message: `🚨 0.01% 대폭락!! 자산 시장의 거대한 충격으로 재력이 100강 하락했습니다! (현재 +${u.character.wealth}강)`
+                        };
                     }
                 }
                 break;
@@ -626,10 +868,10 @@ io.on('connection', async (socket) => {
             case 'iq': {
                 if (rand < 1.0) {
                     u.character.iq += 1;
-                    result = { type: 'success', change: 1, message: '🧠 지능 향상 성공 (+1 IQ)!' };
+                    result = { type: 'success', change: 1, message: '🧠 지능 향상 성공 (+1 IQ · 전투력 +1)!' };
                 } else if (rand < 2.0) {
                     u.character.iq += 2;
-                    result = { type: 'great_success', change: 2, message: '💡 번뜩이는 영감 폭발 (+2 IQ)!' };
+                    result = { type: 'great_success', change: 2, message: '💡 번뜩이는 영감 폭발 (+2 IQ · 전투력 +2)!' };
                 } else if (rand >= 99.0 && u.character.iq > 0) {
                     u.character.iq -= 1;
                     result = { type: 'fail', change: -1, message: '😵 뇌정지가 왔습니다 (-1 IQ).' };
@@ -641,10 +883,10 @@ io.on('connection', async (socket) => {
             case 'stamina': {
                 if (rand < 3.0) {
                     u.character.stamina += 1;
-                    result = { type: 'success', change: 1, message: '💪 체력 강화 성공! 피지컬이 상승했습니다.' };
+                    result = { type: 'success', change: 1, message: '💪 체력 강화 성공! 피지컬이 상승했습니다. (전투력 +1)' };
                 } else if (rand >= 99.5 && u.character.stamina > 0) {
                     u.character.stamina -= 1;
-                    result = { type: 'fail', change: -1, message: '🩹 무리한 운동으로 근육통이 왔습니다 (-1강).' };
+                    result = { type: 'fail', change: -1, message: '🩹 무리한 운동으로 근육통이 왔습니다 (-1강 · 전투력 -1).' };
                 }
                 break;
             }
@@ -653,18 +895,18 @@ io.on('connection', async (socket) => {
             case 'personality': {
                 if (rand < 2.0) {
                     u.character.personality += 1;
-                    result = { type: 'success', change: 1, message: '🍀 성격 수양 성공! 인성이 깊어졌습니다.' };
+                    result = { type: 'success', change: 1, message: '🍀 성격 수양 성공! 인성이 깊어졌습니다. (전투력 +1)' };
                 } else if (rand < 3.0) {
                     u.character.personality += 2;
-                    result = { type: 'great_success', change: 2, message: '🕊️ 성격 대성공!! 해탈의 경지에 다가섭니다 (+2강)!' };
+                    result = { type: 'great_success', change: 2, message: '🕊️ 성격 대성공!! 해탈의 경지에 다가섭니다 (+2강 · 전투력 +2)!' };
                 } else if (rand >= 99.0 && u.character.personality > 0) {
                     u.character.personality -= 1;
-                    result = { type: 'fail', change: -1, message: '💢 욱하는 마음에 인성이 깎였습니다 (-1강).' };
+                    result = { type: 'fail', change: -1, message: '💢 욱하는 마음에 인성이 깎였습니다 (-1강 · 전투력 -1).' };
                 }
                 break;
             }
 
-// 7. 지팡이 강화 (실패 시 50% 확률로 유지, 50% 확률로 -1강 하락 [0강 보호])
+            // 7. 지팡이 강화 (실패 시 50% 확률로 유지, 50% 확률로 -1강 하락 [0강 보호])
             case 'wand': {
                 const curWand = u.character.wand || 0;
                 const successProb = ENHANCE_RATES[curWand] !== undefined ? ENHANCE_RATES[curWand] : 0;
@@ -674,16 +916,15 @@ io.on('connection', async (socket) => {
                     result = {
                         type: 'success',
                         change: 1,
-                        message: `🪄 지팡이 강화 성공! (+${u.character.wand}강 달성 · 종합점수 및 공격력 +10 상승!)`
+                        message: `🪄 지팡이 강화 성공! (+${u.character.wand}강 달성 · 전투력 +10 상승!)`
                     };
                 } else {
-                    // 강화 실패 시: 0강보다 높고 50% 확률에 걸리면 -1강 하락
                     if (curWand > 0 && Math.random() < 0.5) {
                         u.character.wand = curWand - 1;
                         result = {
                             type: 'fail',
                             change: -1,
-                            message: `💥 지팡이 연성 실패! 마력이 역류하여 단계가 하락했습니다 (-1강 → +${u.character.wand}강, 공격력 -10).`
+                            message: `💥 지팡이 연성 실패! 마력이 역류하여 단계가 하락했습니다 (-1강 → +${u.character.wand}강, 전투력 -10).`
                         };
                     } else {
                         result = {
