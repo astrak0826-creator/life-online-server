@@ -51,7 +51,7 @@
     overflow: hidden;
   }
 
-  /* 상단 HUD (구릿빛노루 배지 제거됨) */
+  /* 상단 HUD (공격력 배지 및 효과음 버튼 제거 완료) */
   .hud-bar {
     width: 100%;
     background: linear-gradient(90deg, #160a0e 0%, #240f15 50%, #160a0e 100%);
@@ -78,14 +78,6 @@
     font-weight: bold;
     text-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
   }
-  .hud-atk-badge {
-    background: #3b0764;
-    border: 1px solid #c084fc;
-    color: #f3e8ff;
-    font-size: 11px;
-    padding: 2px 7px;
-    border-radius: 3px;
-  }
   .hud-right {
     display: flex;
     align-items: center;
@@ -96,14 +88,6 @@
     color: #38bdf8;
     font-weight: bold;
     font-size: 13px;
-  }
-  .btn-sfx-toggle {
-    background: #1c1015;
-    border: 1px solid #5c1d24;
-    color: #fef08a;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 3px;
   }
 
   /* 캔버스 & 스크롤 채팅창 래퍼 */
@@ -125,7 +109,7 @@
     cursor: pointer;
   }
 
-  /* [업데이트 2] 스크롤 가능한 채팅 히스토리 창 */
+  /* 스크롤 가능한 채팅 히스토리 창 */
   #chatLog {
     position: absolute;
     bottom: 6px;
@@ -659,7 +643,7 @@
 </head>
 <body>
 
-<!-- [업데이트 8] 인증 모달 (타이틀 '인생온라인', 버튼 '입장'/'가입 완료') -->
+<!-- 인증 모달 -->
 <div id="authModal" class="modal-overlay">
   <div class="auth-card">
     <h2 id="modalTitle">인생온라인</h2>
@@ -716,26 +700,23 @@
   </div>
 </div>
 
-<!-- 정육각형 레이더 차트 스탯창 (나 & 상대방 겸용, 단축키 S) -->
+<!-- 정육각형 레이더 차트 스탯창 (단축키 S) - 효과음 토글 하단 구석 배치 포함 -->
 <div id="infoModal" class="modal-overlay hidden">
   <div class="info-modal-card">
     <div class="info-header-bar">
       <span class="info-title-text" id="infoModalTitle">📊 육각형 스펙 분석</span>
-      <span id="infoTotalScoreBadge" style="background:#7f1d1d; border:1px solid #f59e0b; color:#fef08a; font-size:12px; padding:2px 8px; border-radius:4px;">종합 0점 (공격력 0)</span>
+      <span id="infoTotalScoreBadge" style="background:#7f1d1d; border:1px solid #f59e0b; color:#fef08a; font-size:12px; padding:2px 8px; border-radius:4px;">전투력 0</span>
     </div>
 
-    <!-- 정육각형 6축 레이더 그래프 캔버스 -->
     <div class="hex-canvas-wrap">
       <canvas id="hexRadarCanvas" width="260" height="225"></canvas>
     </div>
 
-    <!-- 6대 스펙 + 지팡이 진화 현황 -->
     <div class="info-stat-grid" id="infoStatCardList"></div>
 
-    <!-- [업데이트 1 & 10] 그동안 거쳐간 모든 칭호 선택 & 기운 발산 색상 4종 이름 변경 -->
     <div class="custom-pref-box" id="myCustomPrefBox">
       <div class="pref-col">
-        <span class="pref-label">👑 머리 위 표시 칭호 (거쳐간 칭호 전체)</span>
+        <span class="pref-label">👑 머리 위 표시 칭호</span>
         <select id="selectTitleStat"></select>
       </div>
       <div class="pref-col">
@@ -749,9 +730,10 @@
       </div>
     </div>
 
-    <!-- 하단 닫기 및 구석 소형 로그아웃/캐릭삭제 버튼 -->
     <div class="info-footer-row">
       <button id="infoCloseBtn" style="padding:7px 18px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:12px;">닫기 (S / ESC)</button>
+      <!-- 효과음 토글 버튼을 정보창 하단 구석으로 이전 -->
+      <button id="btnSfxToggleModal" class="btn-sfx-toggle" style="padding:5px 10px; font-size:11px;">🔊 효과음 ON</button>
       <div class="corner-account-btns" id="myAccountCornerBtns">
         <button id="logoutBtn" class="btn-tiny-corner" style="background:#1f2937; border:1px solid #4b5563; color:#cbd5e1;">로그아웃</button>
         <button id="deleteAccountBtn" class="btn-tiny-corner" style="background:#450a0a; border:1px solid #dc2626; color:#fca5a5;">캐릭삭제</button>
@@ -771,11 +753,11 @@
       <button class="stat-tab-btn" data-stat="iq">🧠 지능 (머리)</button>
       <button class="stat-tab-btn" data-stat="stamina">💪 체력 (몸통)</button>
       <button class="stat-tab-btn" data-stat="personality">🍀 성격 (왼다리)</button>
-      <button class="stat-tab-btn wand-tab" data-stat="wand">🪄 마법 지팡이 강화 (0~30강 · 단계당 종합점수 및 공격력 +10)</button>
+      <button class="stat-tab-btn wand-tab" data-stat="wand">🪄 마법 지팡이 강화 (0~30강 · 단계당 전투력 +10)</button>
     </div>
 
     <div class="enhance-detail-box">
-      <div id="curStatName" style="font-size:12px; color:#fca5a5;">학력 스탯 현황 (오른쪽 팔 진화)</div>
+      <div id="curStatName" style="font-size:12px; color:#fca5a5;">학력 스탯 현황</div>
       <div id="curStatLevel" class="cur-stat-val">+0강</div>
       <div id="curStatTitle" class="cur-stat-desc">문맹</div>
       <div id="curStatRule" class="cur-stat-rule">성공 1% (+1강) | 유지 99% (하락 없음)</div>
@@ -784,7 +766,7 @@
       </div>
     </div>
 
-    <div id="enhanceResultMsg" class="enhance-result-box">지팡이는 매 강화단계마다 외형과 마법 투사체(A키)가 화려하게 진화합니다!</div>
+    <div id="enhanceResultMsg" class="enhance-result-box">사냥터 몬스터를 사냥해 기회를 충전하고 전투력을 높여보세요!</div>
 
     <div style="display:flex; gap:8px;">
       <button id="enhanceCloseBtn" style="flex:1; background:#1c1015; border:1px solid #5c1d24; color:#fff; border-radius:4px; padding:8px;">닫기 (ESC)</button>
@@ -814,7 +796,7 @@
 <div id="rankModal" class="modal-overlay hidden">
   <div class="rank-modal">
     <h3 class="rank-title">🏆 인생온라인 서열 TOP 50 🏆</h3>
-    <div class="rank-sub-hint">유저 카드를 클릭(터치)하면 해당 유저의 정육각형 스탯창을 볼 수 있습니다.</div>
+    <div class="rank-sub-hint">유저 카드를 클릭하면 해당 유저의 스펙 분석창을 볼 수 있습니다.</div>
     <div class="rank-list" id="rankListBody"></div>
     <div style="margin-top: 10px; display:flex; justify-content: flex-end;">
       <button id="rankCloseBtn" style="background:#1c1015; border:1px solid #5c1d24; color:#fff; padding:6px 16px; border-radius:4px;">닫기 (ESC)</button>
@@ -824,19 +806,17 @@
 
 <!-- 메인 게임 컨테이너 -->
 <div class="game-container">
-  <!-- [업데이트 9] 왼쪽 위 '구릿빛노루' 배지 제거 -->
+  <!-- 상단 HUD (좌측 공격력 배지 삭제 완료) -->
   <div class="hud-bar">
     <div class="hud-left">
       <span class="hud-nick" id="hudNick">[게스트]</span>
-      <span class="hud-atk-badge" id="hudAtkBadge">⚔️ 공격력 0</span>
     </div>
     <div class="hud-right">
       <span class="hud-chances" id="hudChances">기회: 120/120 (00:00)</span>
-      <button class="btn-sfx-toggle" id="btnSfxToggle">🔊 효과음 ON</button>
     </div>
   </div>
 
-  <!-- 캔버스 전용 영역 -->
+  <!-- 캔버스 전용 영역 (가로 40타일 넓은 월드 뷰포트) -->
   <div class="canvas-area">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div id="chatLog"></div>
@@ -880,11 +860,11 @@
 </div>
 
 <div class="guide">
-  이동: [방향키] | 달리기: [Space 누른 채 이동] | 마법공격(연사): [A] | 기운발산·대화: [Space] | 정보·칭호: [S] | 스펙업: [C] | 순위: [R]
+  이동: [방향키] | 달리기: [Space 누른 채 이동] | 사냥터 마법공격(연사): [A] | 기운발산·대화: [Space] | 정보: [S] | 스펙업: [C] | 순위: [R]
 </div>
 
 <script>
-// ================= [업데이트 3: Web Audio API 자체 합성 효과음 엔진 (배경음악 없음)] =================
+// ================= [Web Audio API 합성 효과음 엔진] =================
 const SoundFX = {
   ctx: null,
   enabled: true,
@@ -954,11 +934,17 @@ const SoundFX = {
   }
 };
 
-document.getElementById('btnSfxToggle').addEventListener('click', (e) => {
+function toggleSfxState() {
   SoundFX.enabled = !SoundFX.enabled;
-  e.target.textContent = SoundFX.enabled ? '🔊 효과음 ON' : '🔇 효과음 OFF';
+  const statusText = SoundFX.enabled ? '🔊 효과음 ON' : '🔇 효과음 OFF';
+  const btnTop = document.getElementById('btnSfxToggle');
+  const btnModal = document.getElementById('btnSfxToggleModal');
+  if (btnTop) btnTop.textContent = statusText;
+  if (btnModal) btnModal.textContent = statusText;
   if (SoundFX.enabled) SoundFX.uiClick();
-});
+}
+const btnSfxModal = document.getElementById('btnSfxToggleModal');
+if (btnSfxModal) btnSfxModal.addEventListener('click', toggleSfxState);
 
 let socket = null;
 const canvas = document.getElementById('gameCanvas');
@@ -970,7 +956,6 @@ const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 const chatLog = document.getElementById('chatLog');
 const hudNick = document.getElementById('hudNick');
-const hudAtkBadge = document.getElementById('hudAtkBadge');
 const hudChances = document.getElementById('hudChances');
 
 // 인증 UI
@@ -1041,16 +1026,17 @@ const npcNextBtn = document.getElementById('npcNextBtn');
 const TILE_SIZE = 40;
 let myId = null;
 let myNickname = '게스트';
-let mapW = 20, mapH = 15;
+let mapW = 40, mapH = 15;
 let obstacles = [];
 let players = {};
+let monsters = {};
 let burstEffects = [];
 let projectiles = [];
 let hitEffects = [];
 let floatingDamages = [];
 let currentSelectedStat = 'education';
 
-// [업데이트 5] 지팡이 강화단계별 확률 테이블 (0강 -> 1강부터 29강 -> 30강)
+// 지팡이 강화단계별 확률 테이블 (0강 -> 1강부터 29강 -> 30강)
 const ENHANCE_RATES = {
     0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
     5: 0.70,  6: 0.65,  7: 0.60,  8: 0.55,  9: 0.50,
@@ -1060,7 +1046,7 @@ const ENHANCE_RATES = {
     25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 고정 3인 마법사 NPC
+// 고정 3인 마법사 NPC (해린이언니 롱 웨이브 헤어 포함)
 const DORM_NPCS = [
   {
     x: 4, y: 3,
@@ -1079,8 +1065,8 @@ const DORM_NPCS = [
     name: '농 잊을리',
     portrait: '🦊🔥',
     dialogs: [
-      "오, 왔구나! 이제 지팡이 강화를 최대 30강까지 따로 올릴 수 있게 됐어!",
-      "지팡이 1강당 종합점수와 최종 공격력이 10씩 팍팍 오른다고!",
+      "오, 왔구나! 동쪽 마법의 숲 사냥터에서 몬스터를 사냥하면 강화 기회를 얻을 수 있어!",
+      "지팡이 1강당 전투력이 10씩 팍팍 오른다고!",
       "[A] 키를 누르고 있으면 1초마다 지팡이에서 화려한 마법 투사체가 발사돼!"
     ]
   },
@@ -1102,14 +1088,14 @@ let activeNpcDialogIdx = 0;
 
 // 부유하는 마법 촛불 & 불티 입자
 const floatingCandles = Array.from({ length: 18 }, (_, i) => ({
-  x: 70 + (i * 41) % 660,
+  x: 70 + (i * 41) % 1400,
   y: 35 + (i * 29) % 120,
   phase: i * 0.7,
   scale: 0.8 + (i % 3) * 0.2
 }));
 
 const emberParticles = Array.from({ length: 32 }, () => ({
-  x: Math.random() * 800,
+  x: Math.random() * 1600,
   y: Math.random() * 600,
   vx: (Math.random() - 0.5) * 0.4,
   vy: -(Math.random() * 0.6 + 0.2),
@@ -1194,7 +1180,6 @@ function getStatTitle(stat, val, gender = 'male') {
   return '';
 }
 
-// [업데이트 1] 그동안 거쳐간 모든 칭호를 카테고리별로 수집
 function getUnlockedTitlesByCategory(c) {
   const g = c?.gender || 'male';
   const maxS = c?.maxStats || {};
@@ -1234,7 +1219,6 @@ function getUnlockedTitlesByCategory(c) {
   return groups;
 }
 
-// 유저가 직접 선택한 머리 위 칭호 반환
 function getSelectedOverheadTitle(c) {
   if (!c) return `[${EDU_TITLES[0]}]`;
   if (c.customTitle && c.customTitle.trim().length > 0) {
@@ -1246,7 +1230,6 @@ function getSelectedOverheadTitle(c) {
   return `[${getStatTitle(stat, rawVal, g)}]`;
 }
 
-// 스탯의 실질 강화 단계 계산 (지능은 100 기준 +강 환산)
 function getEffectiveLevel(statKey, c) {
   if (!c) return 0;
   if (statKey === 'iq') {
@@ -1256,15 +1239,14 @@ function getEffectiveLevel(statKey, c) {
   return c[statKey] || 0;
 }
 
-// [업데이트 6] 캐릭터 종합 스펙 점수 (= 최종 공격력): 6대 스탯 강화단계 합 + (지팡이 강화단계 * 10)
-function getTotalSpecScore(c) {
+// 전투력 계산 함수
+function getTotalCombatPower(c) {
   if (!c) return 0;
   const sixSum = (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.stamina || 0) + (c.personality || 0) + getEffectiveLevel('iq', c);
   const wandScore = (c.wand || 0) * 10;
   return sixSum + wandScore;
 }
 
-// 부위별 이펙트 단계 수식 (25강=1단계, 100강=2단계 ... 10000강=101단계)
 function getPartEffectTier(lv) {
   if (lv < 25) return 0;
   return 1 + Math.floor(Math.min(10000, lv) / 100);
@@ -1326,7 +1308,6 @@ subTabResetPw.addEventListener('click', () => {
   authMsg.textContent = '';
 });
 
-// [업데이트 8] 로그인 로딩 문구 '접속 중...'으로 변경
 authSubmitBtn.addEventListener('click', async () => {
   const username = authUsername.value.trim();
   const password = authPassword.value.trim();
@@ -1426,7 +1407,7 @@ resetPwBtn.addEventListener('click', async () => {
   }
 });
 
-// ================= [정육각형 레이더 차트 스탯창 & 거쳐간 모든 칭호/색상 커스텀] =================
+// 정육각형 레이더 차트 스탯창
 function drawHexagonRadar(c) {
   hexCtx.clearRect(0, 0, hexCanvas.width, hexCanvas.height);
   const cx = hexCanvas.width / 2;
@@ -1544,10 +1525,10 @@ function openInfoModal(targetUser = null) {
   const sta = c.stamina || 0;
   const per = c.personality || 0;
   const wand = c.wand || 0;
-  const totalScore = getTotalSpecScore(c);
+  const combatPower = getTotalCombatPower(c);
 
   infoModalTitle.textContent = isMe ? `📊 [${name}] 내 육각형 스펙` : `🔍 [${name}] 님의 스펙 분석`;
-  infoTotalScoreBadge.textContent = `종합 ${totalScore}점 (공격력 ${totalScore})`;
+  infoTotalScoreBadge.textContent = `전투력 ${combatPower}`;
 
   if (isMe) {
     myAccountCornerBtns.classList.remove('hidden');
@@ -1563,7 +1544,7 @@ function openInfoModal(targetUser = null) {
 
   infoStatCardList.innerHTML = `
     <div class="info-stat-item wand-full-row">
-      <div class="info-stat-name"><span>🪄 마법 지팡이 (공격력 +${wand * 10})</span><span>최대 30강</span></div>
+      <div class="info-stat-name"><span>🪄 마법 지팡이 (전투력 +${wand * 10})</span><span>최대 30강</span></div>
       <div class="info-stat-val">+${wand}강 · ${getStatTitle('wand', wand, g)}</div>
     </div>
     <div class="info-stat-item">
@@ -1595,7 +1576,6 @@ function openInfoModal(targetUser = null) {
   infoModal.classList.remove('hidden');
 }
 
-// [업데이트 1] 거쳐간 칭호 선택 및 기운 색상 변경 이벤트
 selectTitleStat.addEventListener('change', () => {
   SoundFX.uiClick();
   const val = selectTitleStat.value;
@@ -1624,10 +1604,18 @@ canvas.addEventListener('click', (e) => {
   const clickX = (e.clientX - rect.left) * scaleX;
   const clickY = (e.clientY - rect.top) * scaleY;
 
+  // 카메라 뷰포트 오프셋 반영 좌표 계산
+  const myPl = players[myId];
+  const camX = myPl ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, (myPl.renderX !== undefined ? myPl.renderX : myPl.x * TILE_SIZE) - canvas.width / 2 + 20)) : 0;
+  const camY = myPl ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, (myPl.renderY !== undefined ? myPl.renderY : myPl.y * TILE_SIZE) - canvas.height / 2 + 20)) : 0;
+
+  const worldClickX = clickX + camX;
+  const worldClickY = clickY + camY;
+
   const clickedPlayer = Object.values(players).find(p => {
-    const px = p.renderX + 20;
-    const py = p.renderY + 20;
-    return Math.hypot(clickX - px, clickY - py) <= 24;
+    const px = (p.renderX !== undefined ? p.renderX : p.x * TILE_SIZE) + 20;
+    const py = (p.renderY !== undefined ? p.renderY : p.y * TILE_SIZE) + 20;
+    return Math.hypot(worldClickX - px, worldClickY - py) <= 24;
   });
 
   if (clickedPlayer) {
@@ -1638,7 +1626,7 @@ canvas.addEventListener('click', (e) => {
   const clickedNpc = DORM_NPCS.find(n => {
     const nx = n.x * TILE_SIZE + 20;
     const ny = n.y * TILE_SIZE + 20;
-    return Math.hypot(clickX - nx, clickY - ny) <= 26;
+    return Math.hypot(worldClickX - nx, worldClickY - ny) <= 26;
   });
 
   if (clickedNpc) {
@@ -1680,11 +1668,11 @@ deleteAccountBtn.addEventListener('click', async () => {
   }
 });
 
-// ================= [스펙 & 지팡이 강화 모달] =================
+// 스펙 & 지팡이 강화 모달
 const STAT_RULES = {
-  education: { name: "학력 (캐릭터 오른쪽 팔 진화)", rule: "성공 1% (+1강) | 유지 99% (하락 없음) · 25강/100강/200강... 오른팔 뇌전 오라 진화" },
+  education: { name: "학력 (캐릭터 오른쪽 팔 진화)", rule: "성공 1% (+1강) | 유지 99% (하락 없음) · 25강/100강... 오른팔 뇌전 오라 진화" },
   appearance: { name: "외모 (캐릭터 오른쪽 다리 진화)", rule: "성공 2% (+1강) | 유지 97% | 실패 1% (-1강, 0강 보호) · 오른다리 홍련 화염 진화" },
-  wealth: { name: "재력 (캐릭터 왼쪽 팔 진화)", rule: "대성공 0.99% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨파산 0.01% (초기화)" },
+  wealth: { name: "재력 (캐릭터 왼쪽 팔 진화)", rule: "대성공 0.99% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨대폭락 0.01% (-100강, 0강 보호)" },
   iq: { name: "지능 (캐릭터 머리 진화)", rule: "대성공 1% (+2 IQ) | 성공 1% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · 머리 다중 헤일로 진화" },
   stamina: { name: "체력 (캐릭터 몸통 진화)", rule: "성공 3% (+1강) | 유지 96.5% | 실패 0.5% (-1강) · 몸통 코어 및 빛의 날개 진화" },
   personality: { name: "성격 (캐릭터 왼쪽 다리 진화)", rule: "대성공 1% (+2강) | 성공 2% (+1강) | 유지 96% | 실패 1% (-1강) · 왼다리 중력 파동 진화" },
@@ -1722,7 +1710,7 @@ function renderEnhanceUI() {
     const wLv = myCharacter.wand || 0;
     const rate = ENHANCE_RATES[wLv];
     const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : '최고 단계(MAX)';
-    curStatLevel.textContent = `+${wLv}강 (공격력 보너스 +${wLv * 10})`;
+    curStatLevel.textContent = `+${wLv}강 (전투력 보너스 +${wLv * 10})`;
     curStatRule.textContent = wLv >= 30
       ? '최고 단계(+30강)에 도달한 전설의 지팡이입니다!'
       : `현재 +${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강, 0강 보호)`;
@@ -1739,7 +1727,7 @@ function executeEnhance() {
   if (myChances < 1) {
     SoundFX.enhanceFail();
     enhanceResultMsg.className = 'enhance-result-box fail';
-    enhanceResultMsg.textContent = '남은 기회가 없습니다. (1분당 1회 충전)';
+    enhanceResultMsg.textContent = '남은 기회가 없습니다. 동쪽 사냥터에서 몬스터를 처치해 기회를 얻으세요!';
     return;
   }
 
@@ -1789,7 +1777,7 @@ document.getElementById('mBtnEnhance').addEventListener('click', () => {
 enhanceCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeEnhance(); });
 enhanceExecuteBtn.addEventListener('click', executeEnhance);
 
-// ================= [랭킹 모달] =================
+// 랭킹 모달
 async function openRankModal() {
   SoundFX.uiClick();
   rankModal.classList.remove('hidden');
@@ -1819,9 +1807,9 @@ async function openRankModal() {
           <div class="rank-user-ident">
             <span>${medal}</span>
             <span style="color:#fef08a;">${item.nickname}</span>
-            <span style="font-size:10px; color:#94a3b8; font-weight:normal;">[스탯창 보기]</span>
+            <span style="font-size:10px; color:#94a3b8; font-weight:normal;">[스펙창 보기]</span>
           </div>
-          <div class="rank-total-badge">종합 ${item.totalScore} (공격력 ${item.totalScore})</div>
+          <div class="rank-total-badge">전투력 ${item.totalScore}</div>
         </div>
         <div class="rank-stat-pills">
           <div class="rank-pill">지팡이 <b>+${item.wand || 0}</b></div>
@@ -1856,7 +1844,7 @@ document.getElementById('mBtnChat').addEventListener('click', () => {
   }
 });
 
-// ================= [기운 발산 (4대 색상: 구릿빛노루/허풍퍽/매번쿨럭/술이되리)] =================
+// 기운 발산 (4대 색상)
 const AURA_PALETTES = {
   red:    { primary: '#ef4444', ring: '#fca5a5', sub: '#f43f5e', glow: 'rgba(239, 68, 68, 0.9)' },
   yellow: { primary: '#facc15', ring: '#fef08a', sub: '#f59e0b', glow: 'rgba(250, 204, 21, 0.9)' },
@@ -1872,7 +1860,7 @@ function trigger360AuraBurst(targetPlayer, playSound = false) {
   const c = targetPlayer.character || {};
 
   const palette = AURA_PALETTES[c.auraColor] || AURA_PALETTES.red;
-  const total = getTotalSpecScore(c);
+  const total = getTotalCombatPower(c);
   const tier = Math.min(200, Math.floor(Math.max(0, total) / 50));
 
   const maxRadius = 48 + tier * 0.85;
@@ -1937,7 +1925,7 @@ function advanceNpcDialog() {
 }
 npcNextBtn.addEventListener('click', advanceNpcDialog);
 
-// ================= [업데이트 7: 스페이스바 기운 발산 + 달리기 상태 연동] =================
+// 기운 발산 + 달리기 제어
 let isSpaceHeld = false;
 let auraSpamTimer = null;
 
@@ -1990,14 +1978,14 @@ const dBtnAura = document.getElementById('dBtnAura');
   btn.addEventListener('mouseleave', stopAuraHold);
 });
 
-// ================= [업데이트 5 & 6: A키 마법 투사체 공격 (1초당 1회, 홀드 연사)] =================
+// A키 마법 투사체 공격 (1초당 1회, 홀드 연사)
 let lastAttackClientTime = 0;
 let attackHoldTimer = null;
 
 function tryFireMagicProjectile() {
   if (!socket || !players[myId]) return;
   const now = Date.now();
-  if (now - lastAttackClientTime < 1000) return; // 1초당 1회 발사
+  if (now - lastAttackClientTime < 1000) return;
   lastAttackClientTime = now;
   socket.emit('fireProjectile');
 }
@@ -2029,7 +2017,6 @@ const mBtnAttack = document.getElementById('mBtnAttack');
   btn.addEventListener('mouseleave', stopAttackHold);
 });
 
-// 투사체 생성 및 피격 폭발 이펙트 생성
 function spawnMagicProjectile(data) {
   const wandLv = data.wandLv || 0;
   const attackPower = data.attackPower || 0;
@@ -2060,7 +2047,7 @@ function spawnMagicProjectile(data) {
   });
 }
 
-function spawnHitExplosion(x, y, wandLv, attackPower, hitTarget = false) {
+function spawnHitExplosion(x, y, wandLv, hitTarget = false) {
   SoundFX.magicHit(wandLv);
   const hue = (200 + wandLv * 14) % 360;
   const sparkCount = 10 + wandLv * 2;
@@ -2087,19 +2074,9 @@ function spawnHitExplosion(x, y, wandLv, attackPower, hitTarget = false) {
     born: Date.now(),
     duration: 340 + wandLv * 6
   });
-
-  if (hitTarget || attackPower >= 0) {
-    floatingDamages.push({
-      x,
-      y: y - 10,
-      text: `💥 -${attackPower}`,
-      color: wandLv >= 20 ? '#f43f5e' : (wandLv >= 10 ? '#facc15' : '#38bdf8'),
-      born: Date.now()
-    });
-  }
 }
 
-// ================= [소켓 연결 및 동기화] =================
+// 소켓 연결 및 동기화
 function connectSocketGame(token, nickname) {
   authModal.classList.add('hidden');
   myNickname = nickname;
@@ -2119,6 +2096,7 @@ function connectSocketGame(token, nickname) {
     mapH = data.mapHeight;
     obstacles = data.obstacles || [];
     players = {};
+    monsters = data.monsters || {};
 
     Object.values(data.players).forEach(p => {
       players[p.id] = {
@@ -2157,8 +2135,60 @@ function connectSocketGame(token, nickname) {
     }
   });
 
+  socket.on('monsterMoved', (data) => {
+    if (monsters[data.id]) {
+      monsters[data.id].x = data.x;
+      monsters[data.id].y = data.y;
+      monsters[data.id].dir = data.dir;
+    }
+  });
+
   socket.on('projectileFired', (data) => {
     spawnMagicProjectile(data);
+  });
+
+  socket.on('monsterDamaged', (data) => {
+    if (monsters[data.id]) {
+      monsters[data.id].hp = data.hp;
+    }
+    floatingDamages.push({
+      x: data.x * TILE_SIZE + 20,
+      y: data.y * TILE_SIZE + 10,
+      text: `💥 -${data.damage}`,
+      color: '#f43f5e',
+      born: Date.now()
+    });
+  });
+
+  socket.on('monsterKilled', (data) => {
+    if (monsters[data.id]) {
+      monsters[data.id].alive = false;
+      monsters[data.id].hp = 0;
+    }
+    floatingDamages.push({
+      x: data.x * TILE_SIZE + 20,
+      y: data.y * TILE_SIZE + 10,
+      text: `💥 -${data.damage} (처치!)`,
+      color: '#facc15',
+      born: Date.now()
+    });
+
+    if (data.rewarded && data.attackerId === myId) {
+      myChances = data.tokens;
+      myLastRefill = data.lastRefill;
+      updateHUD();
+      floatingDamages.push({
+        x: data.x * TILE_SIZE + 20,
+        y: data.y * TILE_SIZE - 10,
+        text: `✨ 기회 +1 획득!`,
+        color: '#4ade80',
+        born: Date.now()
+      });
+    }
+  });
+
+  socket.on('monsterRespawned', (m) => {
+    monsters[m.id] = m;
   });
 
   socket.on('playerStatUpdated', (data) => {
@@ -2195,7 +2225,6 @@ function connectSocketGame(token, nickname) {
   });
 }
 
-// [업데이트 2] 최대 200줄까지 보존되며 마우스/터치 스크롤로 지난 대화를 볼 수 있는 채팅 로그
 function addChatLog(author, message) {
   const isNearBottom = (chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight) < 32;
   const line = document.createElement('div');
@@ -2228,9 +2257,6 @@ function updateChancesClient() {
 }
 
 function updateHUD() {
-  const atk = getTotalSpecScore(myCharacter);
-  hudAtkBadge.textContent = `⚔️ 공격력 ${atk}`;
-
   let chanceStr = `기회: ${myChances}/${MAX_CHANCES}`;
   if (myChances < MAX_CHANCES) {
     const s = Math.ceil(Math.max(0, REFILL_INTERVAL_MS - (Date.now() - myLastRefill)) / 1000);
@@ -2247,7 +2273,7 @@ setInterval(() => {
   updateHUD();
 }, 1000);
 
-// ================= [업데이트 5 & 7: 방향키 홀드 부드러운 이동 & 스페이스바 달리기 제어 (WASD 제외)] =================
+// 방향키 홀드 이동 & 달리기 제어
 const heldDirections = [];
 let lastMoveEmitTime = 0;
 
@@ -2262,7 +2288,6 @@ function removeHeldDirection(dir) {
   if (idx !== -1) heldDirections.splice(idx, 1);
 }
 
-// 매 프레임 체크하여 홀드 중일 때 일정한 간격(기본 220ms, 스페이스바 달리기 115ms)으로 한 칸씩 이동
 function processContinuousMovement(now) {
   if (!socket || heldDirections.length === 0) return;
   if (!authModal.classList.contains('hidden')) return;
@@ -2321,7 +2346,6 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  // [업데이트 5] A키 공격 (누르고 있으면 연타, 1초당 1회 발사)
   if (e.key === 'a' || e.key === 'A' || e.key === 'ㅁ') {
     e.preventDefault();
     startAttackHold();
@@ -2349,7 +2373,6 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  // 방향키만 이동 허용 (WASD 제외)
   let dir = null;
   if (e.key === 'ArrowUp') dir = 'up';
   else if (e.key === 'ArrowDown') dir = 'down';
@@ -2384,7 +2407,6 @@ window.addEventListener('blur', () => {
   stopAttackHold();
 });
 
-// 모바일 D-Pad 홀드 이동 연동
 document.querySelectorAll('.dbtn').forEach(btn => {
   const dir = btn.getAttribute('data-dir');
   const startDir = (e) => {
@@ -2412,8 +2434,7 @@ function sendChatMessage() {
 }
 sendBtn.addEventListener('click', sendChatMessage);
 
-// ================= [마법 지팡이(0~30강 매 단계 차등 진화) & 학력 오른팔 분리 렌더링] =================
-
+// 브론즈 디어 크레스트
 function drawBronzeDeerCrest(cx, cy, scale = 1) {
   ctx.save();
   ctx.translate(cx, cy);
@@ -2455,6 +2476,7 @@ function drawBronzeDeerCrest(cx, cy, scale = 1) {
   ctx.restore();
 }
 
+// NPC 3인 전용 아카데미 룩 및 고유 무기 렌더링 (해린이언니 롱 웨이브 헤어 포함)
 function drawWizardNPC(npc, time) {
   const rx = npc.x * TILE_SIZE;
   const ry = npc.y * TILE_SIZE;
@@ -2471,107 +2493,150 @@ function drawWizardNPC(npc, time) {
   const bodyY = ry + 15 + breathe;
   const headY = ry + 8 + breathe;
 
-  if (npc.id === 'npc_haerin') {
-    ctx.fillStyle = '#a16207';
-    ctx.beginPath();
-    ctx.ellipse(cx - 8, headY + 10, 4.5, 9, 0.15, 0, Math.PI * 2);
-    ctx.ellipse(cx + 8, headY + 10, 4.5, 9, -0.15, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = '#110b10';
-  ctx.strokeStyle = '#b45309';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.moveTo(cx - 8, bodyY);
-  ctx.lineTo(cx - 12, bodyY + 20);
-  ctx.lineTo(cx + 12, bodyY + 20);
-  ctx.lineTo(cx + 8, bodyY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#7f1d1d';
-  ctx.beginPath();
-  ctx.moveTo(cx - 3, bodyY);
-  ctx.lineTo(cx - 5, bodyY + 20);
-  ctx.lineTo(cx + 5, bodyY + 20);
-  ctx.lineTo(cx + 3, bodyY);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = '#fde6d2';
-  ctx.strokeStyle = '#090507';
-  ctx.lineWidth = 1.3;
-  ctx.beginPath();
-  ctx.moveTo(cx - 7.5, headY - 3);
-  ctx.lineTo(cx - 6.5, headY + 5);
-  ctx.lineTo(cx, headY + 9);
-  ctx.lineTo(cx + 6.5, headY + 5);
-  ctx.lineTo(cx + 7.5, headY - 3);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
   if (npc.id === 'npc_helicopter') {
-    ctx.fillStyle = '#2e1a12';
+    // 1. 헬리콥터: 단정하게 단추 채운 네이비 블레이저 & 흑철 번개 셉터
+    ctx.fillStyle = '#1e3a8a';
+    ctx.fillRect(cx - 8, bodyY, 16, 20);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(cx - 1, bodyY + 3, 2, 12);
+
+    ctx.fillStyle = '#fde6d2';
+    ctx.strokeStyle = '#090507';
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
-    ctx.moveTo(cx - 9, headY);
-    ctx.lineTo(cx - 11, headY - 6);
-    ctx.lineTo(cx - 5, headY - 9);
-    ctx.lineTo(cx, headY - 11);
-    ctx.lineTo(cx + 6, headY - 9);
-    ctx.lineTo(cx + 11, headY - 5);
-    ctx.lineTo(cx + 8, headY + 1);
-    ctx.lineTo(cx + 4, headY - 3);
-    ctx.lineTo(cx, headY);
-    ctx.lineTo(cx - 4, headY - 3);
+    ctx.moveTo(cx - 7.5, headY - 3);
+    ctx.lineTo(cx - 6.5, headY + 5);
+    ctx.lineTo(cx, headY + 9);
+    ctx.lineTo(cx + 6.5, headY + 5);
+    ctx.lineTo(cx + 7.5, headY - 3);
     ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 흑발 머리 & 동그란 안경
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(cx, headY - 2, 8.5, Math.PI, 0);
     ctx.fill();
 
     ctx.strokeStyle = '#090507';
-    ctx.fillStyle = 'rgba(224, 242, 254, 0.35)';
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.4)';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.arc(cx - 3.3, headY + 2.5, 2.8, 0, Math.PI * 2);
     ctx.arc(cx + 3.3, headY + 2.5, 2.8, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
+
+    // 흑철 셉터 (지휘봉형 단장)
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx - 0.5, headY + 2.5);
-    ctx.lineTo(cx + 0.5, headY + 2.5);
+    ctx.moveTo(cx + 12, bodyY + 14);
+    ctx.lineTo(cx + 16, bodyY - 12);
     ctx.stroke();
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(cx + 14, bodyY - 16, 4, 4);
+
   } else if (npc.id === 'npc_nong') {
-    ctx.fillStyle = '#ea580c';
+    // 2. 농 잊을리: 붉은 버건디 후드 망토 & 불꽃 완드
+    ctx.fillStyle = '#7f1d1d';
     ctx.beginPath();
-    ctx.moveTo(cx - 9, headY + 1);
-    ctx.lineTo(cx - 9, headY - 7);
-    ctx.lineTo(cx, headY - 10);
-    ctx.lineTo(cx + 9, headY - 7);
-    ctx.lineTo(cx + 9, headY + 1);
-    ctx.lineTo(cx + 5, headY - 3);
-    ctx.lineTo(cx, headY - 1);
-    ctx.lineTo(cx - 5, headY - 3);
+    ctx.moveTo(cx - 9, bodyY);
+    ctx.lineTo(cx - 13, bodyY + 20);
+    ctx.lineTo(cx + 13, bodyY + 20);
+    ctx.lineTo(cx + 9, bodyY);
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(cx - 4.5, headY + 1.5, 2, 2.2);
-    ctx.fillRect(cx + 2.5, headY + 1.5, 2, 2.2);
-
-    ctx.fillStyle = '#b45309';
-    ctx.fillRect(cx - 5.5, headY + 4.5, 1, 1);
-    ctx.fillRect(cx - 3.8, headY + 5.2, 1, 1);
-    ctx.fillRect(cx + 3.8, headY + 4.5, 1, 1);
-    ctx.fillRect(cx + 5.2, headY + 5.2, 1, 1);
-  } else if (npc.id === 'npc_haerin') {
-    ctx.fillStyle = '#a16207';
+    ctx.fillStyle = '#fde6d2';
+    ctx.strokeStyle = '#090507';
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
-    ctx.arc(cx, headY - 4, 9, Math.PI, 0);
+    ctx.moveTo(cx - 7.5, headY - 3);
+    ctx.lineTo(cx - 6.5, headY + 5);
+    ctx.lineTo(cx, headY + 9);
+    ctx.lineTo(cx + 6.5, headY + 5);
+    ctx.lineTo(cx + 7.5, headY - 3);
+    ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#451a03';
-    ctx.fillRect(cx - 4.5, headY + 1.5, 2.2, 2.5);
-    ctx.fillRect(cx + 2.3, headY + 1.5, 2.2, 2.5);
+    ctx.stroke();
+
+    // 주황색 벅벅 긁은 머리 & 주홍빛 체크 머플러
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath();
+    ctx.arc(cx, headY - 3, 8.5, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = '#b91c1c';
+    ctx.fillRect(cx - 8, bodyY - 1, 16, 4);
+
+    // 화염의 송곳니 (지팡이)
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 12, bodyY + 16);
+    ctx.lineTo(cx - 16, bodyY - 10);
+    ctx.stroke();
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(cx - 16, bodyY - 12, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+  } else if (npc.id === 'npc_haerin') {
+    // 3. 해린이언니: 아이보리 니트 조끼 + 케이프 코트 + 풍성한 밀크 브라운 롱 웨이브 헤어
+    ctx.fillStyle = '#fffbeb';
+    ctx.fillRect(cx - 8, bodyY, 16, 12);
+    ctx.fillStyle = '#881337';
+    ctx.beginPath();
+    ctx.moveTo(cx - 11, bodyY + 10);
+    ctx.lineTo(cx, bodyY + 21);
+    ctx.lineTo(cx + 11, bodyY + 10);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#fde6d2';
+    ctx.strokeStyle = '#090507';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 7.5, headY - 3);
+    ctx.lineTo(cx - 6.5, headY + 5);
+    ctx.lineTo(cx, headY + 9);
+    ctx.lineTo(cx + 6.5, headY + 5);
+    ctx.lineTo(cx + 7.5, headY - 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 풍성한 밀크 브라운 롱 웨이브 헤어 (어깨까지 내려오는 부드러운 곡선)
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.arc(cx, headY - 3, 9, Math.PI, 0);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx - 9, headY);
+    ctx.quadraticCurveTo(cx - 13, headY + 12, cx - 10, headY + 24);
+    ctx.lineTo(cx - 7, headY + 22);
+    ctx.quadraticCurveTo(cx - 9, headY + 12, cx - 8, headY + 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx + 9, headY);
+    ctx.quadraticCurveTo(cx + 13, headY + 12, cx + 10, headY + 24);
+    ctx.lineTo(cx + 7, headY + 22);
+    ctx.quadraticCurveTo(cx + 9, headY + 12, cx + 8, headY + 2);
+    ctx.fill();
+
+    // 달빛과 이슬의 성좌장 (은백색 스태프)
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + 12, bodyY + 16);
+    ctx.lineTo(cx + 12, bodyY - 14);
+    ctx.stroke();
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx + 12, bodyY - 16, 4, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   ctx.font = 'bold 11px "DungGeunMo"';
@@ -2585,17 +2650,86 @@ function drawWizardNPC(npc, time) {
   ctx.restore();
 }
 
-// [업데이트 4] 0강~30강 매 강화단계마다 차등 적용되는 웅장한 지팡이 렌더러
+// 몬스터 3종 전용 렌더러
+function drawMonster(m, time) {
+  if (!m.alive) return;
+  const rx = m.x * TILE_SIZE;
+  const ry = m.y * TILE_SIZE;
+  const cx = rx + 20;
+  const cy = ry + 20;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.beginPath();
+  ctx.ellipse(cx, ry + 36, 12, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (m.type === 'mandrake') {
+    // 아기 맨드레이크 (초급 / 뽈뽈거리는 새싹 요정)
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath();
+    ctx.arc(cx, cy + 4, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#4ade80';
+    ctx.fillRect(cx - 2, cy - 8, 4, 8);
+    ctx.beginPath();
+    ctx.arc(cx - 4, cy - 8, 3, 0, Math.PI * 2);
+    ctx.arc(cx + 4, cy - 8, 3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (m.type === 'slime') {
+    // 어둠의 마법 슬라임 (중급 / 젤리 형태)
+    const squash = Math.sin(time * 0.01) * 2;
+    ctx.fillStyle = '#7e22ce';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 6 + squash, 14, 10 - squash, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(cx - 4, cy, 3, 3);
+    ctx.fillRect(cx + 2, cy, 3, 3);
+  } else if (m.type === 'wolf') {
+    // 변종 늑대 마수 (상급 / 붉은 눈의 날렵한 짐승)
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.moveTo(cx - 14, cy + 10);
+    ctx.lineTo(cx - 8, cy - 4);
+    ctx.lineTo(cx + 8, cy - 4);
+    ctx.lineTo(cx + 14, cy + 10);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(cx - 5, cy - 2, 2, 2);
+    ctx.fillRect(cx + 3, cy - 2, 2, 2);
+  }
+
+  // 몬스터 소형 체력바
+  const barW = 32;
+  const barH = 4;
+  const bx = cx - barW / 2;
+  const by = ry + 4;
+  const hpRatio = Math.max(0, m.hp / m.maxHp);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.8)';
+  ctx.fillRect(bx, by, barW, barH);
+  ctx.fillStyle = '#ef4444';
+  ctx.fillRect(bx, by, barW * hpRatio, barH);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bx, by, barW, barH);
+
+  ctx.restore();
+}
+
+// 웅장한 지팡이 렌더러
 function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
   const lv = Math.min(30, Math.max(0, wandLv || 0));
-  const shaftLen = 9 + lv * 0.68; // 0강 9px ~ 30강 29.4px
+  const shaftLen = 9 + lv * 0.68;
   const tipX = handX + rightSideSign * (4 + lv * 0.22);
   const tipY = handY - shaftLen;
   const hue = (200 + lv * 12) % 360;
 
   ctx.save();
 
-  // 1. 지팡이 대(Shaft) - 매 단계마다 굵기와 색상 진화
   ctx.strokeStyle = lv === 0 ? '#78350f' : (lv < 10 ? `hsl(${30 + lv * 10}, 75%, 52%)` : `hsl(${hue}, 90%, 65%)`);
   ctx.lineWidth = 1.5 + lv * 0.08;
   if (lv >= 5) {
@@ -2607,7 +2741,6 @@ function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
   ctx.lineTo(tipX, tipY);
   ctx.stroke();
 
-  // 2. 지팡이 헤드 코어 보주 - 매 단계마다 반경 및 광채 증가
   if (lv >= 1) {
     const orbRadius = 1.8 + lv * 0.16;
     ctx.fillStyle = lv >= 20 ? '#fef08a' : `hsl(${hue}, 100%, 70%)`;
@@ -2616,9 +2749,8 @@ function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
     ctx.fill();
   }
 
-  // 3. 지팡이 끝 날개 크레스트 (3강부터 단계별 날개 크기와 겹수 증가)
   if (lv >= 3) {
-    const wingCount = 1 + Math.floor(lv / 8); // 1~4쌍
+    const wingCount = 1 + Math.floor(lv / 8);
     const wingSpan = 4 + lv * 0.35;
     ctx.strokeStyle = `hsl(${(hue + 45) % 360}, 95%, 68%)`;
     ctx.lineWidth = 1.2 + lv * 0.03;
@@ -2632,7 +2764,6 @@ function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
     }
   }
 
-  // 4. 다중 공전 아케인 링 & 룬 기하학 고리 (매 단계마다 반경/회전속도/개수 차등)
   if (lv >= 2) {
     const ringLayers = Math.min(6, 1 + Math.floor(lv / 5));
     for (let r = 0; r < ringLayers; r++) {
@@ -2649,7 +2780,6 @@ function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
     }
   }
 
-  // 5. 공전하는 마력 위성 입자 (매 2강마다 위성 개수 1개씩 증가, 최대 15개)
   if (lv >= 2) {
     const orbiterCount = Math.floor(lv / 2);
     const orbitR = 5 + lv * 0.42;
@@ -2664,7 +2794,6 @@ function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
     }
   }
 
-  // 6. 고강화(10강~30강) 지팡이 번개 스파크 방전 (단계마다 줄기 수와 길이 증가)
   if (lv >= 10) {
     const boltCount = 1 + Math.floor((lv - 10) / 3);
     const boltReach = 6 + (lv - 10) * 0.8;
@@ -2683,19 +2812,18 @@ function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
   ctx.restore();
 }
 
-// 플레이어 캐릭터 렌더링
 function drawEvolvedStudent(rx, ry, p, time) {
   const cx = rx + 20;
   const c = p.character || {};
   const isFemale = c.gender === 'female';
 
-  const rArmLv = getEffectiveLevel('education', c);   // 학력 -> 캐릭터 오른팔만 강화
-  const rLegLv = getEffectiveLevel('appearance', c);  // 외모 -> 캐릭터 오른다리
-  const lArmLv = getEffectiveLevel('wealth', c);      // 재력 -> 캐릭터 왼팔
-  const headLv = getEffectiveLevel('iq', c);          // 지능 -> 캐릭터 머리
-  const torsoLv = getEffectiveLevel('stamina', c);    // 체력 -> 캐릭터 몸통
-  const lLegLv = getEffectiveLevel('personality', c); // 성격 -> 캐릭터 왼다리
-  const wandLv = c.wand || 0;                         // 지팡이 -> 0~30강 별도 진화
+  const rArmLv = getEffectiveLevel('education', c);
+  const rLegLv = getEffectiveLevel('appearance', c);
+  const lArmLv = getEffectiveLevel('wealth', c);
+  const headLv = getEffectiveLevel('iq', c);
+  const torsoLv = getEffectiveLevel('stamina', c);
+  const lLegLv = getEffectiveLevel('personality', c);
+  const wandLv = c.wand || 0;
 
   const rArmTier = getPartEffectTier(rArmLv);
   const rLegTier = getPartEffectTier(rLegLv);
@@ -2724,13 +2852,11 @@ function drawEvolvedStudent(rx, ry, p, time) {
 
   ctx.save();
 
-  // 0. 바닥 그림자
   ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
   ctx.beginPath();
   ctx.ellipse(cx, ry + 36, 13, 4.5, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 몸통(체력) 25강~10000강 배후 빛의 날개
   if (torsoTier > 0) {
     const wingPairs = Math.min(7, 1 + Math.floor(torsoTier / 14));
     const wingSpan = 20 + Math.min(48, torsoTier * 0.45) + Math.sin(time * 0.008) * 3;
@@ -2758,7 +2884,6 @@ function drawEvolvedStudent(rx, ry, p, time) {
     ctx.restore();
   }
 
-  // 여자 캐릭터 뒷머리(장발)
   if (isFemale && p.dir !== 'up') {
     const hairSway = isMoving ? Math.sin(time * 0.02) * 2.5 : Math.sin(time * 0.004) * 1;
     ctx.fillStyle = hairCol;
@@ -2774,7 +2899,6 @@ function drawEvolvedStudent(rx, ry, p, time) {
     ctx.stroke();
   }
 
-  // 1. 캐릭터 오른쪽 다리(외모) & 왼쪽 다리(성격)
   const rLegY = ry + 28 - swing * 0.6;
   const lLegY = ry + 28 + swing * 0.6;
 
@@ -2816,7 +2940,6 @@ function drawEvolvedStudent(rx, ry, p, time) {
     }
   }
 
-  // 2. 캐릭터 몸통 (체력)
   let robeColor = '#181115';
   let trimColor = '#b45309';
   if (torsoLv >= 20) { robeColor = '#31102f'; trimColor = '#f43f5e'; }
@@ -2849,7 +2972,6 @@ function drawEvolvedStudent(rx, ry, p, time) {
     ctx.fill();
   }
 
-  // 3. [업데이트 4] 캐릭터 오른쪽 팔(학력: 오른팔 자체만 강화) & 지팡이(wandLv: 별도 진화)
   const rArmY = bodyY + 1 + swing * 0.4;
   const lArmY = bodyY + 1 - swing * 0.4;
 
@@ -2859,7 +2981,6 @@ function drawEvolvedStudent(rx, ry, p, time) {
   ctx.fillRect(charRightArmCenterX - 2, rArmY, 4, 11);
   ctx.strokeRect(charRightArmCenterX - 2, rArmY, 4, 11);
 
-  // 학력 25강~10000강 이펙트: 오른팔 주변을 감싸는 뇌전 건틀릿 오라 (지팡이 분리됨)
   if (rArmTier > 0) {
     const hue = (195 + rArmTier * 17) % 360;
     const auraR = 5 + Math.min(12, rArmTier * 0.14);
@@ -2880,10 +3001,8 @@ function drawEvolvedStudent(rx, ry, p, time) {
     }
   }
 
-  // 지팡이 렌더링 (지팡이 강화단계 0~30강에 따라 별도 진화)
   drawEvolvedWand(charRightArmCenterX, rArmY + 6, rightSideSign, wandLv, time);
 
-  // 캐릭터 왼쪽 팔 (재력)
   ctx.fillStyle = lArmLv >= 20 ? '#facc15' : (lArmLv >= 10 ? '#b45309' : robeColor);
   ctx.strokeStyle = lArmLv >= 10 ? '#fef08a' : '#090507';
   ctx.lineWidth = 1.2;
@@ -2909,7 +3028,6 @@ function drawEvolvedStudent(rx, ry, p, time) {
     ctx.restore();
   }
 
-  // 4. 캐릭터 머리 (지능) & 성별 헤어스타일
   ctx.fillStyle = '#fde6d2';
   ctx.strokeStyle = '#090507';
   ctx.lineWidth = 1.3;
@@ -3030,21 +3148,34 @@ function drawEvolvedStudent(rx, ry, p, time) {
   ctx.restore();
 }
 
-// 메인 캔버스 렌더링
+// 메인 캔버스 렌더링 (카메라 뷰포트 추적 및 40x15 월드 렌더링)
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const time = Date.now();
 
-  // 홀드 이동 처리
   processContinuousMovement(time);
 
-  // 1. 바닥 타일
+  const me = players[myId];
+  const camX = me ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, (me.renderX !== undefined ? me.renderX : me.x * TILE_SIZE) - canvas.width / 2 + 20)) : 0;
+  const camY = me ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, (me.renderY !== undefined ? me.renderY : me.y * TILE_SIZE) - canvas.height / 2 + 20)) : 0;
+
+  ctx.save();
+  ctx.translate(-camX, -camY);
+
+  // 1. 바닥 타일 (기숙사 0~19 vs 사냥터 20~39 구역 구분)
   for (let x = 0; x < mapW; x++) {
     for (let y = 0; y < mapH; y++) {
       const px = x * TILE_SIZE;
       const py = y * TILE_SIZE;
 
-      if (y <= 1) {
+      if (x >= 20) {
+        // 사냥터 (금지된 마법의 숲) 이끼 및 어두운 푸른빛 타일
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#0f172a' : '#090d16';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+      } else if (y <= 1) {
         ctx.fillStyle = (x + y) % 2 === 0 ? '#161118' : '#120d14';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         ctx.strokeStyle = '#261c28';
@@ -3069,7 +3200,7 @@ function drawGame() {
     }
   }
 
-  // 2. 바닥 중앙 회전 마법진
+  // 기숙사 중앙 회전 마법진
   ctx.save();
   ctx.translate(400, 320);
   ctx.rotate(time * 0.0004);
@@ -3095,7 +3226,7 @@ function drawGame() {
   ctx.restore();
   drawBronzeDeerCrest(400, 320, 1.3);
 
-  // 3. 상단 벽난로, 고딕 창문, 서가
+  // 상단 벽난로, 고딕 창문, 서가
   const fpX = 9 * TILE_SIZE;
   const fpY = 1 * TILE_SIZE;
   const fireGlow = ctx.createRadialGradient(fpX + 40, fpY + 28, 6, fpX + 40, fpY + 28, 130);
@@ -3138,20 +3269,9 @@ function drawGame() {
     ctx.moveTo(wx + 40, 8); ctx.lineTo(wx + 40, 72);
     ctx.moveTo(wx + 6, 40); ctx.lineTo(wx + 74, 40);
     ctx.stroke();
-
-    const beamGrad = ctx.createLinearGradient(wx + 40, 40, wx + 90, 220);
-    beamGrad.addColorStop(0, 'rgba(244, 63, 94, 0.16)');
-    beamGrad.addColorStop(1, 'rgba(244, 63, 94, 0)');
-    ctx.fillStyle = beamGrad;
-    ctx.beginPath();
-    ctx.moveTo(wx + 6, 72);
-    ctx.lineTo(wx + 74, 72);
-    ctx.lineTo(wx + 125, 240);
-    ctx.lineTo(wx + 35, 240);
-    ctx.closePath();
-    ctx.fill();
   });
 
+  // 장애물 및 사냥터 지형물 렌더링
   obstacles.forEach(obs => {
     if (obs.type && obs.type.startsWith('npc_')) return;
     const isNpcSpot = DORM_NPCS.some(n => n.x === obs.x && n.y === obs.y);
@@ -3160,22 +3280,44 @@ function drawGame() {
     const px = obs.x * TILE_SIZE;
     const py = obs.y * TILE_SIZE;
 
-    ctx.fillStyle = '#1c1015';
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 1.5;
-    ctx.fillRect(px + 5, py + 6, 30, 30);
-    ctx.strokeRect(px + 5, py + 6, 30, 30);
-
-    ctx.fillStyle = '#991b1b';
-    ctx.fillRect(px + 8, py + 10, 24, 6);
-    ctx.fillStyle = '#d97706';
-    ctx.fillRect(px + 8, py + 19, 24, 6);
+    if (obs.type === 'forest_tree') {
+      // 뒤틀린 고목나무
+      ctx.fillStyle = '#14532d';
+      ctx.beginPath();
+      ctx.arc(px + 20, py + 20, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#166534';
+      ctx.beginPath();
+      ctx.arc(px + 14, py + 16, 11, 0, Math.PI * 2);
+      ctx.arc(px + 26, py + 24, 10, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (obs.type === 'crystal_rock') {
+      // 수정 바위
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(px + 8, py + 12, 24, 20);
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.moveTo(px + 16, py + 8);
+      ctx.lineTo(px + 24, py + 16);
+      ctx.lineTo(px + 20, py + 28);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#1c1015';
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(px + 5, py + 6, 30, 30);
+      ctx.strokeRect(px + 5, py + 6, 30, 30);
+    }
   });
 
-  // 4. 3인 마법사 NPC 렌더링
+  // 3인 마법사 NPC 렌더링
   DORM_NPCS.forEach(npc => drawWizardNPC(npc, time));
 
-  // 5. 플레이어 캐릭터 렌더링
+  // 사냥터 몬스터 렌더링
+  Object.values(monsters).forEach(m => drawMonster(m, time));
+
+  // 플레이어 캐릭터 렌더링
   const sortedPlayers = Object.values(players).sort((a, b) => a.y - b.y);
   sortedPlayers.forEach(p => {
     const targetX = p.x * TILE_SIZE;
@@ -3192,11 +3334,11 @@ function drawGame() {
     drawEvolvedStudent(rx, ry, p, time);
 
     const mainTitle = getSelectedOverheadTitle(c);
-    const totalScore = getTotalSpecScore(c);
+    const combatPower = getTotalCombatPower(c);
 
     ctx.font = 'bold 11px "DungGeunMo"';
     ctx.textAlign = 'center';
-    ctx.fillStyle = totalScore >= 100 ? '#f43f5e' : '#f59e0b';
+    ctx.fillStyle = combatPower >= 100 ? '#f43f5e' : '#f59e0b';
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
     ctx.strokeText(mainTitle, rx + 20, ry - 22);
@@ -3215,7 +3357,7 @@ function drawGame() {
     }
   });
 
-  // 6. [업데이트 5] 마법 투사체 이동, 단계별(0~30강) 이펙트 렌더링 및 충돌 판정
+  // 마법 투사체 이동 및 충돌 판정 (몬스터 타격 시에만 데미지 플로팅 표출)
   projectiles = projectiles.filter(proj => {
     proj.trail.push({ x: proj.x, y: proj.y });
     const maxTrail = 4 + Math.floor(proj.wandLv * 0.45);
@@ -3227,38 +3369,40 @@ function drawGame() {
     const tileX = Math.floor(proj.x / TILE_SIZE);
     const tileY = Math.floor(proj.y / TILE_SIZE);
 
-    // 맵 외곽 충돌 체크
-    if (proj.x < 8 || proj.x > canvas.width - 8 || proj.y < 8 || proj.y > canvas.height - 8) {
-      spawnHitExplosion(proj.x, proj.y, proj.wandLv, proj.attackPower, false);
+    if (proj.x < 8 || proj.x > mapW * TILE_SIZE - 8 || proj.y < 8 || proj.y > mapH * TILE_SIZE - 8) {
+      spawnHitExplosion(proj.x, proj.y, proj.wandLv, false);
       return false;
     }
 
-    // 지형지물(장애물 & NPC) 충돌 체크
+    // 몬스터 피격 충돌 체크 (실제 몬스터를 때릴 때만 데미지 적용 및 숫자 플로팅)
+    const hitMonster = Object.values(monsters).find(m => {
+      if (!m.alive) return false;
+      const mx = m.x * TILE_SIZE + 20;
+      const my = m.y * TILE_SIZE + 20;
+      return Math.hypot(proj.x - mx, proj.y - my) <= 22;
+    });
+
+    if (hitMonster) {
+      spawnHitExplosion(proj.x, proj.y, proj.wandLv, true);
+      if (proj.ownerId === myId) {
+        socket.emit('hitMonster', { monsterId: hitMonster.id });
+      }
+      return false;
+    }
+
+    // 지형물, 장애물, NPC 충돌 (숫자 없이 이펙트만)
     const hitObs = obstacles.some(obs => obs.x === tileX && obs.y === tileY);
     if (hitObs) {
-      spawnHitExplosion(proj.x, proj.y, proj.wandLv, proj.attackPower, true);
+      spawnHitExplosion(proj.x, proj.y, proj.wandLv, false);
       return false;
     }
 
-    // 다른 유저 피격 충돌 체크
-    const hitPlayer = Object.values(players).find(pl => {
-      if (pl.id === proj.ownerId) return false;
-      const px = (pl.renderX !== undefined ? pl.renderX : pl.x * TILE_SIZE) + 20;
-      const py = (pl.renderY !== undefined ? pl.renderY : pl.y * TILE_SIZE) + 20;
-      return Math.hypot(proj.x - px, proj.y - py) <= 18;
-    });
-    if (hitPlayer) {
-      spawnHitExplosion(proj.x, proj.y, proj.wandLv, proj.attackPower, true);
-      return false;
-    }
-
-    // 투사체 렌더링 (0강~30강 매 단계마다 차등 화려함)
+    // 투사체 렌더링
     const lv = proj.wandLv;
     const hue = (200 + lv * 14) % 360;
     const coreR = 3.2 + lv * 0.32;
 
     ctx.save();
-    // 꼬리 잔상
     for (let i = 0; i < proj.trail.length; i++) {
       const pt = proj.trail[i];
       const ratio = (i + 1) / proj.trail.length;
@@ -3268,7 +3412,6 @@ function drawGame() {
       ctx.fill();
     }
 
-    // 메인 코어 및 광채
     ctx.translate(proj.x, proj.y);
     ctx.shadowColor = `hsl(${hue}, 100%, 65%)`;
     ctx.shadowBlur = 8 + lv * 0.9;
@@ -3282,36 +3425,12 @@ function drawGame() {
     ctx.beginPath();
     ctx.arc(0, 0, coreR + 2.5, 0, Math.PI * 2);
     ctx.stroke();
-
-    // 단계별 회전 마법진 날개/성운 고리
-    if (lv >= 1) {
-      const ringCount = 1 + Math.floor(lv / 6);
-      const spikes = 4 + Math.floor(lv / 4);
-      for (let r = 0; r < ringCount; r++) {
-        ctx.save();
-        ctx.rotate(time * 0.015 * (r % 2 === 0 ? 1 : -1) + r);
-        ctx.strokeStyle = r % 2 === 0 ? '#fef08a' : `hsl(${(hue + 50) % 360}, 100%, 72%)`;
-        ctx.lineWidth = 1.2;
-        const outerR = coreR + 4 + r * 3.5;
-        ctx.beginPath();
-        for (let s = 0; s < spikes; s++) {
-          const a = (Math.PI * 2 / spikes) * s;
-          const x = Math.cos(a) * outerR;
-          const y = Math.sin(a) * outerR;
-          if (s === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
     ctx.restore();
 
     return true;
   });
 
-  // 7. 투사체 피격 폭발 이펙트 렌더링
+  // 투사체 피격 폭발 이펙트 렌더링
   hitEffects = hitEffects.filter(eff => {
     const elapsed = time - eff.born;
     if (elapsed > eff.duration) return false;
@@ -3347,7 +3466,7 @@ function drawGame() {
     return true;
   });
 
-  // 8. 피격 데미지 플로팅 텍스트
+  // 피격 데미지 플로팅 텍스트
   floatingDamages = floatingDamages.filter(fd => {
     const elapsed = time - fd.born;
     if (elapsed > 700) return false;
@@ -3365,7 +3484,7 @@ function drawGame() {
     return true;
   });
 
-  // 9. 360도 전신 기운 발산 이펙트
+  // 기운 발산 이펙트
   burstEffects = burstEffects.filter(eff => {
     const elapsed = time - eff.born;
     if (elapsed > eff.duration) return false;
@@ -3401,21 +3520,6 @@ function drawGame() {
       ctx.stroke();
     }
 
-    if (eff.lightningCount > 0) {
-      ctx.strokeStyle = eff.palette.ring;
-      ctx.lineWidth = 1.4 * alpha;
-      for (let l = 0; l < eff.lightningCount; l++) {
-        const la = (Math.PI * 2 / eff.lightningCount) * l + progress * 2;
-        const rMid = eff.maxRadius * progress * 0.55;
-        const rEnd = eff.maxRadius * progress * 1.05;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(la + 0.12) * rMid, Math.sin(la + 0.12) * rMid);
-        ctx.lineTo(Math.cos(la) * rEnd, Math.sin(la) * rEnd);
-        ctx.stroke();
-      }
-    }
-
     eff.particles.forEach(pt => {
       ctx.fillStyle = pt.color;
       ctx.strokeStyle = pt.color;
@@ -3427,36 +3531,16 @@ function drawGame() {
       const py = Math.sin(curAngle) * dist;
       const size = pt.size * (1 - progress * 0.35);
 
-      if (pt.shape === 1) {
-        ctx.fillRect(px - size * 1.4, py - 0.8, size * 2.8, 1.6);
-        ctx.fillRect(px - 0.8, py - size * 1.4, 1.6, size * 2.8);
-      } else if (pt.shape === 2) {
-        ctx.beginPath();
-        ctx.moveTo(px, py - size);
-        ctx.lineTo(px + size, py);
-        ctx.lineTo(px, py + size);
-        ctx.lineTo(px - size, py);
-        ctx.closePath();
-        ctx.fill();
-      } else if (pt.shape === 3) {
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(px * 0.75, py * 0.75);
-        ctx.lineTo(px, py);
-        ctx.stroke();
-      } else {
-        ctx.beginPath();
-        ctx.arc(px, py, size, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.beginPath();
+      ctx.arc(px, py, size, 0, Math.PI * 2);
+      ctx.fill();
     });
 
     ctx.restore();
     return true;
   });
 
-  // 10. 마법 촛불 & 불티 파티클
-  ctx.save();
+  // 배경 촛불 & 파티클 (40타일 너비 전체)
   floatingCandles.forEach(cd => {
     const hoverY = cd.y + Math.sin(time * 0.003 + cd.phase) * 5;
     ctx.fillStyle = '#fef3c7';
@@ -3465,25 +3549,21 @@ function drawGame() {
     ctx.beginPath();
     ctx.arc(cd.x, hoverY - 2.5, 2.2 * cd.scale, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.16)';
-    ctx.beginPath();
-    ctx.arc(cd.x, hoverY - 2, 9 * cd.scale, 0, Math.PI * 2);
-    ctx.fill();
   });
 
   emberParticles.forEach(em => {
     em.x += em.vx;
     em.y += em.vy;
-    if (em.y < 0) { em.y = canvas.height; em.x = Math.random() * canvas.width; }
-    if (em.x < 0) em.x = canvas.width;
-    if (em.x > canvas.width) em.x = 0;
+    if (em.y < 0) { em.y = canvas.height; em.x = Math.random() * (mapW * TILE_SIZE); }
+    if (em.x < 0) em.x = mapW * TILE_SIZE;
+    if (em.x > mapW * TILE_SIZE) em.x = 0;
 
     ctx.fillStyle = em.color;
     ctx.globalAlpha = em.alpha;
     ctx.fillRect(em.x, em.y, em.size, em.size);
   });
-  ctx.restore();
 
+  ctx.restore();
   requestAnimationFrame(drawGame);
 }
 
