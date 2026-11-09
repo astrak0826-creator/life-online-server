@@ -1718,14 +1718,14 @@ function renderEnhanceUI() {
   if (statKey === 'iq') {
     curStatLevel.textContent = `IQ ${statVal} (+${getEffectiveLevel('iq', myCharacter)}강)`;
     curStatRule.textContent = info.rule;
-  } else if (statKey === 'wand') {
+ } else if (statKey === 'wand') {
     const wLv = myCharacter.wand || 0;
     const rate = ENHANCE_RATES[wLv];
     const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : '최고 단계(MAX)';
     curStatLevel.textContent = `+${wLv}강 (공격력 보너스 +${wLv * 10})`;
     curStatRule.textContent = wLv >= 30
       ? '최고 단계(+30강)에 도달한 전설의 지팡이입니다!'
-      : `현재 +${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 단계 유지 (하락 없음)`;
+      : `현재 +${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강, 0강 보호)`;
   } else {
     curStatLevel.textContent = `+${statVal}강`;
     curStatRule.textContent = info.rule;
