@@ -36,15 +36,15 @@ const userSchema = new mongoose.Schema({
             default: 'male'
         },
         // 6대 스탯 + 지팡이 강화단계(0~30강)
-        education: { type: Number, default: 0, min: 0 },    // 학력 (오른팔)
-        appearance: { type: Number, default: 0, min: 0 },   // 외모 (오른다리)
-        wealth: { type: Number, default: 0, min: 0 },       // 재력 (왼팔)
-        iq: { type: Number, default: 100, min: 0 },         // 지능 (머리, 기본 100)
-        stamina: { type: Number, default: 0, min: 0 },      // 체력 (몸통)
-        personality: { type: Number, default: 0, min: 0 },  // 성격 (왼다리)
-        wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (0~30강)
+        education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔)
+        appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리)
+        wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔)
+        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100)
+        stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통)
+        personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리)
+        wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (0~30강, 단계당 전투력 +10)
 
-        // [업데이트 1] 그동안 거쳐간 모든 칭호를 자유롭게 적용하기 위한 역대 최고 달성 기록
+        // 그동안 거쳐간 모든 칭호를 자유롭게 적용하기 위한 역대 최고 달성 기록 (재력 -100강 폭락 시에도 칭호 보존)
         maxStats: {
             education: { type: Number, default: 0 },
             appearance: { type: Number, default: 0 },
@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema({
             wand: { type: Number, default: 0 }
         },
 
-        // 유저 커스텀 설정: 머리 위 표시 칭호 (거쳐간 개별 칭호 직접 지정 가능) & 스페이스바 기운 색상
+        // 유저 커스텀 설정: 머리 위 표시 칭호 & 스페이스바 기운 색상
         customTitle: {
             type: String,
             default: ''
@@ -71,8 +71,8 @@ const userSchema = new mongoose.Schema({
             default: 'red'
         },
 
-        // 기회 시스템 (1분당 1충전, 최대 120개)
-        enhanceTokens: { type: Number, default: 120, max: 120 },
+        // 기회 시스템 (1분당 1충전 + 몬스터 사냥 보상 획득, 최대 120개)
+        enhanceTokens: { type: Number, default: 120, min: 0, max: 120 },
         lastTokenRefill: { type: Date, default: Date.now },
         color: { type: String, default: '#3b82f6' }
     },
@@ -86,7 +86,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-// 빠른 랭킹 조회를 위한 복합 인덱스
-userSchema.index({ "character.wealth": -1, "character.education": -1, updatedAt: 1 });
+// 빠른 랭킹 및 전투력 조회를 위한 복합 인덱스
+userSchema.index({ "character.wand": -1, "character.wealth": -1, "character.education": -1, updatedAt: 1 });
 
 module.exports = mongoose.model('User', userSchema);
