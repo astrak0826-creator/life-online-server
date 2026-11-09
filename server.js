@@ -664,10 +664,11 @@ io.on('connection', async (socket) => {
                 break;
             }
 
-            // 7. [업데이트 4 & 5] 지팡이 강화 (ENHANCE_RATES 확률 테이블 적용)
+// 7. 지팡이 강화 (실패 시 50% 확률로 유지, 50% 확률로 -1강 하락 [0강 보호])
             case 'wand': {
                 const curWand = u.character.wand || 0;
                 const successProb = ENHANCE_RATES[curWand] !== undefined ? ENHANCE_RATES[curWand] : 0;
+
                 if (Math.random() < successProb) {
                     u.character.wand = curWand + 1;
                     result = {
@@ -676,11 +677,21 @@ io.on('connection', async (socket) => {
                         message: `🪄 지팡이 강화 성공! (+${u.character.wand}강 달성 · 종합점수 및 공격력 +10 상승!)`
                     };
                 } else {
-                    result = {
-                        type: 'keep',
-                        change: 0,
-                        message: `🪄 지팡이 연성 실패... (+${curWand}강 단계가 유지되었습니다.)`
-                    };
+                    // 강화 실패 시: 0강보다 높고 50% 확률에 걸리면 -1강 하락
+                    if (curWand > 0 && Math.random() < 0.5) {
+                        u.character.wand = curWand - 1;
+                        result = {
+                            type: 'fail',
+                            change: -1,
+                            message: `💥 지팡이 연성 실패! 마력이 역류하여 단계가 하락했습니다 (-1강 → +${u.character.wand}강, 공격력 -10).`
+                        };
+                    } else {
+                        result = {
+                            type: 'keep',
+                            change: 0,
+                            message: `🪄 지팡이 연성 실패... 다행히 단계가 유지되었습니다 (+${curWand}강).`
+                        };
+                    }
                 }
                 break;
             }
