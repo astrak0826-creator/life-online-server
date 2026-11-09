@@ -23,11 +23,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'azaekaban_dagger_rpg_secret_2026';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'masterAdminKey!999#';
 
 mongoose.connect(MONGO_URI)
-    .then(() => console.log('🍃 MongoDB Atlas 인생 육성 DB 연결 완료!'))
+    .then(() => console.log('🍃 MongoDB Atlas 인생온라인 DB 연결 완료!'))
     .catch(err => console.error('❌ DB 연결 에러:', err));
 
 const MAX_TOKENS = 120;
 const REFILL_INTERVAL_MS = 60 * 1000; // 1분당 1개 충전
+
+// [업데이트 5] 지팡이 0강 -> 1강부터 29강 -> 30강까지의 확률 테이블
+const ENHANCE_RATES = {
+    0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
+    5: 0.70,  6: 0.65,  7: 0.60,  8: 0.55,  9: 0.50,
+    10: 0.45, 11: 0.40, 12: 0.35, 13: 0.30, 14: 0.25,
+    15: 0.22, 16: 0.19, 17: 0.16, 18: 0.13, 19: 0.10,
+    20: 0.09, 21: 0.08, 22: 0.075, 23: 0.07, 24: 0.06,
+    25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
+};
 
 // 기회(토큰) 자동 계산 헬퍼 함수
 function resolveTokens(charData) {
@@ -50,6 +60,43 @@ function resolveTokens(charData) {
     }
 
     return { tokens: currentTokens, lastRefill: new Date(last) };
+}
+
+// 기존 유저 호환 및 최고 달성 스탯(maxStats) 동기화 헬퍼
+function syncCharacterProgress(char) {
+    if (typeof char.wand !== 'number') char.wand = 0;
+    if (typeof char.customTitle !== 'string') char.customTitle = '';
+    if (!char.titleStat) char.titleStat = 'education';
+    if (!char.auraColor) char.auraColor = 'red';
+
+    if (!char.maxStats) {
+        char.maxStats = {
+            education: char.education || 0,
+            appearance: char.appearance || 0,
+            wealth: char.wealth || 0,
+            iq: char.iq !== undefined ? char.iq : 100,
+            stamina: char.stamina || 0,
+            personality: char.personality || 0,
+            wand: char.wand || 0
+        };
+    } else {
+        char.maxStats.education = Math.max(char.maxStats.education || 0, char.education || 0);
+        char.maxStats.appearance = Math.max(char.maxStats.appearance || 0, char.appearance || 0);
+        char.maxStats.wealth = Math.max(char.maxStats.wealth || 0, char.wealth || 0);
+        char.maxStats.iq = Math.max(char.maxStats.iq || 100, char.iq !== undefined ? char.iq : 100);
+        char.maxStats.stamina = Math.max(char.maxStats.stamina || 0, char.stamina || 0);
+        char.maxStats.personality = Math.max(char.maxStats.personality || 0, char.personality || 0);
+        char.maxStats.wand = Math.max(char.maxStats.wand || 0, char.wand || 0);
+    }
+}
+
+// [업데이트 6] 종합점수(=최종 공격력) 계산: 6대 스탯 강화합 + (지팡이 강화단계 * 10)
+function calcTotalScoreAndAttack(c) {
+    if (!c) return 0;
+    const iqLv = Math.max(0, (c.iq !== undefined ? c.iq : 100) - 100);
+    const sixStatSum = iqLv + (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.stamina || 0) + (c.personality || 0);
+    const wandScore = (c.wand || 0) * 10;
+    return sixStatSum + wandScore;
 }
 
 // ================= [계정 및 인증 API] =================
@@ -90,6 +137,17 @@ app.post('/api/register', async (req, res) => {
                 iq: 100,
                 stamina: 0,
                 personality: 0,
+                wand: 0,
+                maxStats: {
+                    education: 0,
+                    appearance: 0,
+                    wealth: 0,
+                    iq: 100,
+                    stamina: 0,
+                    personality: 0,
+                    wand: 0
+                },
+                customTitle: '',
                 titleStat: 'education',
                 auraColor: 'red',
                 enhanceTokens: MAX_TOKENS,
@@ -98,7 +156,7 @@ app.post('/api/register', async (req, res) => {
         });
 
         await user.save();
-        res.status(201).json({ message: '회원가입 완료! 로그인해주세요.' });
+        res.status(201).json({ message: '가입 완료! 로그인해주세요.' });
     } catch (e) {
         console.error(e);
         res.status(500).json({ message: '회원가입 처리 중 오류 발생' });
@@ -119,6 +177,7 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ message: '아이디 또는 비밀번호 불일치' });
         }
 
+        syncCharacterProgress(user.character);
         const tokenState = resolveTokens(user.character);
         user.character.enhanceTokens = tokenState.tokens;
         user.character.lastTokenRefill = tokenState.lastRefill;
@@ -250,7 +309,7 @@ app.post('/api/admin/delete-user', async (req, res) => {
     }
 });
 
-// 7. 종합 랭킹 조회 API (상위 50위)
+// 7. 종합 랭킹 조회 API (상위 50위, 지팡이 점수 반영)
 app.get('/api/rankings', async (req, res) => {
     try {
         const users = await User.find({})
@@ -259,16 +318,19 @@ app.get('/api/rankings', async (req, res) => {
 
         const rankingList = users.map(u => {
             const c = u.character || {};
-            const totalScore = ((c.iq || 100) - 100) + (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.stamina || 0) + (c.personality || 0);
+            const totalScore = calcTotalScoreAndAttack(c);
             return {
                 nickname: u.nickname,
                 gender: c.gender || 'male',
                 education: c.education || 0,
                 appearance: c.appearance || 0,
                 wealth: c.wealth || 0,
-                iq: c.iq || 100,
+                iq: c.iq !== undefined ? c.iq : 100,
                 stamina: c.stamina || 0,
                 personality: c.personality || 0,
+                wand: c.wand || 0,
+                maxStats: c.maxStats || {},
+                customTitle: c.customTitle || '',
                 titleStat: c.titleStat || 'education',
                 auraColor: c.auraColor || 'red',
                 totalScore
@@ -287,7 +349,7 @@ const MAP_WIDTH = 20;
 const MAP_HEIGHT = 15;
 
 const OBSTACLES = [
-    // 상단 중앙: 구릿빛노루 기숙사 대형 마법 벽난로
+    // 상단 중앙: 대형 마법 벽난로
     { x: 9, y: 1, type: 'fireplace' }, { x: 10, y: 1, type: 'fireplace' },
 
     // 상단 좌우: 고딕 아치 창문 & 서가
@@ -300,7 +362,7 @@ const OBSTACLES = [
     { x: 15, y: 3, type: 'npc_nong' },       // 농 잊을리 (우측 구역)
     { x: 10, y: 11, type: 'npc_haerin' },    // 해린이언니 (하단 중앙 구역)
 
-    // 기숙사 내부 기둥 및 마법 연구 테이블
+    // 내부 기둥 및 마법 연구 테이블
     { x: 3, y: 7, type: 'pillar' }, { x: 16, y: 7, type: 'pillar' },
     { x: 3, y: 11, type: 'table' }, { x: 16, y: 11, type: 'table' }
 ];
@@ -338,17 +400,17 @@ io.on('connection', async (socket) => {
 
     const dbUser = await User.findById(userId);
     const char = dbUser ? dbUser.character : {
-        gender: 'male', education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0,
-        titleStat: 'education', auraColor: 'red',
+        gender: 'male', education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0,
+        maxStats: { education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0 },
+        customTitle: '', titleStat: 'education', auraColor: 'red',
         enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date()
     };
+    syncCharacterProgress(char);
     const tokenState = resolveTokens(char);
 
     if (dbUser) {
         dbUser.character.enhanceTokens = tokenState.tokens;
         dbUser.character.lastTokenRefill = tokenState.lastRefill;
-        if (!dbUser.character.titleStat) dbUser.character.titleStat = 'education';
-        if (!dbUser.character.auraColor) dbUser.character.auraColor = 'red';
         await dbUser.save();
     }
 
@@ -370,7 +432,9 @@ io.on('connection', async (socket) => {
         enhanceTokens: tokenState.tokens,
         lastTokenRefill: tokenState.lastRefill.getTime(),
         chatText: '',
-        chatTimer: null
+        chatTimer: null,
+        lastMoveTime: 0,
+        lastAttackTime: 0
     };
 
     socket.emit('init', {
@@ -383,10 +447,25 @@ io.on('connection', async (socket) => {
 
     socket.broadcast.emit('playerJoined', players[socket.id]);
 
-    socket.on('move', (dir) => {
+    // [업데이트 7] 이동 속도 제어 (기본 한 칸 이동 & 스페이스바 홀드 시 달리기 허용)
+    socket.on('move', (payload) => {
         const p = players[socket.id];
         if (!p) return;
+
+        const dir = typeof payload === 'string' ? payload : payload?.dir;
+        const isRunning = typeof payload === 'object' && Boolean(payload?.sprint);
+        if (!['up', 'down', 'left', 'right'].includes(dir)) return;
+
+        const now = Date.now();
+        const minInterval = isRunning ? 95 : 185;
         p.dir = dir;
+
+        if (now - (p.lastMoveTime || 0) < minInterval) {
+            io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir, sprint: isRunning });
+            return;
+        }
+        p.lastMoveTime = now;
+
         let targetX = p.x;
         let targetY = p.y;
         if (dir === 'up') targetY -= 1;
@@ -399,22 +478,50 @@ io.on('connection', async (socket) => {
             p.y = targetY;
         }
 
-        io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir });
+        io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir, sprint: isRunning });
     });
 
-    // 유저 칭호 및 기운 발산 색상 변경 소켓 이벤트
+    // [업데이트 5 & 6] 지팡이 마법 투사체 발사 (A키, 초당 1회)
+    socket.on('fireProjectile', () => {
+        const p = players[socket.id];
+        if (!p) return;
+
+        const now = Date.now();
+        if (now - (p.lastAttackTime || 0) < 950) return; // 1초당 1회 제한
+        p.lastAttackTime = now;
+
+        const c = p.character || {};
+        const wandLv = c.wand || 0;
+        const attackPower = calcTotalScoreAndAttack(c);
+
+        io.emit('projectileFired', {
+            ownerId: socket.id,
+            ownerName: p.name,
+            x: p.x,
+            y: p.y,
+            dir: p.dir,
+            wandLv: wandLv,
+            attackPower: attackPower
+        });
+    });
+
+    // 유저 칭호(과거 거쳐간 칭호 포함) 및 기운 발산 색상 변경 소켓 이벤트
     socket.on('updatePreferences', async (prefs) => {
         const p = players[socket.id];
         if (!p) return;
 
-        const validStats = ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality'];
+        const validStats = ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality', 'wand'];
         const validColors = ['red', 'yellow', 'blue', 'green'];
 
         const u = await User.findById(userId);
         if (!u) return;
+        syncCharacterProgress(u.character);
 
         if (prefs.titleStat && validStats.includes(prefs.titleStat)) {
             u.character.titleStat = prefs.titleStat;
+        }
+        if (typeof prefs.customTitle === 'string') {
+            u.character.customTitle = prefs.customTitle.trim().slice(0, 30);
         }
         if (prefs.auraColor && validColors.includes(prefs.auraColor)) {
             u.character.auraColor = prefs.auraColor;
@@ -429,13 +536,21 @@ io.on('connection', async (socket) => {
         });
     });
 
-    // 6대 스탯 강화 소켓 이벤트
+    // 6대 스탯 + 지팡이(wand) 강화 소켓 이벤트
     socket.on('tryEnhanceStat', async (statType, callback) => {
         const p = players[socket.id];
         if (!p) return callback({ success: false, message: '플레이어 정보 없음' });
 
         const u = await User.findById(userId);
         if (!u) return callback({ success: false, message: '유저 계정 미확인' });
+        syncCharacterProgress(u.character);
+
+        if (statType === 'wand' && (u.character.wand || 0) >= 30) {
+            return callback({
+                success: false,
+                message: '지팡이가 이미 최고 단계(+30강)에 도달했습니다!'
+            });
+        }
 
         const tokenState = resolveTokens(u.character);
         if (tokenState.tokens < 1) {
@@ -549,11 +664,33 @@ io.on('connection', async (socket) => {
                 break;
             }
 
+            // 7. [업데이트 4 & 5] 지팡이 강화 (ENHANCE_RATES 확률 테이블 적용)
+            case 'wand': {
+                const curWand = u.character.wand || 0;
+                const successProb = ENHANCE_RATES[curWand] !== undefined ? ENHANCE_RATES[curWand] : 0;
+                if (Math.random() < successProb) {
+                    u.character.wand = curWand + 1;
+                    result = {
+                        type: 'success',
+                        change: 1,
+                        message: `🪄 지팡이 강화 성공! (+${u.character.wand}강 달성 · 종합점수 및 공격력 +10 상승!)`
+                    };
+                } else {
+                    result = {
+                        type: 'keep',
+                        change: 0,
+                        message: `🪄 지팡이 연성 실패... (+${curWand}강 단계가 유지되었습니다.)`
+                    };
+                }
+                break;
+            }
+
             default:
                 return callback({ success: false, message: '알 수 없는 스탯입니다.' });
         }
 
-        // DB 저장
+        // 최고 달성 기록(maxStats) 동기화 후 DB 저장
+        syncCharacterProgress(u.character);
         u.character.enhanceTokens = currentTokens;
         u.character.lastTokenRefill = newLastRefill;
         await u.save();
@@ -562,7 +699,6 @@ io.on('connection', async (socket) => {
         p.enhanceTokens = currentTokens;
         p.lastTokenRefill = newLastRefill.getTime();
 
-        // 전체 플레이어에게 스탯 갱신 브로드캐스트 (기숙사 속보 채팅 알림은 제거됨)
         io.emit('playerStatUpdated', {
             id: socket.id,
             character: u.character
@@ -610,5 +746,5 @@ io.on('connection', async (socket) => {
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
-    console.log(`🌟 인생 육성 RPG 서버 가동 중: 포트 ${PORT}`);
+    console.log(`🌟 인생온라인 서버 가동 중: 포트 ${PORT}`);
 });
