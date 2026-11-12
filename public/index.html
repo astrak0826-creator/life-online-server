@@ -51,7 +51,7 @@
     overflow: hidden;
   }
 
-  /* 상단 HUD (공격력 배지 및 효과음 버튼 제거 완료) */
+  /* 상단 HUD */
   .hud-bar {
     width: 100%;
     background: linear-gradient(90deg, #160a0e 0%, #240f15 50%, #160a0e 100%);
@@ -88,6 +88,14 @@
     color: #38bdf8;
     font-weight: bold;
     font-size: 13px;
+  }
+  .btn-sfx-toggle {
+    background: #1c1015;
+    border: 1px solid #5c1d24;
+    color: #fef08a;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
   }
 
   /* 캔버스 & 스크롤 채팅창 래퍼 */
@@ -180,44 +188,68 @@
     width: 100%;
     background: linear-gradient(180deg, #130b10 0%, #080507 100%);
     border-top: 2px solid #5c1d24;
-    padding: 10px 10px;
+    padding: 10px 14px;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     box-sizing: border-box;
   }
 
-  /* 십자키 (D-Pad) */
-  .dpad {
-    display: grid;
-    grid-template-columns: repeat(3, 42px);
-    grid-template-rows: repeat(2, 44px);
-    gap: 4px;
-    flex-shrink: 0;
-  }
-  .dbtn {
-    background: linear-gradient(145deg, #221319, #11090c);
-    border: 1px solid #6b212c;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
-    color: #fca5a5;
-    font-size: 16px;
-    font-weight: bold;
+  /* 모바일 가상 조이스틱 (Virtual Joystick) */
+  .joystick-zone {
+    width: 104px;
+    height: 94px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
-    cursor: pointer;
-    padding: 0;
+    flex-shrink: 0;
+    position: relative;
+    touch-action: none;
   }
-  .dbtn:active {
-    background: #4c111b;
-    color: #fef08a;
-    transform: translateY(1px) scale(0.95);
+  .joystick-base {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #24131a 0%, #0c0609 100%);
+    border: 2px solid #6b212c;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.85), inset 0 0 12px rgba(245, 158, 11, 0.14);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .dbtn.up { grid-column: 2; grid-row: 1; }
-  .dbtn.left { grid-column: 1; grid-row: 2; }
-  .dbtn.down { grid-column: 2; grid-row: 2; }
-  .dbtn.right { grid-column: 3; grid-row: 2; }
+  .joystick-base::before,
+  .joystick-base::after {
+    content: '';
+    position: absolute;
+    background: rgba(245, 158, 11, 0.16);
+    pointer-events: none;
+  }
+  .joystick-base::before {
+    width: 68%;
+    height: 1px;
+  }
+  .joystick-base::after {
+    width: 1px;
+    height: 68%;
+  }
+  .joystick-stick {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #f59e0b, #991b1b);
+    border: 2px solid #fef08a;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.9), 0 0 8px rgba(245, 158, 11, 0.4);
+    position: absolute;
+    transform: translate(0px, 0px);
+    pointer-events: none;
+    transition: transform 0.08s ease-out;
+  }
+  .joystick-stick.active {
+    transition: none;
+    background: radial-gradient(circle at 35% 35%, #fef08a, #dc2626);
+    box-shadow: 0 0 14px rgba(250, 204, 21, 0.85);
+  }
 
   /* 모바일 우측 조작부 */
   .mobile-right-controls {
@@ -225,7 +257,7 @@
     flex-direction: column;
     gap: 5px;
     flex: 1;
-    max-width: 195px;
+    max-width: 205px;
   }
   .mobile-top-actions {
     display: flex;
@@ -243,6 +275,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    touch-action: none;
   }
   .btn-atk-mobile {
     flex: 1;
@@ -256,6 +289,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    touch-action: none;
   }
 
   .action-grid {
@@ -700,7 +734,7 @@
   </div>
 </div>
 
-<!-- 정육각형 레이더 차트 스탯창 (단축키 S) - 효과음 토글 하단 구석 배치 포함 -->
+<!-- 정육각형 레이더 차트 스탯창 (단축키 S) -->
 <div id="infoModal" class="modal-overlay hidden">
   <div class="info-modal-card">
     <div class="info-header-bar">
@@ -732,7 +766,6 @@
 
     <div class="info-footer-row">
       <button id="infoCloseBtn" style="padding:7px 18px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:12px;">닫기 (S / ESC)</button>
-      <!-- 효과음 토글 버튼을 정보창 하단 구석으로 이전 -->
       <button id="btnSfxToggleModal" class="btn-sfx-toggle" style="padding:5px 10px; font-size:11px;">🔊 효과음 ON</button>
       <div class="corner-account-btns" id="myAccountCornerBtns">
         <button id="logoutBtn" class="btn-tiny-corner" style="background:#1f2937; border:1px solid #4b5563; color:#cbd5e1;">로그아웃</button>
@@ -792,10 +825,10 @@
   </div>
 </div>
 
-<!-- 랭킹 모달 -->
+<!-- 랭킹 모달 (제목 '순위'로 변경) -->
 <div id="rankModal" class="modal-overlay hidden">
   <div class="rank-modal">
-    <h3 class="rank-title">🏆 인생온라인 서열 TOP 50 🏆</h3>
+    <h3 class="rank-title">순위</h3>
     <div class="rank-sub-hint">유저 카드를 클릭하면 해당 유저의 스펙 분석창을 볼 수 있습니다.</div>
     <div class="rank-list" id="rankListBody"></div>
     <div style="margin-top: 10px; display:flex; justify-content: flex-end;">
@@ -806,7 +839,7 @@
 
 <!-- 메인 게임 컨테이너 -->
 <div class="game-container">
-  <!-- 상단 HUD (좌측 공격력 배지 삭제 완료) -->
+  <!-- 상단 HUD -->
   <div class="hud-bar">
     <div class="hud-left">
       <span class="hud-nick" id="hudNick">[게스트]</span>
@@ -816,7 +849,7 @@
     </div>
   </div>
 
-  <!-- 캔버스 전용 영역 (가로 40타일 넓은 월드 뷰포트) -->
+  <!-- 캔버스 전용 영역 -->
   <div class="canvas-area">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div id="chatLog"></div>
@@ -835,13 +868,12 @@
     </div>
   </div>
 
-  <!-- 모바일 컨트롤 패널 -->
+  <!-- 모바일 컨트롤 패널 (D-Pad 대신 가상 조이스틱 적용) -->
   <div class="mobile-controller-panel">
-    <div class="dpad">
-      <button class="dbtn up" data-dir="up">▲</button>
-      <button class="dbtn left" data-dir="left">◀</button>
-      <button class="dbtn down" data-dir="down">▼</button>
-      <button class="dbtn right" data-dir="right">▶</button>
+    <div class="joystick-zone" id="joystickZone">
+      <div class="joystick-base" id="joystickBase">
+        <div class="joystick-stick" id="joystickStick"></div>
+      </div>
     </div>
 
     <div class="mobile-right-controls">
@@ -1035,6 +1067,7 @@ let projectiles = [];
 let hitEffects = [];
 let floatingDamages = [];
 let currentSelectedStat = 'education';
+let lastRenderFrameTime = Date.now();
 
 // 지팡이 강화단계별 확률 테이블 (0강 -> 1강부터 29강 -> 30강)
 const ENHANCE_RATES = {
@@ -1046,7 +1079,7 @@ const ENHANCE_RATES = {
     25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 고정 3인 마법사 NPC (해린이언니 롱 웨이브 헤어 포함)
+// 고정 3인 마법사 NPC (신규 기능 안내를 NPC 대사에만 반영)
 const DORM_NPCS = [
   {
     x: 4, y: 3,
@@ -1056,7 +1089,7 @@ const DORM_NPCS = [
     dialogs: [
       "정보창[S]에서 네가 그동안 거쳐간 모든 칭호 중 원하는 것을 골라 머리 위에 띄울 수 있다.",
       "기운 발산 색상은 '구릿빛노루', '허풍퍽', '매번쿨럭', '술이되리' 4가지로 나뉜다.",
-      "스페이스바를 누른 채로 이동하면 평소보다 빠르게 '달리기'를 할 수 있지."
+      "이제 걷기와 달리기[Space 홀드]를 할 때 끊김 없이 일정한 속도로 매끄럽게 이동할 수 있으며, [R] 키를 누르면 깔끔해진 '순위' 창을 확인할 수 있지."
     ]
   },
   {
@@ -1077,8 +1110,8 @@ const DORM_NPCS = [
     portrait: '✨📖',
     dialogs: [
       "학력은 [오른팔], 외모는 [오른다리], 재력은 [왼팔], 지능은 [머리], 체력은 [몸통], 성격은 [왼다리]를 각성시켜.",
-      "지난 채팅 대화가 궁금하면 왼쪽 아래 채팅창을 마우스 휠이나 손가락으로 스크롤해 봐.",
-      "채팅을 치고 싶을 땐 [Enter] 키뿐만 아니라 [/] 키를 눌러도 바로 입력창이 열린단다."
+      "모바일에서는 왼쪽 아래의 '가상 조이스틱'을 엄지손가락으로 밀어서 원하는 방향으로 부드럽게 이동할 수 있단다.",
+      "조이스틱을 움직이면서 동시에 오른쪽 공격이나 달리기 버튼도 함께 누를 수 있으니 사냥터에서 유용하게 써 봐!"
     ]
   }
 ];
@@ -1604,7 +1637,6 @@ canvas.addEventListener('click', (e) => {
   const clickX = (e.clientX - rect.left) * scaleX;
   const clickY = (e.clientY - rect.top) * scaleY;
 
-  // 카메라 뷰포트 오프셋 반영 좌표 계산
   const myPl = players[myId];
   const camX = myPl ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, (myPl.renderX !== undefined ? myPl.renderX : myPl.x * TILE_SIZE) - canvas.width / 2 + 20)) : 0;
   const camY = myPl ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, (myPl.renderY !== undefined ? myPl.renderY : myPl.y * TILE_SIZE) - canvas.height / 2 + 20)) : 0;
@@ -2102,7 +2134,8 @@ function connectSocketGame(token, nickname) {
       players[p.id] = {
         ...p,
         renderX: p.x * TILE_SIZE,
-        renderY: p.y * TILE_SIZE
+        renderY: p.y * TILE_SIZE,
+        lastRenderMoveTime: 0
       };
     });
 
@@ -2118,7 +2151,8 @@ function connectSocketGame(token, nickname) {
     players[p.id] = {
       ...p,
       renderX: p.x * TILE_SIZE,
-      renderY: p.y * TILE_SIZE
+      renderY: p.y * TILE_SIZE,
+      lastRenderMoveTime: 0
     };
   });
 
@@ -2129,6 +2163,9 @@ function connectSocketGame(token, nickname) {
       players[data.id].y = data.y;
       players[data.id].dir = data.dir;
       players[data.id].sprint = Boolean(data.sprint);
+      if (movedTile) {
+        players[data.id].lastRenderMoveTime = Date.now();
+      }
       if (data.id === myId && movedTile) {
         SoundFX.step(Boolean(data.sprint));
       }
@@ -2273,7 +2310,7 @@ setInterval(() => {
   updateHUD();
 }, 1000);
 
-// 방향키 홀드 이동 & 달리기 제어
+// ================= [방향키 및 모바일 가상 조이스틱 연속 이동 제어] =================
 const heldDirections = [];
 let lastMoveEmitTime = 0;
 
@@ -2294,7 +2331,7 @@ function processContinuousMovement(now) {
   const activeEl = document.activeElement;
   if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) return;
 
-  const moveInterval = isSpaceHeld ? 115 : 220;
+  const moveInterval = isSpaceHeld ? 110 : 205;
   if (now - lastMoveEmitTime < moveInterval) return;
 
   const currentDir = heldDirections[heldDirections.length - 1];
@@ -2401,27 +2438,118 @@ window.addEventListener('keyup', (e) => {
   else if (e.key === 'ArrowRight') removeHeldDirection('right');
 });
 
+// 모바일 가상 조이스틱 (멀티터치 대응)
+const joystickZone = document.getElementById('joystickZone');
+const joystickBase = document.getElementById('joystickBase');
+const joystickStick = document.getElementById('joystickStick');
+let joystickTouchId = null;
+let isJoystickMouseDown = false;
+let currentJoystickDir = null;
+
+function updateJoystickByPoint(clientX, clientY) {
+  if (!joystickBase || !joystickStick) return;
+  const rect = joystickBase.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+  const dist = Math.hypot(dx, dy);
+  const maxRadius = 26;
+  const deadzone = 7;
+
+  let clampedX = dx;
+  let clampedY = dy;
+  if (dist > maxRadius) {
+    clampedX = (dx / dist) * maxRadius;
+    clampedY = (dy / dist) * maxRadius;
+  }
+  joystickStick.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
+
+  if (dist >= deadzone) {
+    const newDir = Math.abs(dx) >= Math.abs(dy)
+      ? (dx > 0 ? 'right' : 'left')
+      : (dy > 0 ? 'down' : 'up');
+
+    if (currentJoystickDir !== newDir) {
+      if (currentJoystickDir) removeHeldDirection(currentJoystickDir);
+      currentJoystickDir = newDir;
+      addHeldDirection(newDir);
+      processContinuousMovement(Date.now());
+    }
+  } else {
+    if (currentJoystickDir) {
+      removeHeldDirection(currentJoystickDir);
+      currentJoystickDir = null;
+    }
+  }
+}
+
+function resetJoystick() {
+  joystickTouchId = null;
+  isJoystickMouseDown = false;
+  if (joystickStick) {
+    joystickStick.classList.remove('active');
+    joystickStick.style.transform = 'translate(0px, 0px)';
+  }
+  if (currentJoystickDir) {
+    removeHeldDirection(currentJoystickDir);
+    currentJoystickDir = null;
+  }
+}
+
+if (joystickZone) {
+  joystickZone.addEventListener('touchstart', (e) => {
+    if (e.cancelable) e.preventDefault();
+    if (joystickTouchId !== null) return;
+    const touch = e.changedTouches[0];
+    joystickTouchId = touch.identifier;
+    joystickStick.classList.add('active');
+    updateJoystickByPoint(touch.clientX, touch.clientY);
+  }, { passive: false });
+
+  joystickZone.addEventListener('touchmove', (e) => {
+    if (e.cancelable) e.preventDefault();
+    if (joystickTouchId === null) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === joystickTouchId) {
+        updateJoystickByPoint(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+        break;
+      }
+    }
+  }, { passive: false });
+
+  const handleJoystickTouchEnd = (e) => {
+    if (joystickTouchId === null) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === joystickTouchId) {
+        resetJoystick();
+        break;
+      }
+    }
+  };
+  joystickZone.addEventListener('touchend', handleJoystickTouchEnd);
+  joystickZone.addEventListener('touchcancel', handleJoystickTouchEnd);
+
+  joystickZone.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    isJoystickMouseDown = true;
+    joystickStick.classList.add('active');
+    updateJoystickByPoint(e.clientX, e.clientY);
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isJoystickMouseDown) return;
+    updateJoystickByPoint(e.clientX, e.clientY);
+  });
+  window.addEventListener('mouseup', () => {
+    if (isJoystickMouseDown) resetJoystick();
+  });
+}
+
 window.addEventListener('blur', () => {
   heldDirections.length = 0;
+  resetJoystick();
   stopAuraHold();
   stopAttackHold();
-});
-
-document.querySelectorAll('.dbtn').forEach(btn => {
-  const dir = btn.getAttribute('data-dir');
-  const startDir = (e) => {
-    if (e.cancelable) e.preventDefault();
-    addHeldDirection(dir);
-    processContinuousMovement(Date.now());
-  };
-  const endDir = () => removeHeldDirection(dir);
-
-  btn.addEventListener('touchstart', startDir, { passive: false });
-  btn.addEventListener('touchend', endDir);
-  btn.addEventListener('touchcancel', endDir);
-  btn.addEventListener('mousedown', startDir);
-  btn.addEventListener('mouseup', endDir);
-  btn.addEventListener('mouseleave', endDir);
 });
 
 function sendChatMessage() {
@@ -2476,7 +2604,7 @@ function drawBronzeDeerCrest(cx, cy, scale = 1) {
   ctx.restore();
 }
 
-// NPC 3인 전용 아카데미 룩 및 고유 무기 렌더링 (해린이언니 롱 웨이브 헤어 포함)
+// NPC 3인 전용 아카데미 룩 및 고유 무기 렌더링
 function drawWizardNPC(npc, time) {
   const rx = npc.x * TILE_SIZE;
   const ry = npc.y * TILE_SIZE;
@@ -2494,7 +2622,6 @@ function drawWizardNPC(npc, time) {
   const headY = ry + 8 + breathe;
 
   if (npc.id === 'npc_helicopter') {
-    // 1. 헬리콥터: 단정하게 단추 채운 네이비 블레이저 & 흑철 번개 셉터
     ctx.fillStyle = '#1e3a8a';
     ctx.fillRect(cx - 8, bodyY, 16, 20);
     ctx.fillStyle = '#fef08a';
@@ -2513,7 +2640,6 @@ function drawWizardNPC(npc, time) {
     ctx.fill();
     ctx.stroke();
 
-    // 흑발 머리 & 동그란 안경
     ctx.fillStyle = '#1e293b';
     ctx.beginPath();
     ctx.arc(cx, headY - 2, 8.5, Math.PI, 0);
@@ -2528,7 +2654,6 @@ function drawWizardNPC(npc, time) {
     ctx.fill();
     ctx.stroke();
 
-    // 흑철 셉터 (지휘봉형 단장)
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -2539,7 +2664,6 @@ function drawWizardNPC(npc, time) {
     ctx.fillRect(cx + 14, bodyY - 16, 4, 4);
 
   } else if (npc.id === 'npc_nong') {
-    // 2. 농 잊을리: 붉은 버건디 후드 망토 & 불꽃 완드
     ctx.fillStyle = '#7f1d1d';
     ctx.beginPath();
     ctx.moveTo(cx - 9, bodyY);
@@ -2562,7 +2686,6 @@ function drawWizardNPC(npc, time) {
     ctx.fill();
     ctx.stroke();
 
-    // 주황색 벅벅 긁은 머리 & 주홍빛 체크 머플러
     ctx.fillStyle = '#ea580c';
     ctx.beginPath();
     ctx.arc(cx, headY - 3, 8.5, Math.PI, 0);
@@ -2570,7 +2693,6 @@ function drawWizardNPC(npc, time) {
     ctx.fillStyle = '#b91c1c';
     ctx.fillRect(cx - 8, bodyY - 1, 16, 4);
 
-    // 화염의 송곳니 (지팡이)
     ctx.strokeStyle = '#78350f';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -2583,7 +2705,6 @@ function drawWizardNPC(npc, time) {
     ctx.fill();
 
   } else if (npc.id === 'npc_haerin') {
-    // 3. 해린이언니: 아이보리 니트 조끼 + 케이프 코트 + 풍성한 밀크 브라운 롱 웨이브 헤어
     ctx.fillStyle = '#fffbeb';
     ctx.fillRect(cx - 8, bodyY, 16, 12);
     ctx.fillStyle = '#881337';
@@ -2607,7 +2728,6 @@ function drawWizardNPC(npc, time) {
     ctx.fill();
     ctx.stroke();
 
-    // 풍성한 밀크 브라운 롱 웨이브 헤어 (어깨까지 내려오는 부드러운 곡선)
     ctx.fillStyle = '#b45309';
     ctx.beginPath();
     ctx.arc(cx, headY - 3, 9, Math.PI, 0);
@@ -2625,7 +2745,6 @@ function drawWizardNPC(npc, time) {
     ctx.quadraticCurveTo(cx + 9, headY + 12, cx + 8, headY + 2);
     ctx.fill();
 
-    // 달빛과 이슬의 성좌장 (은백색 스태프)
     ctx.strokeStyle = '#cbd5e1';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -2665,7 +2784,6 @@ function drawMonster(m, time) {
   ctx.fill();
 
   if (m.type === 'mandrake') {
-    // 아기 맨드레이크 (초급 / 뽈뽈거리는 새싹 요정)
     ctx.fillStyle = '#15803d';
     ctx.beginPath();
     ctx.arc(cx, cy + 4, 10, 0, Math.PI * 2);
@@ -2677,7 +2795,6 @@ function drawMonster(m, time) {
     ctx.arc(cx + 4, cy - 8, 3, 0, Math.PI * 2);
     ctx.fill();
   } else if (m.type === 'slime') {
-    // 어둠의 마법 슬라임 (중급 / 젤리 형태)
     const squash = Math.sin(time * 0.01) * 2;
     ctx.fillStyle = '#7e22ce';
     ctx.beginPath();
@@ -2687,7 +2804,6 @@ function drawMonster(m, time) {
     ctx.fillRect(cx - 4, cy, 3, 3);
     ctx.fillRect(cx + 2, cy, 3, 3);
   } else if (m.type === 'wolf') {
-    // 변종 늑대 마수 (상급 / 붉은 눈의 날렵한 짐승)
     ctx.fillStyle = '#334155';
     ctx.beginPath();
     ctx.moveTo(cx - 14, cy + 10);
@@ -2702,7 +2818,6 @@ function drawMonster(m, time) {
     ctx.fillRect(cx + 3, cy - 2, 2, 2);
   }
 
-  // 몬스터 소형 체력바
   const barW = 32;
   const barH = 4;
   const bx = cx - barW / 2;
@@ -2834,8 +2949,8 @@ function drawEvolvedStudent(rx, ry, p, time) {
 
   const dx = (p.x * TILE_SIZE) - rx;
   const dy = (p.y * TILE_SIZE) - ry;
-  const isMoving = Math.hypot(dx, dy) > 1.2;
-  const swingSpeed = p.sprint ? 0.038 : 0.024;
+  const isMoving = Math.hypot(dx, dy) > 0.5 || (time - (p.lastRenderMoveTime || 0)) < 110;
+  const swingSpeed = p.sprint ? 0.036 : 0.022;
   const swing = isMoving ? Math.sin(time * swingSpeed) * 4.5 : 0;
   const breathe = Math.sin(time * 0.004 + rx * 0.1) * 1;
   const bodyY = ry + 15 + breathe * 0.6;
@@ -3148,16 +3263,51 @@ function drawEvolvedStudent(rx, ry, p, time) {
   ctx.restore();
 }
 
-// 메인 캔버스 렌더링 (카메라 뷰포트 추적 및 40x15 월드 렌더링)
+// 메인 캔버스 렌더링 (일정한 속도의 등속 이동 보간 및 뷰포트 추적)
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const time = Date.now();
+  const dt = Math.min(50, Math.max(1, time - lastRenderFrameTime));
+  lastRenderFrameTime = time;
 
   processContinuousMovement(time);
 
+  // 모든 플레이어의 렌더링 좌표를 먼저 일정한 등속(Linear Constant Speed)으로 갱신
+  Object.values(players).forEach(p => {
+    const targetX = p.x * TILE_SIZE;
+    const targetY = p.y * TILE_SIZE;
+    if (p.renderX === undefined) p.renderX = targetX;
+    if (p.renderY === undefined) p.renderY = targetY;
+
+    const remX = targetX - p.renderX;
+    const remY = targetY - p.renderY;
+    const remDist = Math.hypot(remX, remY);
+
+    // 걷기(205ms당 1타일) 및 달리기(110ms당 1타일) 일정한 등속 속도(px/ms)
+    const stepInterval = p.sprint ? 110 : 205;
+    let moveStep = (TILE_SIZE / stepInterval) * dt;
+
+    if (remDist > TILE_SIZE * 3) {
+      p.renderX = targetX;
+      p.renderY = targetY;
+    } else if (remDist > 0.01) {
+      if (remDist > TILE_SIZE * 1.15) {
+        moveStep *= 1.22;
+      }
+      if (remDist <= moveStep) {
+        p.renderX = targetX;
+        p.renderY = targetY;
+      } else {
+        p.renderX += (remX / remDist) * moveStep;
+        p.renderY += (remY / remDist) * moveStep;
+      }
+      p.lastRenderMoveTime = time;
+    }
+  });
+
   const me = players[myId];
-  const camX = me ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, (me.renderX !== undefined ? me.renderX : me.x * TILE_SIZE) - canvas.width / 2 + 20)) : 0;
-  const camY = me ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, (me.renderY !== undefined ? me.renderY : me.y * TILE_SIZE) - canvas.height / 2 + 20)) : 0;
+  const camX = me ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, me.renderX - canvas.width / 2 + 20)) : 0;
+  const camY = me ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, me.renderY - canvas.height / 2 + 20)) : 0;
 
   ctx.save();
   ctx.translate(-camX, -camY);
@@ -3169,7 +3319,6 @@ function drawGame() {
       const py = y * TILE_SIZE;
 
       if (x >= 20) {
-        // 사냥터 (금지된 마법의 숲) 이끼 및 어두운 푸른빛 타일
         ctx.fillStyle = (x + y) % 2 === 0 ? '#0f172a' : '#090d16';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         ctx.strokeStyle = '#1e293b';
@@ -3281,7 +3430,6 @@ function drawGame() {
     const py = obs.y * TILE_SIZE;
 
     if (obs.type === 'forest_tree') {
-      // 뒤틀린 고목나무
       ctx.fillStyle = '#14532d';
       ctx.beginPath();
       ctx.arc(px + 20, py + 20, 16, 0, Math.PI * 2);
@@ -3292,7 +3440,6 @@ function drawGame() {
       ctx.arc(px + 26, py + 24, 10, 0, Math.PI * 2);
       ctx.fill();
     } else if (obs.type === 'crystal_rock') {
-      // 수정 바위
       ctx.fillStyle = '#475569';
       ctx.fillRect(px + 8, py + 12, 24, 20);
       ctx.fillStyle = '#38bdf8';
@@ -3318,15 +3465,8 @@ function drawGame() {
   Object.values(monsters).forEach(m => drawMonster(m, time));
 
   // 플레이어 캐릭터 렌더링
-  const sortedPlayers = Object.values(players).sort((a, b) => a.y - b.y);
+  const sortedPlayers = Object.values(players).sort((a, b) => a.renderY - b.renderY);
   sortedPlayers.forEach(p => {
-    const targetX = p.x * TILE_SIZE;
-    const targetY = p.y * TILE_SIZE;
-    const interpFactor = p.sprint ? 0.34 : 0.22;
-
-    p.renderX += (targetX - p.renderX) * interpFactor;
-    p.renderY += (targetY - p.renderY) * interpFactor;
-
     const rx = p.renderX;
     const ry = p.renderY;
     const c = p.character || {};
@@ -3357,7 +3497,7 @@ function drawGame() {
     }
   });
 
-  // 마법 투사체 이동 및 충돌 판정 (몬스터 타격 시에만 데미지 플로팅 표출)
+  // 마법 투사체 이동 및 충돌 판정
   projectiles = projectiles.filter(proj => {
     proj.trail.push({ x: proj.x, y: proj.y });
     const maxTrail = 4 + Math.floor(proj.wandLv * 0.45);
@@ -3374,7 +3514,6 @@ function drawGame() {
       return false;
     }
 
-    // 몬스터 피격 충돌 체크 (실제 몬스터를 때릴 때만 데미지 적용 및 숫자 플로팅)
     const hitMonster = Object.values(monsters).find(m => {
       if (!m.alive) return false;
       const mx = m.x * TILE_SIZE + 20;
@@ -3390,14 +3529,12 @@ function drawGame() {
       return false;
     }
 
-    // 지형물, 장애물, NPC 충돌 (숫자 없이 이펙트만)
     const hitObs = obstacles.some(obs => obs.x === tileX && obs.y === tileY);
     if (hitObs) {
       spawnHitExplosion(proj.x, proj.y, proj.wandLv, false);
       return false;
     }
 
-    // 투사체 렌더링
     const lv = proj.wandLv;
     const hue = (200 + lv * 14) % 360;
     const coreR = 3.2 + lv * 0.32;
@@ -3540,7 +3677,7 @@ function drawGame() {
     return true;
   });
 
-  // 배경 촛불 & 파티클 (40타일 너비 전체)
+  // 배경 촛불 & 파티클
   floatingCandles.forEach(cd => {
     const hoverY = cd.y + Math.sin(time * 0.003 + cd.phase) * 5;
     ctx.fillStyle = '#fef3c7';
