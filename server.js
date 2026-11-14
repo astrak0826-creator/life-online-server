@@ -397,38 +397,51 @@ const MONSTER_SPECS = {
         type: 'mandrake',
         name: '아기 맨드레이크',
         maxHp: 500,
-        moveInterval: 2800, // 매우 느림 (약 2.8초당 1칸 배회)
-        dropRate: 0.10,     // 처치 시 10% 확률로 기회 +1
-        aggroRange: 0       // 선공/추적 없음
+        moveInterval: 2800,
+        dropRate: 0.10,
+        aggroRange: 0
     },
     slime: {
         type: 'slime',
         name: '어둠의 마법 슬라임',
         maxHp: 1500,
-        moveInterval: 1700, // 보통 속도 (약 1.7초당 1칸)
-        dropRate: 0.30,     // 처치 시 30% 확률로 기회 +1
-        aggroRange: 4       // 4칸 이내 유저 감지 시 접근
+        moveInterval: 1700,
+        dropRate: 0.30,
+        aggroRange: 4
     },
     wolf: {
         type: 'wolf',
         name: '변종 늑대 마수',
         maxHp: 3500,
-        moveInterval: 1100, // 약간 빠름 (약 1.1초당 1칸)
-        dropRate: 0.70,     // 처치 시 70% 확률로 기회 +1
-        aggroRange: 6       // 6칸 이내 유저 감지 시 추격
+        moveInterval: 1100,
+        dropRate: 0.70,
+        aggroRange: 6
     }
 };
 
+// 정수 타일 충돌 체크 (스폰 및 몬스터 이동용)
 function isTileBlocked(x, y, ignoreMonsterId = null) {
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return true;
     if (OBSTACLES.some(obs => obs.x === x && obs.y === y)) return true;
     for (const id in players) {
-        if (players[id].x === x && players[id].y === y) return true;
+        if (Math.round(players[id].x) === x && Math.round(players[id].y) === y) return true;
     }
     for (const mid in monsters) {
         if (mid === ignoreMonsterId) continue;
         const m = monsters[mid];
         if (m.alive && m.x === x && m.y === y) return true;
+    }
+    return false;
+}
+
+// 360도 자유 이동용 연속 좌표(Float) 장애물 충돌 판정
+function isFloatPosBlocked(fx, fy) {
+    if (fx < 0.2 || fx > MAP_WIDTH - 1.2 || fy < 0.8 || fy > MAP_HEIGHT - 1.2) return true;
+    for (let i = 0; i < OBSTACLES.length; i++) {
+        const obs = OBSTACLES[i];
+        if (Math.abs(fx - obs.x) < 0.68 && Math.abs(fy - obs.y) < 0.68) {
+            return true;
+        }
     }
     return false;
 }
@@ -473,7 +486,7 @@ function initMonsters() {
 }
 initMonsters();
 
-// 서버 사이드 몬스터 AI 이동 루프
+// 서버 사이드 몬스터 AI 이동 루프 (실제 이동/방향 변경 시에만 패킷 전송)
 setInterval(() => {
     const now = Date.now();
     const dirs = ['up', 'down', 'left', 'right'];
@@ -484,6 +497,10 @@ setInterval(() => {
         if (now - m.lastMoveTime < m.moveInterval) continue;
         m.lastMoveTime = now;
 
+        const prevX = m.x;
+        const prevY = m.y;
+        const prevDir = m.dir;
+
         let chosenDir = dirs[Math.floor(Math.random() * dirs.length)];
 
         // 추격 반경(aggroRange)이 있는 몬스터는 사냥터 안의 가장 가까운 유저 방향으로 이동 시도
@@ -492,15 +509,15 @@ setInterval(() => {
             let minDist = Infinity;
             for (const pid in players) {
                 const pl = players[pid];
-                if (pl.x < 21) continue; // 기숙사 내부에 있는 유저는 추격하지 않음
-                const d = Math.abs(pl.x - m.x) + Math.abs(pl.y - m.y);
+                if (pl.x < 20.5) continue; // 기숙사 내부에 있는 유저는 추격하지 않음
+                const d = Math.hypot(pl.x - m.x, pl.y - m.y);
                 if (d <= m.aggroRange && d < minDist) {
                     minDist = d;
                     nearestPlayer = pl;
                 }
             }
 
-            if (nearestPlayer && minDist > 1) {
+            if (nearestPlayer && minDist > 0.9) {
                 const dx = nearestPlayer.x - m.x;
                 const dy = nearestPlayer.y - m.y;
                 if (Math.abs(dx) >= Math.abs(dy)) {
@@ -526,12 +543,14 @@ setInterval(() => {
             m.y = ty;
         }
 
-        io.emit('monsterMoved', {
-            id: m.id,
-            x: m.x,
-            y: m.y,
-            dir: m.dir
-        });
+        if (m.x !== prevX || m.y !== prevY || m.dir !== prevDir) {
+            io.emit('monsterMoved', {
+                id: m.id,
+                x: m.x,
+                y: m.y,
+                dir: m.dir
+            });
+        }
     }
 }, 200);
 
@@ -587,6 +606,8 @@ io.on('connection', async (socket) => {
         x: spawnX,
         y: spawnY,
         dir: 'down',
+        angle: Math.PI / 2,
+        sprint: false,
         color: char.color || '#3b82f6',
         character: char,
         enhanceTokens: tokenState.tokens,
@@ -608,52 +629,103 @@ io.on('connection', async (socket) => {
 
     socket.broadcast.emit('playerJoined', players[socket.id]);
 
-    // 이동 속도 제어 (기본 한 칸 이동 & 스페이스바 홀드 시 달리기 허용)
+    // 360도 자유 이동 및 무렉(Client-Side Prediction) 위치 동기화
     socket.on('move', (payload) => {
         const p = players[socket.id];
-        if (!p) return;
-
-        const dir = typeof payload === 'string' ? payload : payload?.dir;
-        const isRunning = typeof payload === 'object' && Boolean(payload?.sprint);
-        if (!['up', 'down', 'left', 'right'].includes(dir)) return;
+        if (!p || !payload) return;
 
         const now = Date.now();
-        const minInterval = isRunning ? 95 : 185;
-        p.dir = dir;
+        const isRunning = Boolean(payload.sprint);
 
-        if (now - (p.lastMoveTime || 0) < minInterval) {
-            io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir, sprint: isRunning });
+        // 클라이언트가 연속 좌표(x, y)를 보낸 경우 (360도 자유 이동)
+        if (typeof payload.x === 'number' && typeof payload.y === 'number') {
+            const nextX = Number(payload.x);
+            const nextY = Number(payload.y);
+            if (!Number.isFinite(nextX) || !Number.isFinite(nextY)) return;
+
+            const dist = Math.hypot(nextX - p.x, nextY - p.y);
+            if (typeof payload.dir === 'string' && ['up', 'down', 'left', 'right'].includes(payload.dir)) {
+                p.dir = payload.dir;
+            }
+            if (typeof payload.angle === 'number' && Number.isFinite(payload.angle)) {
+                p.angle = payload.angle;
+            }
+            p.sprint = isRunning;
+            p.lastMoveTime = now;
+
+            // 비정상적인 순간이동이거나 장애물 내부 좌표가 아니면 승인 후 타 유저에게만 브로드캐스트
+            if (dist <= 4.5 && !isFloatPosBlocked(nextX, nextY)) {
+                p.x = Math.max(0.2, Math.min(MAP_WIDTH - 1.2, nextX));
+                p.y = Math.max(0.8, Math.min(MAP_HEIGHT - 1.2, nextY));
+                socket.broadcast.emit('playerMoved', {
+                    id: socket.id,
+                    x: p.x,
+                    y: p.y,
+                    dir: p.dir,
+                    angle: p.angle,
+                    sprint: p.sprint
+                });
+            } else {
+                // 서버 재조정(Server Reconciliation): 막힌 곳으로 진입 시 본인에게도 서버 좌표 재전송
+                io.emit('playerMoved', {
+                    id: socket.id,
+                    x: p.x,
+                    y: p.y,
+                    dir: p.dir,
+                    angle: p.angle,
+                    sprint: p.sprint,
+                    reconcile: true
+                });
+            }
             return;
         }
-        p.lastMoveTime = now;
 
+        // 하위 호환용 방향키 이동 처리
+        const dir = typeof payload === 'string' ? payload : payload.dir;
+        if (!['up', 'down', 'left', 'right'].includes(dir)) return;
+
+        p.dir = dir;
+        p.sprint = isRunning;
         let targetX = p.x;
         let targetY = p.y;
-        if (dir === 'up') targetY -= 1;
-        else if (dir === 'down') targetY += 1;
-        else if (dir === 'left') targetX -= 1;
-        else if (dir === 'right') targetX += 1;
+        if (dir === 'up') { targetY -= 1; p.angle = -Math.PI / 2; }
+        else if (dir === 'down') { targetY += 1; p.angle = Math.PI / 2; }
+        else if (dir === 'left') { targetX -= 1; p.angle = Math.PI; }
+        else if (dir === 'right') { targetX += 1; p.angle = 0; }
 
-        if (!isTileBlocked(targetX, targetY)) {
+        if (!isFloatPosBlocked(targetX, targetY)) {
             p.x = targetX;
             p.y = targetY;
         }
-
-        io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir, sprint: isRunning });
+        io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir, angle: p.angle, sprint: isRunning });
     });
 
-    // 지팡이 마법 투사체 발사 (A키, 초당 1회)
-    socket.on('fireProjectile', () => {
+    // 지팡이 마법 투사체 발사 (A키, 초당 1회, 360도 각도 지원)
+    socket.on('fireProjectile', (payload = {}) => {
         const p = players[socket.id];
         if (!p) return;
 
         const now = Date.now();
-        if (now - (p.lastAttackTime || 0) < 950) return; // 1초당 1회 제한
+        if (now - (p.lastAttackTime || 0) < 920) return;
         p.lastAttackTime = now;
+
+        if (typeof payload.x === 'number' && typeof payload.y === 'number') {
+            if (Math.hypot(payload.x - p.x, payload.y - p.y) <= 3.5 && !isFloatPosBlocked(payload.x, payload.y)) {
+                p.x = payload.x;
+                p.y = payload.y;
+            }
+        }
+        if (typeof payload.angle === 'number' && Number.isFinite(payload.angle)) {
+            p.angle = payload.angle;
+        }
+        if (typeof payload.dir === 'string' && ['up', 'down', 'left', 'right'].includes(payload.dir)) {
+            p.dir = payload.dir;
+        }
 
         const c = p.character || {};
         const wandLv = c.wand || 0;
         const combatPower = calcCombatPower(c);
+        const angle = typeof p.angle === 'number' ? p.angle : Math.PI / 2;
 
         io.emit('projectileFired', {
             ownerId: socket.id,
@@ -661,6 +733,9 @@ io.on('connection', async (socket) => {
             x: p.x,
             y: p.y,
             dir: p.dir,
+            angle: angle,
+            vx: Math.cos(angle),
+            vy: Math.sin(angle),
             wandLv: wandLv,
             attackPower: combatPower
         });
