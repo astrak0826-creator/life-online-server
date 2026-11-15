@@ -69,7 +69,7 @@
   .hud-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -77,6 +77,21 @@
     color: var(--eva-orange);
     font-weight: bold;
     text-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+  }
+  .hud-online {
+    background: rgba(16, 185, 129, 0.16);
+    border: 1px solid #10b981;
+    color: #6ee7b7;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.12s;
+  }
+  .hud-online:hover, .hud-online:active {
+    background: rgba(16, 185, 129, 0.32);
+    color: #ecfdf5;
   }
   .hud-right {
     display: flex;
@@ -339,7 +354,9 @@
     .desktop-bottom-bar { display: none; }
     .mobile-controller-panel { display: flex; }
     .guide { display: none; }
-    .hud-bar { font-size: 12px; padding: 6px 10px; }
+    .hud-bar { font-size: 11px; padding: 6px 8px; }
+    .hud-online { font-size: 11px; padding: 2px 5px; }
+    .hud-chances { font-size: 11px; }
   }
 
   input[type="text"], input[type="password"], select {
@@ -388,7 +405,7 @@
   /* 정육각형 레이더 차트 스탯 모달 */
   .info-modal-card {
     width: 100%;
-    max-width: 450px;
+    max-width: 460px;
     max-height: 94vh;
     overflow-y: auto;
     padding: 14px;
@@ -459,6 +476,9 @@
     flex-direction: column;
     gap: 4px;
   }
+  .pref-col.full-span {
+    grid-column: span 2;
+  }
   .pref-label {
     font-size: 11px;
     color: #cbd5e1;
@@ -487,25 +507,45 @@
   }
   .btn-tiny-corner:hover { opacity: 1; }
 
-  /* 6대 스펙 + 지팡이 강화 모달 */
+  /* 6대 스펙 + 5종 무기 강화 모달 & 타격감 애니메이션 */
   .enhance-modal {
     padding: 14px;
     width: 100%;
-    max-width: 540px;
+    max-width: 550px;
     max-height: 92vh;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    transition: transform 0.05s;
+  }
+  @keyframes anvilShakeAnim {
+    0% { transform: translate(0, 0) scale(1); }
+    20% { transform: translate(-5px, 4px) scale(0.985); }
+    45% { transform: translate(5px, -4px) scale(1.015); }
+    70% { transform: translate(-3px, 2px) scale(0.995); }
+    100% { transform: translate(0, 0) scale(1); }
+  }
+  .enhance-modal.anvil-shake {
+    animation: anvilShakeAnim 0.11s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    border-color: #fef08a;
+    box-shadow: 0 0 28px rgba(250, 204, 21, 0.45);
   }
   .enhance-title { color: var(--eva-orange); font-size: 17px; margin: 0 0 10px; text-align: center; }
   .stat-select-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
+    margin-bottom: 8px;
+  }
+  .weapon-select-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
     margin-bottom: 10px;
   }
   @media (max-width: 480px) {
     .stat-select-grid { grid-template-columns: repeat(2, 1fr); }
+    .weapon-select-grid { grid-template-columns: repeat(3, 1fr); }
   }
   .stat-tab-btn {
     background: #190e13;
@@ -515,14 +555,16 @@
     font-size: 11px;
     border-radius: 4px;
   }
-  .stat-tab-btn.wand-tab {
-    grid-column: span 3;
-    border-color: #a855f7;
-    background: #241038;
-    color: #f3e8ff;
+  .stat-tab-btn.weapon-tab {
+    border-color: #6d28d9;
+    background: #1b1029;
+    color: #e9d5ff;
+    font-size: 11px;
+    padding: 6px 2px;
   }
-  @media (max-width: 480px) {
-    .stat-tab-btn.wand-tab { grid-column: span 2; }
+  .stat-tab-btn.weapon-tab.locked {
+    opacity: 0.48;
+    border-style: dashed;
   }
   .stat-tab-btn.active {
     background: #7f1d1d;
@@ -537,10 +579,62 @@
     padding: 12px;
     text-align: center;
     margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
   }
-  .cur-stat-val { font-size: 22px; color: var(--eva-orange); font-weight: bold; margin: 4px 0; }
+  .enhance-detail-box.anvil-flash {
+    background: radial-gradient(circle, rgba(254, 240, 138, 0.25) 0%, #140b0f 75%);
+    border-color: #facc15;
+  }
+  .cur-stat-val {
+    font-size: 22px;
+    color: var(--eva-orange);
+    font-weight: bold;
+    margin: 4px 0;
+    transition: transform 0.1s ease-out;
+  }
+  .cur-stat-val.val-pop {
+    transform: scale(1.18);
+    color: #fef08a;
+    text-shadow: 0 0 12px rgba(250, 204, 21, 0.9);
+  }
   .cur-stat-desc { font-size: 13px; color: #38bdf8; margin-bottom: 6px; }
   .cur-stat-rule { font-size: 11px; color: #e2e8f0; line-height: 1.45; background: #090507; padding: 7px; border-radius: 4px; }
+
+  /* 모루 스파크 파티클 레이어 */
+  #enhanceSparkLayer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 5;
+  }
+  .anvil-spark {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: sparkFly 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes sparkFly {
+    0% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.2); opacity: 0; }
+  }
+
+  #enhanceExecuteBtn {
+    transition: transform 0.06s, box-shadow 0.06s;
+  }
+  #enhanceExecuteBtn.btn-anvil-hit {
+    transform: translateY(2px) scale(0.96);
+    background: #dc2626 !important;
+    border-color: #fef08a !important;
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.85);
+  }
+
   .enhance-result-box {
     min-height: 26px;
     font-size: 13px;
@@ -556,7 +650,7 @@
   .enhance-result-box.catastrophe { color: #ff0055; animation: blink 0.5s infinite; }
   @keyframes blink { 50% { opacity: 0.3; } }
 
-  /* 랭킹 모달 */
+  /* 랭킹 & 동접자 모달 */
   .rank-modal {
     padding: 14px;
     width: 100%;
@@ -645,8 +739,8 @@
   }
   .rank-pill b { color: #38bdf8; margin-left: 2px; }
 
-  /* NPC 모달 */
-  .npc-dialog-box { padding: 16px; width: 100%; max-width: 460px; }
+  /* NPC 모달 & 대사부 무기 전수 패널 */
+  .npc-dialog-box { padding: 16px; width: 100%; max-width: 490px; max-height: 92vh; overflow-y: auto; }
   .npc-dialog-header {
     display: flex;
     justify-content: space-between;
@@ -670,6 +764,47 @@
     flex-shrink: 0;
   }
   .npc-text-content { flex: 1; font-size: 13px; line-height: 1.6; color: #f8fafc; white-space: pre-line; }
+
+  .npc-weapon-panel {
+    margin-top: 12px;
+    border-top: 1px solid #451a1c;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .npc-weapon-row {
+    background: #140b10;
+    border: 1px solid #3b161c;
+    border-radius: 5px;
+    padding: 7px 9px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .npc-weapon-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+  }
+  .npc-weapon-title {
+    color: #fef08a;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .npc-weapon-cond {
+    color: #94a3b8;
+    font-size: 11px;
+  }
+  .btn-weapon-action {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
 
   .hidden { display: none !important; }
   .guide { margin-top: 8px; font-size: 12px; color: #94a3b8; text-align: center; }
@@ -749,6 +884,10 @@
     <div class="info-stat-grid" id="infoStatCardList"></div>
 
     <div class="custom-pref-box" id="myCustomPrefBox">
+      <div class="pref-col full-span">
+        <span class="pref-label">⚔️ 현재 장착 무기 (전수받은 무기 중 선택)</span>
+        <select id="selectEquippedWeapon"></select>
+      </div>
       <div class="pref-col">
         <span class="pref-label">👑 머리 위 표시 칭호</span>
         <select id="selectTitleStat"></select>
@@ -775,9 +914,9 @@
   </div>
 </div>
 
-<!-- 6대 스펙 + 지팡이 강화 모달 -->
+<!-- 6대 스펙 + 무기 강화 모달 -->
 <div id="enhanceModal" class="modal-overlay hidden">
-  <div class="enhance-modal">
+  <div class="enhance-modal" id="enhanceModalCard">
     <h3 class="enhance-title">⚡ 육체·마도 지팡이 연성소 ⚡</h3>
     <div class="stat-select-grid">
       <button class="stat-tab-btn active" data-stat="education">🎓 학력 (오른팔)</button>
@@ -786,10 +925,17 @@
       <button class="stat-tab-btn" data-stat="iq">🧠 지능 (머리)</button>
       <button class="stat-tab-btn" data-stat="stamina">💪 체력 (몸통)</button>
       <button class="stat-tab-btn" data-stat="personality">🍀 성격 (왼다리)</button>
-      <button class="stat-tab-btn wand-tab" data-stat="wand">🪄 마법 지팡이 강화 (0~30강 · 단계당 전투력 +10)</button>
+    </div>
+    <div class="weapon-select-grid">
+      <button class="stat-tab-btn weapon-tab" data-stat="wand">🪄 지팡이</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="greatsword">🗡️ 마도대검</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="daggers">🔪 쌍단검</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="bow">🏹 아케인활</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="chakram">🪃 차크람</button>
     </div>
 
-    <div class="enhance-detail-box">
+    <div class="enhance-detail-box" id="enhanceDetailBox">
+      <div id="enhanceSparkLayer"></div>
       <div id="curStatName" style="font-size:12px; color:#fca5a5;">학력 스탯 현황</div>
       <div id="curStatLevel" class="cur-stat-val">+0강</div>
       <div id="curStatTitle" class="cur-stat-desc">문맹</div>
@@ -808,7 +954,7 @@
   </div>
 </div>
 
-<!-- NPC 대화창 -->
+<!-- NPC 대화창 (대사부 무기 전수 패널 포함) -->
 <div id="npcDialogModal" class="modal-overlay hidden">
   <div class="npc-dialog-box">
     <div class="npc-dialog-header">
@@ -819,6 +965,7 @@
       <div class="npc-portrait" id="npcPortraitIcon">⚡</div>
       <div class="npc-text-content" id="npcSpeechText"></div>
     </div>
+    <div id="npcWeaponPanel" class="npc-weapon-panel hidden"></div>
     <div class="npc-dialog-footer" style="display:flex; justify-content:flex-end; margin-top:10px;">
       <button id="npcNextBtn" style="background:#991b1b; border:1px solid #f59e0b; padding:6px 14px; border-radius:4px; color:#fef08a;">다음 ▶</button>
     </div>
@@ -837,12 +984,25 @@
   </div>
 </div>
 
+<!-- 실시간 동시접속자 리스트 모달 -->
+<div id="onlineModal" class="modal-overlay hidden">
+  <div class="rank-modal">
+    <h3 class="rank-title" id="onlineModalTitle">실시간 접속자 목록</h3>
+    <div class="rank-sub-hint">현재 접속 중인 유저를 클릭하면 스펙 분석창을 확인할 수 있습니다.</div>
+    <div class="rank-list" id="onlineListBody"></div>
+    <div style="margin-top: 10px; display:flex; justify-content: flex-end;">
+      <button id="onlineCloseBtn" style="background:#1c1015; border:1px solid #5c1d24; color:#fff; padding:6px 16px; border-radius:4px;">닫기 (ESC)</button>
+    </div>
+  </div>
+</div>
+
 <!-- 메인 게임 컨테이너 -->
 <div class="game-container">
   <!-- 상단 HUD -->
   <div class="hud-bar">
     <div class="hud-left">
       <span class="hud-nick" id="hudNick">[게스트]</span>
+      <span class="hud-online" id="hudOnlineCount" title="클릭하여 현재 접속자 목록 보기">동접: 1</span>
     </div>
     <div class="hud-right">
       <span class="hud-chances" id="hudChances">기회: 120/120 (00:00)</span>
@@ -896,7 +1056,7 @@
 </div>
 
 <script>
-// ================= [Web Audio API 합성 효과음 엔진] =================
+// ================= [Web Audio API 합성 효과음 엔진 (단발성 '깡!' 모루 타격음 포함)] =================
 const SoundFX = {
   ctx: null,
   enabled: true,
@@ -926,14 +1086,61 @@ const SoundFX = {
     osc.start(now);
     osc.stop(now + duration);
   },
+  // 강화 버튼 클릭 시 짧고 강렬하게 딱 한 번 울리는 '깡!' 모루 금속 타격음
+  anvilClang() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    // 1. 고주파 금속 공명 배음 (날카로운 '깡!' 질감)
+    const freqs = [1380, 2120, 2960];
+    freqs.forEach((f, idx) => {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = idx === 0 ? 'square' : 'triangle';
+      osc.frequency.setValueAtTime(f, now);
+      osc.frequency.exponentialRampToValueAtTime(f * 0.92, now + 0.12);
+      g.gain.setValueAtTime(idx === 0 ? 0.16 : 0.10, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(g);
+      g.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    });
+
+    // 2. 묵직한 망치 타격 어택음 (초단기 저음 타격)
+    const punchOsc = this.ctx.createOscillator();
+    const punchGain = this.ctx.createGain();
+    punchOsc.type = 'sawtooth';
+    punchOsc.frequency.setValueAtTime(340, now);
+    punchOsc.frequency.exponentialRampToValueAtTime(75, now + 0.055);
+    punchGain.gain.setValueAtTime(0.22, now);
+    punchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+    punchOsc.connect(punchGain);
+    punchGain.connect(this.ctx.destination);
+    punchOsc.start(now);
+    punchOsc.stop(now + 0.055);
+  },
   step(isSprint = false) {
     this.tone(isSprint ? 165 : 115, 'triangle', 0.035, 0.04, 65);
   },
-  magicCast(wandLv = 0) {
-    const baseFreq = 380 + wandLv * 18;
-    this.tone(baseFreq, 'sine', 0.14, 0.12, baseFreq * 1.65);
-    if (wandLv >= 10) {
-      setTimeout(() => this.tone(baseFreq * 1.25, 'triangle', 0.12, 0.09, baseFreq * 2.1), 35);
+  weaponAttack(weaponType = 'wand', weaponLv = 0, isMale = true) {
+    if (weaponType === 'greatsword') {
+      this.tone(180 + weaponLv * 4, 'sawtooth', 0.16, 0.14, 65);
+    } else if (weaponType === 'daggers') {
+      this.tone(580 + weaponLv * 12, 'triangle', 0.06, 0.11, 240);
+    } else if (weaponType === 'bow') {
+      this.tone(720 + weaponLv * 15, 'sine', 0.09, 0.11, 310);
+    } else if (weaponType === 'chakram') {
+      this.tone(440 + weaponLv * 10, 'triangle', 0.14, 0.11, 660);
+    } else {
+      const baseFreq = 380 + weaponLv * 18;
+      this.tone(baseFreq, 'sine', 0.14, 0.12, baseFreq * 1.65);
+    }
+    if (isMale) {
+      // 김치워리어 특유의 경쾌한 기합 파동음
+      this.tone(290, 'sawtooth', 0.07, 0.06, 420);
     }
   },
   magicHit(wandLv = 0) {
@@ -944,15 +1151,13 @@ const SoundFX = {
     this.tone(190, 'sine', 0.22, 0.08, 460);
   },
   enhanceSuccess(isGreat = false) {
-    this.tone(523.25, 'triangle', 0.09, 0.14);
-    setTimeout(() => this.tone(659.25, 'triangle', 0.09, 0.14), 80);
-    setTimeout(() => this.tone(isGreat ? 1046.5 : 783.99, 'triangle', 0.22, 0.16), 160);
+    this.tone(523.25, 'triangle', 0.09, 0.12);
+    setTimeout(() => this.tone(659.25, 'triangle', 0.09, 0.12), 70);
+    setTimeout(() => this.tone(isGreat ? 1046.5 : 783.99, 'triangle', 0.18, 0.14), 140);
   },
-  enhanceKeep() {
-    this.tone(310, 'sine', 0.06, 0.06, 250);
-  },
+  enhanceKeep() {},
   enhanceFail() {
-    this.tone(210, 'sawtooth', 0.18, 0.13, 105);
+    this.tone(195, 'sawtooth', 0.14, 0.11, 95);
   },
   catastrophe() {
     this.tone(440, 'sawtooth', 0.24, 0.18, 120);
@@ -978,6 +1183,7 @@ function toggleSfxState() {
 const btnSfxModal = document.getElementById('btnSfxToggleModal');
 if (btnSfxModal) btnSfxModal.addEventListener('click', toggleSfxState);
 
+// ================= [전역 상태 및 DOM 참조] =================
 let socket = null;
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -988,6 +1194,7 @@ const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 const chatLog = document.getElementById('chatLog');
 const hudNick = document.getElementById('hudNick');
+const hudOnlineCount = document.getElementById('hudOnlineCount');
 const hudChances = document.getElementById('hudChances');
 
 // 인증 UI
@@ -1028,6 +1235,7 @@ const infoTotalScoreBadge = document.getElementById('infoTotalScoreBadge');
 const infoStatCardList = document.getElementById('infoStatCardList');
 const infoCloseBtn = document.getElementById('infoCloseBtn');
 const myCustomPrefBox = document.getElementById('myCustomPrefBox');
+const selectEquippedWeapon = document.getElementById('selectEquippedWeapon');
 const selectTitleStat = document.getElementById('selectTitleStat');
 const selectAuraColor = document.getElementById('selectAuraColor');
 const myAccountCornerBtns = document.getElementById('myAccountCornerBtns');
@@ -1036,6 +1244,9 @@ const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
 // 강화 모달
 const enhanceModal = document.getElementById('enhanceModal');
+const enhanceModalCard = document.getElementById('enhanceModalCard');
+const enhanceDetailBox = document.getElementById('enhanceDetailBox');
+const enhanceSparkLayer = document.getElementById('enhanceSparkLayer');
 const enhanceCloseBtn = document.getElementById('enhanceCloseBtn');
 const enhanceExecuteBtn = document.getElementById('enhanceExecuteBtn');
 const curStatName = document.getElementById('curStatName');
@@ -1045,25 +1256,31 @@ const curStatRule = document.getElementById('curStatRule');
 const modalChanceCount = document.getElementById('modalChanceCount');
 const enhanceResultMsg = document.getElementById('enhanceResultMsg');
 
-// 랭킹 & NPC 모달
+// 랭킹, 동접자 & NPC 모달
 const rankModal = document.getElementById('rankModal');
 const rankCloseBtn = document.getElementById('rankCloseBtn');
 const rankListBody = document.getElementById('rankListBody');
+const onlineModal = document.getElementById('onlineModal');
+const onlineModalTitle = document.getElementById('onlineModalTitle');
+const onlineListBody = document.getElementById('onlineListBody');
+const onlineCloseBtn = document.getElementById('onlineCloseBtn');
 const npcDialogModal = document.getElementById('npcDialogModal');
 const npcNameTag = document.getElementById('npcNameTag');
 const npcPortraitIcon = document.getElementById('npcPortraitIcon');
 const npcSpeechText = document.getElementById('npcSpeechText');
+const npcWeaponPanel = document.getElementById('npcWeaponPanel');
 const npcNextBtn = document.getElementById('npcNextBtn');
 
 const TILE_SIZE = 40;
 let myId = null;
 let myNickname = '게스트';
-let mapW = 40, mapH = 15;
+let mapW = 60, mapH = 15;
 let obstacles = [];
 let players = {};
 let monsters = {};
 let burstEffects = [];
 let projectiles = [];
+let meleeEffects = [];
 let hitEffects = [];
 let floatingDamages = [];
 let footstepDusts = [];
@@ -1071,17 +1288,72 @@ let screenShakeMag = 0;
 let currentSelectedStat = 'education';
 let lastRenderFrameTime = Date.now();
 
-// 지팡이 강화단계별 확률 테이블
+// 무기 0~30강 강화 확률 테이블
 const ENHANCE_RATES = {
-    0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
-    5: 0.70,  6: 0.65,  7: 0.60,  8: 0.55,  9: 0.50,
-    10: 0.45, 11: 0.40, 12: 0.35, 13: 0.30, 14: 0.25,
-    15: 0.22, 16: 0.19, 17: 0.16, 18: 0.13, 19: 0.10,
-    20: 0.09, 21: 0.08, 22: 0.075, 23: 0.07, 24: 0.06,
-    25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
+  0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
+  5: 0.70,  6: 0.65,  7: 0.60,  8: 0.55,  9: 0.50,
+  10: 0.45, 11: 0.40, 12: 0.35, 13: 0.30, 14: 0.25,
+  15: 0.22, 16: 0.19, 17: 0.16, 18: 0.13, 19: 0.10,
+  20: 0.09, 21: 0.08, 22: 0.075, 23: 0.07, 24: 0.06,
+  25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 고정 3인 마법사 NPC (신규 기능 안내 대사)
+// 5종 무기 클라이언트 스펙 및 해금 조건
+const WEAPON_SPECS = {
+  wand: {
+    key: 'wand',
+    name: '마법 지팡이',
+    icon: '🪄',
+    cooldownMs: 950,
+    unlockStat: null,
+    unlockReq: 0,
+    unlockDesc: '기본 보유',
+    combatDesc: '0.95초 쿨타임 · 대형 유도 마법구 + 착탄 주변 50% 폭발 피해'
+  },
+  greatsword: {
+    key: 'greatsword',
+    name: '마도 대검',
+    icon: '🗡️',
+    cooldownMs: 1150,
+    unlockStat: 'stamina',
+    unlockReq: 10,
+    unlockDesc: '체력(몸통) +10강 이상 달성 시 대사부 전수',
+    combatDesc: '1.15초 쿨타임 · 전방 150도 초대형 반달 검기 광역 베기 (115% 피해)'
+  },
+  daggers: {
+    key: 'daggers',
+    name: '쌍단검',
+    icon: '🔪',
+    cooldownMs: 350,
+    unlockStat: 'appearance',
+    unlockReq: 10,
+    unlockDesc: '외모(오른다리) +10강 이상 달성 시 대사부 전수',
+    combatDesc: '0.35초 초고속 연타 · 초근접 양손 연속 찌르기 (타당 42%, 단일 DPS 1위)'
+  },
+  bow: {
+    key: 'bow',
+    name: '아케인 활',
+    icon: '🏹',
+    cooldownMs: 850,
+    unlockStat: 'iq',
+    unlockReq: 110,
+    unlockDesc: '지능(머리) IQ 110 (+10강) 이상 달성 시 대사부 전수',
+    combatDesc: '0.85초 쿨타임 · 초장거리 고속 화살 일직선 무제한 관통 (85% 피해)'
+  },
+  chakram: {
+    key: 'chakram',
+    name: '차크람',
+    icon: '🪃',
+    cooldownMs: 1200,
+    unlockStat: 'wealth',
+    unlockReq: 10,
+    unlockDesc: '재력(왼팔) +10강 이상 달성 시 대사부 전수',
+    combatDesc: '1.20초 쿨타임 · 9타일 날아갔다 내 위치로 돌아오는 왕복 2연타 (각 65% 피해)'
+  }
+};
+const WEAPON_KEYS = Object.keys(WEAPON_SPECS);
+
+// 기숙사 4인 NPC (패치 내역 안내 대사 반영 + 신규 스승 NPC '대사부')
 const DORM_NPCS = [
   {
     x: 4, y: 3,
@@ -1089,9 +1361,9 @@ const DORM_NPCS = [
     name: '헬리콥터',
     portrait: '👓⚡',
     dialogs: [
-      "정보창[S]에서 네가 그동안 거쳐간 모든 칭호 중 원하는 것을 골라 머리 위에 띄울 수 있다.",
-      "기운 발산 색상은 '구릿빛노루', '허풍퍽', '매번쿨럭', '술이되리' 4가지로 나뉜다.",
-      "이제 대각선을 포함한 360도 전 방향으로 지연 없이 즉각 이동할 수 있으며, 지형 모서리에서도 부드럽게 미끄러지듯 이동할 수 있지."
+      "화면 맨 위 상단 바의 [동접: N] 버튼을 눌러보아라. 현재 접속 중인 유저들의 위치(기숙사·동쪽숲1·동쪽숲2)와 전투력을 실시간으로 확인하고 스펙창도 바로 열어볼 수 있다.",
+      "연성소[C]에서 강화 버튼을 누르면 대장장이 모루를 내리치는 강렬한 '깡!' 타격음과 함께 불꽃 스파크가 튀며 손맛을 더해줄 것이다.",
+      "정보창[S]에서는 네가 전수받은 무기들을 언제든 교체 장착할 수 있고, 그동안 거쳐간 모든 칭호 중 원하는 것을 골라 머리 위에 띄울 수 있지."
     ]
   },
   {
@@ -1100,9 +1372,9 @@ const DORM_NPCS = [
     name: '농 잊을리',
     portrait: '🦊🔥',
     dialogs: [
-      "오, 왔구나! 동쪽 마법의 숲 사냥터에서 몬스터를 사냥하면 강화 기회를 얻을 수 있어!",
-      "[A] 키 마법 투사체도 이제 네가 이동하거나 조이스틱으로 조준한 360도 각도(대각선 포함) 그대로 날아간다고!",
-      "스펙업 창에서 '강화 시도' 버튼을 0.5초 이상 꾹 누르고 있으면 손가락 아플 일 없이 자동으로 고속 연타가 되니 꼭 써 봐!"
+      "소식 들었어?! 동쪽숲1 오른쪽 끝에 역병이 들끓는 신규 사냥터 '동쪽숲2'가 열렸어!",
+      "동쪽숲2에는 '감기 바이러스(HP 4,500)', '충치균 악마(HP 6,500)', 그리고 무려 2x2 거대 크기를 자랑하는 보스급 '독감 거수(HP 9,000)'가 득실거린다고!",
+      "특히 거대한 독감 거수를 쓰러뜨리면 강화 기회가 100% 확정으로 떨어지고, 운이 좋으면 한 번에 기회가 2개씩 쏟아지니 스펙업을 마쳤다면 꼭 도전해 봐!"
     ]
   },
   {
@@ -1111,185 +1383,26 @@ const DORM_NPCS = [
     name: '해린이언니',
     portrait: '✨📖',
     dialogs: [
-      "학력은 [오른팔], 외모는 [오른다리], 재력은 [왼팔], 지능은 [머리], 체력은 [몸통], 성격은 [왼다리]를 각성시켜.",
-      "모바일에서는 왼쪽 아래의 '가상 조이스틱'을 엄지손가락으로 굴리는 360도 각도 그대로 자유롭게 걸어 다닐 수 있단다.",
-      "조이스틱으로 대각선 무빙을 하면서 동시에 오른쪽 공격이나 달리기 버튼을 함께 누르면 사냥이 훨씬 재밌을 거야!"
+      "이제 남성 캐릭터는 정의의 배추 히어로 '김치워리어'로, 여성 캐릭터는 매콤발랄한 '고추걸'의 모습으로 깨어났단다!",
+      "기존처럼 학력(오른팔), 외모(오른다리), 재력(왼팔), 지능(머리), 체력(몸통), 성격(왼다리)을 각성시키면 김치워리어와 고추걸 몸 위에 찬란한 오라와 날개가 그대로 피어나지.",
+      "게다가 공격[A] 키를 누르면 장착한 무기에 따라 대검을 휘두르거나 활시위를 당기는 등 무기별 전용 액션과 김치워리어의 기합 포즈까지 나간단다!"
+    ]
+  },
+  {
+    x: 17, y: 7,
+    id: 'npc_master',
+    name: '대사부',
+    portrait: '🥬🧙‍♂️',
+    dialogs: [
+      "허허허, 김치워리어와 고추걸의 스승인 이 '대사부'가 네 수련을 돕기 위해 기숙사 출구 앞에 자리 잡았느니라!",
+      "기본 마법 지팡이 외에도 체력 +10강이면 [마도 대검], 외모 +10강이면 [쌍단검], 지능 IQ 110 이상이면 [아케인 활], 재력 +10강이면 [차크람]을 내게서 직접 전수받을 수 있다.",
+      "각 무기는 0강부터 30강까지 별개로 연성할 수 있으며, 현재 장착한 무기의 강화 단계(x10)가 네 전투력이 된다! 아래 목록에서 조건을 달성한 무기를 전수받고 장착해 보거라!"
     ]
   }
 ];
 
 let activeNpc = null;
 let activeNpcDialogIdx = 0;
-
-// 부유하는 마법 촛불 & 불티 입자
-const floatingCandles = Array.from({ length: 18 }, (_, i) => ({
-  x: 70 + (i * 41) % 720,
-  y: 35 + (i * 29) % 120,
-  phase: i * 0.7,
-  scale: 0.8 + (i % 3) * 0.2
-}));
-
-const emberParticles = Array.from({ length: 36 }, () => ({
-  x: Math.random() * 1600,
-  y: Math.random() * 600,
-  vx: (Math.random() - 0.5) * 0.45,
-  vy: -(Math.random() * 0.65 + 0.2),
-  size: Math.random() * 2.4 + 0.9,
-  alpha: Math.random() * 0.75 + 0.2,
-  color: Math.random() > 0.35 ? '#f59e0b' : '#4ade80'
-}));
-
-// ================= [오프스크린 2.5D 월드 바닥 질감 베이킹 (격자 제거)] =================
-const worldBgCanvas = document.createElement('canvas');
-const worldBgCtx = worldBgCanvas.getContext('2d');
-let isWorldBgBaked = false;
-
-function seededRand(seed) {
-  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
-  return x - Math.floor(x);
-}
-
-function bakeWorldBackground() {
-  worldBgCanvas.width = mapW * TILE_SIZE;
-  worldBgCanvas.height = mapH * TILE_SIZE;
-  const bctx = worldBgCtx;
-  const W = worldBgCanvas.width;
-  const H = worldBgCanvas.height;
-
-  // 1. 기숙사 홀 (X: 0 ~ 800) 고급 석조 질감
-  const dormGrad = bctx.createLinearGradient(0, 0, 800, H);
-  dormGrad.addColorStop(0, '#1e1620');
-  dormGrad.addColorStop(0.5, '#261b28');
-  dormGrad.addColorStop(1, '#1a131c');
-  bctx.fillStyle = dormGrad;
-  bctx.fillRect(0, 0, 800, H);
-
-  // 격자선 대신 자연스러운 석재 블록 음영 패치
-  for (let i = 0; i < 420; i++) {
-    const rx = seededRand(i * 3 + 1) * 785;
-    const ry = 76 + seededRand(i * 3 + 2) * (H - 84);
-    const rw = 18 + seededRand(i * 3 + 3) * 26;
-    const rh = 12 + seededRand(i * 3 + 4) * 18;
-    bctx.fillStyle = i % 2 === 0 ? 'rgba(255, 235, 210, 0.025)' : 'rgba(0, 0, 0, 0.14)';
-    bctx.beginPath();
-    bctx.roundRect(rx, ry, rw, rh, 4);
-    bctx.fill();
-  }
-
-  // 기숙사 상단 벽면 (Y: 0 ~ 78)
-  const wallGrad = bctx.createLinearGradient(0, 0, 0, 80);
-  wallGrad.addColorStop(0, '#0f0a12');
-  wallGrad.addColorStop(0.85, '#1d1422');
-  wallGrad.addColorStop(1, '#09060b');
-  bctx.fillStyle = wallGrad;
-  bctx.fillRect(0, 0, 800, 78);
-  bctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-  bctx.fillRect(0, 78, 800, 14);
-
-  // 기숙사 중앙 로열 카펫 (X: 4~15, Y: 4~12)
-  const cpX = 4 * TILE_SIZE, cpY = 4 * TILE_SIZE;
-  const cpW = 12 * TILE_SIZE, cpH = 9 * TILE_SIZE;
-  bctx.save();
-  bctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-  bctx.beginPath();
-  bctx.roundRect(cpX + 5, cpY + 6, cpW, cpH, 10);
-  bctx.fill();
-
-  const carpetGrad = bctx.createRadialGradient(cpX + cpW / 2, cpY + cpH / 2, 20, cpX + cpW / 2, cpY + cpH / 2, 300);
-  carpetGrad.addColorStop(0, '#6b1224');
-  carpetGrad.addColorStop(0.7, '#4c0d19');
-  carpetGrad.addColorStop(1, '#360811');
-  bctx.fillStyle = carpetGrad;
-  bctx.beginPath();
-  bctx.roundRect(cpX, cpY, cpW, cpH, 8);
-  bctx.fill();
-
-  bctx.strokeStyle = '#d97706';
-  bctx.lineWidth = 3;
-  bctx.strokeRect(cpX + 4, cpY + 4, cpW - 8, cpH - 8);
-  bctx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
-  bctx.lineWidth = 1;
-  bctx.strokeRect(cpX + 10, cpY + 10, cpW - 20, cpH - 20);
-  bctx.restore();
-
-  // 2. 동쪽 마법의 숲 사냥터 (X: 800 ~ 1600) 격자 없는 풍부한 2.5D 잔디·흙길 질감
-  const forestGrad = bctx.createLinearGradient(800, 0, W, H);
-  forestGrad.addColorStop(0, '#2d4c1e');
-  forestGrad.addColorStop(0.45, '#365824');
-  forestGrad.addColorStop(1, '#253f18');
-  bctx.fillStyle = forestGrad;
-  bctx.fillRect(800, 0, W - 800, H);
-
-  // 부드러운 잔디 군락 얼룩(노이즈 패치)
-  for (let i = 0; i < 340; i++) {
-    const gx = 805 + seededRand(i * 7 + 10) * 790;
-    const gy = seededRand(i * 7 + 11) * H;
-    const gr = 22 + seededRand(i * 7 + 12) * 55;
-    const gPatch = bctx.createRadialGradient(gx, gy, 2, gx, gy, gr);
-    if (i % 3 === 0) {
-      gPatch.addColorStop(0, 'rgba(101, 163, 13, 0.22)');
-      gPatch.addColorStop(1, 'rgba(101, 163, 13, 0)');
-    } else if (i % 3 === 1) {
-      gPatch.addColorStop(0, 'rgba(20, 40, 12, 0.24)');
-      gPatch.addColorStop(1, 'rgba(20, 40, 12, 0)');
-    } else {
-      gPatch.addColorStop(0, 'rgba(132, 204, 22, 0.14)');
-      gPatch.addColorStop(1, 'rgba(132, 204, 22, 0)');
-    }
-    bctx.fillStyle = gPatch;
-    bctx.beginPath();
-    bctx.arc(gx, gy, gr, 0, Math.PI * 2);
-    bctx.fill();
-  }
-
-  // 사냥터 입구부터 이어지는 자연스러운 흙길(Dirt Trail)
-  const dirtPoints = [
-    { x: 800, y: 300, r: 68 }, { x: 855, y: 305, r: 62 }, { x: 920, y: 295, r: 58 },
-    { x: 985, y: 310, r: 64 }, { x: 1055, y: 300, r: 60 }, { x: 1125, y: 285, r: 56 },
-    { x: 1190, y: 305, r: 62 }, { x: 1260, y: 320, r: 58 }, { x: 1330, y: 300, r: 54 }
-  ];
-  dirtPoints.forEach(dp => {
-    const dGrad = bctx.createRadialGradient(dp.x, dp.y, dp.r * 0.2, dp.x, dp.y, dp.r);
-    dGrad.addColorStop(0, 'rgba(120, 82, 48, 0.55)');
-    dGrad.addColorStop(0.65, 'rgba(102, 68, 38, 0.32)');
-    dGrad.addColorStop(1, 'rgba(102, 68, 38, 0)');
-    bctx.fillStyle = dGrad;
-    bctx.beginPath();
-    bctx.arc(dp.x, dp.y, dp.r, 0, Math.PI * 2);
-    bctx.fill();
-  });
-
-  // 기숙사-사냥터 경계 석조 성벽 및 통로(X=800) 음영
-  const borderGrad = bctx.createLinearGradient(775, 0, 835, 0);
-  borderGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  borderGrad.addColorStop(0.5, 'rgba(15, 10, 12, 0.55)');
-  borderGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  bctx.fillStyle = borderGrad;
-  bctx.fillRect(775, 0, 60, H);
-
-  // 세밀한 풀잎 터치와 작은 야생화 디테일
-  for (let i = 0; i < 520; i++) {
-    const tx = 812 + seededRand(i * 11 + 1) * 776;
-    const ty = 14 + seededRand(i * 11 + 2) * (H - 28);
-    bctx.strokeStyle = i % 2 === 0 ? 'rgba(163, 230, 53, 0.35)' : 'rgba(34, 84, 24, 0.45)';
-    bctx.lineWidth = 1.3;
-    bctx.beginPath();
-    bctx.moveTo(tx, ty);
-    bctx.lineTo(tx - 2, ty - 5);
-    bctx.moveTo(tx, ty);
-    bctx.lineTo(tx + 2.5, ty - 4.5);
-    bctx.stroke();
-
-    if (i % 19 === 0) {
-      bctx.fillStyle = i % 38 === 0 ? '#fef08a' : '#f9a8d4';
-      bctx.beginPath();
-      bctx.arc(tx, ty - 5, 1.7, 0, Math.PI * 2);
-      bctx.fill();
-    }
-  }
-
-  isWorldBgBaked = true;
-}
 
 const MAX_CHANCES = 120;
 const REFILL_INTERVAL_MS = 60 * 1000;
@@ -1304,7 +1417,10 @@ let myCharacter = {
   stamina: 0,
   personality: 0,
   wand: 0,
-  maxStats: { education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0 },
+  equippedWeapon: 'wand',
+  weapons: { wand: 0, greatsword: 0, daggers: 0, bow: 0, chakram: 0 },
+  unlockedWeapons: { wand: true, greatsword: false, daggers: false, bow: false, chakram: false },
+  maxStats: { education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0, greatsword: 0, daggers: 0, bow: 0, chakram: 0 },
   customTitle: '',
   titleStat: 'education',
   auraColor: 'red'
@@ -1353,6 +1469,19 @@ const WAND_TITLES = [
   "딱총나무 절대 지팡이"
 ];
 
+function getWeaponTitle(weaponKey, lv) {
+  const safeLv = Math.min(30, Math.max(0, lv || 0));
+  if (weaponKey === 'wand') return WAND_TITLES[safeLv];
+  const baseName = WEAPON_SPECS[weaponKey] ? WEAPON_SPECS[weaponKey].name : '무기';
+  const prefixes = [
+    "수련용", "견습생의", "강철", "청동", "백은", "자수정", "홍옥의", "창공의", "취옥의", "황금빛",
+    "룬 각인", "마력 응축", "성운의", "원소 지배", "비전", "심연의", "뇌전 부름", "홍련의", "빙결의", "천공의",
+    "고대 영웅의", "차원의", "성좌의", "초월자의", "신화적", "태초의", "우주 공명", "절대 지배", "아카식", "창조신의",
+    "대사부의 절대"
+  ];
+  return `${prefixes[safeLv]} ${baseName}`;
+}
+
 function getStatTitle(stat, val, gender = 'male') {
   if (stat === 'education') return EDU_TITLES[Math.min(val, 25)];
   if (stat === 'appearance') {
@@ -1363,8 +1492,31 @@ function getStatTitle(stat, val, gender = 'male') {
   if (stat === 'iq') return val >= 150 ? '초월 지성체' : (val >= 125 ? '각성한 천재' : (val >= 115 ? '명석한 두뇌' : '보통 지능'));
   if (stat === 'stamina') return STA_TITLES[Math.min(val, 25)];
   if (stat === 'personality') return PER_TITLES[Math.min(val, 25)];
-  if (stat === 'wand') return WAND_TITLES[Math.min(val, 30)];
+  if (WEAPON_KEYS.includes(stat)) return getWeaponTitle(stat, val);
   return '';
+}
+
+function getWeaponLevelFromChar(c, wKey) {
+  if (!c) return 0;
+  if (c.weapons && typeof c.weapons[wKey] === 'number') return c.weapons[wKey];
+  if (wKey === 'wand') return c.wand || 0;
+  return 0;
+}
+
+function getEquippedWeaponLevel(c) {
+  if (!c) return 0;
+  const eq = c.equippedWeapon || 'wand';
+  return getWeaponLevelFromChar(c, eq);
+}
+
+function canUnlockWeaponClient(c, weaponKey) {
+  const spec = WEAPON_SPECS[weaponKey];
+  if (!spec) return false;
+  if (!spec.unlockStat) return true;
+  const maxS = c?.maxStats || {};
+  const curVal = spec.unlockStat === 'iq' ? (c?.iq !== undefined ? c.iq : 100) : (c?.[spec.unlockStat] || 0);
+  const bestVal = Math.max(curVal, maxS[spec.unlockStat] || (spec.unlockStat === 'iq' ? 100 : 0));
+  return bestVal >= spec.unlockReq;
 }
 
 function getUnlockedTitlesByCategory(c) {
@@ -1376,7 +1528,6 @@ function getUnlockedTitlesByCategory(c) {
   const maxIq  = Math.max(c?.iq !== undefined ? c.iq : 100, maxS.iq || 100);
   const maxSta = Math.max(c?.stamina || 0, maxS.stamina || 0);
   const maxPer = Math.max(c?.personality || 0, maxS.personality || 0);
-  const maxWand = Math.max(c?.wand || 0, maxS.wand || 0);
 
   const groups = [
     { label: '🎓 학력 칭호', titles: [] },
@@ -1385,7 +1536,7 @@ function getUnlockedTitlesByCategory(c) {
     { label: '🧠 지능 칭호', titles: [] },
     { label: '💪 체력 칭호', titles: [] },
     { label: '🍀 성격 칭호', titles: [] },
-    { label: '🪄 지팡이 칭호', titles: [] }
+    { label: '⚔️ 무기 칭호', titles: [] }
   ];
 
   const pushUnique = (arr, t) => { if (!arr.includes(t)) arr.push(t); };
@@ -1401,7 +1552,15 @@ function getUnlockedTitlesByCategory(c) {
 
   for (let i = 0; i <= Math.min(25, maxSta); i++) pushUnique(groups[4].titles, getStatTitle('stamina', i, g));
   for (let i = 0; i <= Math.min(25, maxPer); i++) pushUnique(groups[5].titles, getStatTitle('personality', i, g));
-  for (let i = 0; i <= Math.min(30, maxWand); i++) pushUnique(groups[6].titles, getStatTitle('wand', i, g));
+
+  WEAPON_KEYS.forEach(wKey => {
+    const isUnlocked = wKey === 'wand' || (c?.unlockedWeapons && c.unlockedWeapons[wKey]);
+    if (!isUnlocked) return;
+    const maxW = Math.max(getWeaponLevelFromChar(c, wKey), maxS[wKey] || 0);
+    for (let i = 0; i <= Math.min(30, maxW); i++) {
+      pushUnique(groups[6].titles, getWeaponTitle(wKey, i));
+    }
+  });
 
   return groups;
 }
@@ -1413,7 +1572,9 @@ function getSelectedOverheadTitle(c) {
   }
   const stat = c.titleStat || 'education';
   const g = c.gender || 'male';
-  const rawVal = stat === 'iq' ? (c.iq !== undefined ? c.iq : 100) : (c[stat] || 0);
+  const rawVal = stat === 'iq'
+    ? (c.iq !== undefined ? c.iq : 100)
+    : (WEAPON_KEYS.includes(stat) ? getWeaponLevelFromChar(c, stat) : (c[stat] || 0));
   return `[${getStatTitle(stat, rawVal, g)}]`;
 }
 
@@ -1423,14 +1584,17 @@ function getEffectiveLevel(statKey, c) {
     const raw = c.iq !== undefined ? c.iq : 100;
     return Math.max(0, raw - 100);
   }
+  if (WEAPON_KEYS.includes(statKey)) {
+    return getWeaponLevelFromChar(c, statKey);
+  }
   return c[statKey] || 0;
 }
 
 function getTotalCombatPower(c) {
   if (!c) return 0;
   const sixSum = (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.stamina || 0) + (c.personality || 0) + getEffectiveLevel('iq', c);
-  const wandScore = (c.wand || 0) * 10;
-  return sixSum + wandScore;
+  const weaponScore = getEquippedWeaponLevel(c) * 10;
+  return sixSum + weaponScore;
 }
 
 function getPartEffectTier(lv) {
@@ -1449,7 +1613,7 @@ function getPartTierText(lv) {
   return `🔥 ${(tier - 1) * 100}강 각성(T${tier})`;
 }
 
-// 인증 탭 전환
+// ================= [인증 탭 및 로그인/회원가입 처리] =================
 function showAuthTab(tab) {
   SoundFX.uiClick();
   tabLogin.classList.remove('active');
@@ -1513,7 +1677,9 @@ authSubmitBtn.addEventListener('click', async () => {
     localStorage.setItem('azaekaban_token', data.token);
     localStorage.setItem('azaekaban_username', username);
     localStorage.setItem('azaekaban_nickname', data.user.nickname);
-    connectSocketGame(data.token, data.user.nickname);
+    if (typeof connectSocketGame === 'function') {
+      connectSocketGame(data.token, data.user.nickname);
+    }
   } catch (err) {
     authMsg.textContent = err.message;
   }
@@ -1593,7 +1759,7 @@ resetPwBtn.addEventListener('click', async () => {
   }
 });
 
-// 정육각형 레이더 차트 스탯창
+// ================= [정육각형 레이더 차트 스탯창 & 무기 장착 선택] =================
 function drawHexagonRadar(c) {
   hexCtx.clearRect(0, 0, hexCanvas.width, hexCanvas.height);
   const cx = hexCanvas.width / 2;
@@ -1678,12 +1844,33 @@ function drawHexagonRadar(c) {
   });
 }
 
+function populateEquippedWeaponSelect(c) {
+  selectEquippedWeapon.innerHTML = '';
+  const eq = c?.equippedWeapon || 'wand';
+  WEAPON_KEYS.forEach(wKey => {
+    const spec = WEAPON_SPECS[wKey];
+    const isUnlocked = wKey === 'wand' || (c?.unlockedWeapons && c.unlockedWeapons[wKey]);
+    const wLv = getWeaponLevelFromChar(c, wKey);
+    const opt = document.createElement('option');
+    opt.value = wKey;
+    if (isUnlocked) {
+      opt.textContent = `${spec.icon} ${spec.name} (+${wLv}강 · 전투력 +${wLv * 10})`;
+    } else {
+      opt.textContent = `🔒 ${spec.name} (미해금 - 대사부에게 전수 필요)`;
+      opt.disabled = true;
+    }
+    if (wKey === eq) opt.selected = true;
+    selectEquippedWeapon.appendChild(opt);
+  });
+}
+
 function populateUnlockedTitleSelect(c) {
   selectTitleStat.innerHTML = '';
   const groups = getUnlockedTitlesByCategory(c);
   const currentTitlePlain = getSelectedOverheadTitle(c).replace(/^\[|\]$/g, '');
 
   groups.forEach(grp => {
+    if (grp.titles.length === 0) return;
     const optGroup = document.createElement('optgroup');
     optGroup.label = grp.label;
     grp.titles.forEach(t => {
@@ -1695,6 +1882,13 @@ function populateUnlockedTitleSelect(c) {
     });
     selectTitleStat.appendChild(optGroup);
   });
+}
+
+function updateAttackButtonLabel() {
+  const eq = myCharacter?.equippedWeapon || 'wand';
+  const spec = WEAPON_SPECS[eq] || WEAPON_SPECS.wand;
+  const mBtn = document.getElementById('mBtnAttack');
+  if (mBtn) mBtn.textContent = `${spec.icon} 공격(A)`;
 }
 
 function openInfoModal(targetUser = null) {
@@ -1710,7 +1904,9 @@ function openInfoModal(targetUser = null) {
   const iq = c.iq !== undefined ? c.iq : 100;
   const sta = c.stamina || 0;
   const per = c.personality || 0;
-  const wand = c.wand || 0;
+  const eqWeapon = c.equippedWeapon || 'wand';
+  const eqSpec = WEAPON_SPECS[eqWeapon] || WEAPON_SPECS.wand;
+  const eqLv = getEquippedWeaponLevel(c);
   const combatPower = getTotalCombatPower(c);
 
   infoModalTitle.textContent = isMe ? `📊 [${name}] 내 육각형 스펙` : `🔍 [${name}] 님의 스펙 분석`;
@@ -1719,6 +1915,7 @@ function openInfoModal(targetUser = null) {
   if (isMe) {
     myAccountCornerBtns.classList.remove('hidden');
     myCustomPrefBox.classList.remove('hidden');
+    populateEquippedWeaponSelect(c);
     populateUnlockedTitleSelect(c);
     selectAuraColor.value = c.auraColor || 'red';
   } else {
@@ -1728,10 +1925,17 @@ function openInfoModal(targetUser = null) {
 
   drawHexagonRadar(c);
 
+  const weaponSummaryList = WEAPON_KEYS.map(wk => {
+    const unl = wk === 'wand' || (c.unlockedWeapons && c.unlockedWeapons[wk]);
+    const lv = getWeaponLevelFromChar(c, wk);
+    return `${WEAPON_SPECS[wk].icon}${WEAPON_SPECS[wk].name.replace('마법 ', '').replace('마도 ', '').replace('아케인 ', '')}: ${unl ? `+${lv}강` : '🔒'}`;
+  }).join(' | ');
+
   infoStatCardList.innerHTML = `
     <div class="info-stat-item wand-full-row">
-      <div class="info-stat-name"><span>🪄 마법 지팡이 (전투력 +${wand * 10})</span><span>최대 30강</span></div>
-      <div class="info-stat-val">+${wand}강 · ${getStatTitle('wand', wand, g)}</div>
+      <div class="info-stat-name"><span>${eqSpec.icon} 장착 무기: ${eqSpec.name} (전투력 +${eqLv * 10})</span><span>최대 30강</span></div>
+      <div class="info-stat-val">+${eqLv}강 · ${getWeaponTitle(eqWeapon, eqLv)}</div>
+      <div style="font-size:10px; color:#cbd5e1; margin-top:2px;">보유 무기고: ${weaponSummaryList}</div>
     </div>
     <div class="info-stat-item">
       <div class="info-stat-name"><span>🎓 학력 (오른팔)</span><span>${getPartTierText(edu)}</span></div>
@@ -1762,6 +1966,22 @@ function openInfoModal(targetUser = null) {
   infoModal.classList.remove('hidden');
 }
 
+selectEquippedWeapon.addEventListener('change', () => {
+  SoundFX.uiClick();
+  const val = selectEquippedWeapon.value;
+  if (!socket) return;
+  socket.emit('equipWeapon', val, (res) => {
+    if (res && res.success) {
+      myCharacter = res.character;
+      if (players[myId]) players[myId].character = res.character;
+      updateAttackButtonLabel();
+      openInfoModal(null);
+    } else if (res && res.message) {
+      alert(res.message);
+    }
+  });
+});
+
 selectTitleStat.addEventListener('change', () => {
   SoundFX.uiClick();
   const val = selectTitleStat.value;
@@ -1782,42 +2002,6 @@ function closeInfoModal() { infoModal.classList.add('hidden'); }
 infoCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeInfoModal(); });
 document.getElementById('dBtnInfo').addEventListener('click', () => openInfoModal(null));
 document.getElementById('mBtnInfo').addEventListener('click', () => openInfoModal(null));
-
-canvas.addEventListener('click', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const clickX = (e.clientX - rect.left) * scaleX;
-  const clickY = (e.clientY - rect.top) * scaleY;
-
-  const myPl = players[myId];
-  const camX = myPl ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, (myPl.renderX !== undefined ? myPl.renderX : myPl.x * TILE_SIZE) - canvas.width / 2 + 20)) : 0;
-  const camY = myPl ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, (myPl.renderY !== undefined ? myPl.renderY : myPl.y * TILE_SIZE) - canvas.height / 2 + 20)) : 0;
-
-  const worldClickX = clickX + camX;
-  const worldClickY = clickY + camY;
-
-  const clickedPlayer = Object.values(players).find(p => {
-    const px = (p.renderX !== undefined ? p.renderX : p.x * TILE_SIZE) + 20;
-    const py = (p.renderY !== undefined ? p.renderY : p.y * TILE_SIZE) + 20;
-    return Math.hypot(worldClickX - px, worldClickY - py) <= 24;
-  });
-
-  if (clickedPlayer) {
-    openInfoModal(clickedPlayer);
-    return;
-  }
-
-  const clickedNpc = DORM_NPCS.find(n => {
-    const nx = n.x * TILE_SIZE + 20;
-    const ny = n.y * TILE_SIZE + 20;
-    return Math.hypot(worldClickX - nx, worldClickY - ny) <= 28;
-  });
-
-  if (clickedNpc) {
-    openNpcDialog(clickedNpc);
-  }
-});
 
 logoutBtn.addEventListener('click', () => {
   if (!confirm('로그아웃 하시겠습니까?')) return;
@@ -1853,15 +2037,14 @@ deleteAccountBtn.addEventListener('click', async () => {
   }
 });
 
-// 스펙 & 지팡이 강화 모달 (0.5초 홀드 자동 연타 포함)
+// ================= [스펙 & 5종 무기 강화 모달 ('깡!' 타격감 연출 포함)] =================
 const STAT_RULES = {
   education: { name: "학력 (캐릭터 오른쪽 팔 진화)", rule: "성공 1% (+1강) | 유지 99% (하락 없음) · 25강/100강... 오른팔 뇌전 오라 진화" },
-  appearance: { name: "외모 (캐릭터 오른쪽 다리 진화)", rule: "성공 2% (+1강) | 유지 97% | 실패 1% (-1강, 0강 보호) · 오른다리 홍련 화염 진화" },
-  wealth: { name: "재력 (캐릭터 왼쪽 팔 진화)", rule: "대성공 0.99% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨대폭락 0.01% (-100강, 0강 보호)" },
-  iq: { name: "지능 (캐릭터 머리 진화)", rule: "대성공 1% (+2 IQ) | 성공 1% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · 머리 다중 헤일로 진화" },
-  stamina: { name: "체력 (캐릭터 몸통 진화)", rule: "성공 3% (+1강) | 유지 96.5% | 실패 0.5% (-1강) · 몸통 코어 및 빛의 날개 진화" },
-  personality: { name: "성격 (캐릭터 왼쪽 다리 진화)", rule: "대성공 1% (+2강) | 성공 2% (+1강) | 유지 96% | 실패 1% (-1강) · 왼다리 중력 파동 진화" },
-  wand: { name: "마법 지팡이 (외형 & 마법 투사체 진화)", rule: "" }
+  appearance: { name: "외모 (캐릭터 오른쪽 다리 진화)", rule: "성공 2% (+1강) | 유지 97% | 실패 1% (-1강, 0강 보호) · 10강 달성 시 대사부 [쌍단검] 해금" },
+  wealth: { name: "재력 (캐릭터 왼쪽 팔 진화)", rule: "대성공 0.99% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨대폭락 0.01% (-100강) · 10강 시 [차크람] 해금" },
+  iq: { name: "지능 (캐릭터 머리 진화)", rule: "대성공 1% (+2 IQ) | 성공 1% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · IQ 110 달성 시 대사부 [아케인 활] 해금" },
+  stamina: { name: "체력 (캐릭터 몸통 진화)", rule: "성공 3% (+1강) | 유지 96.5% | 실패 0.5% (-1강) · 10강 달성 시 대사부 [마도 대검] 해금" },
+  personality: { name: "성격 (캐릭터 왼쪽 다리 진화)", rule: "대성공 1% (+2강) | 성공 2% (+1강) | 유지 96% | 실패 1% (-1강) · 왼다리 중력 파동 진화" }
 };
 
 document.querySelectorAll('.stat-tab-btn').forEach(btn => {
@@ -1886,28 +2069,100 @@ function closeEnhance() {
 }
 
 function renderEnhanceUI() {
-  const statKey = currentSelectedStat;
-  const statVal = myCharacter[statKey] || (statKey === 'iq' ? 100 : 0);
-  const info = STAT_RULES[statKey];
+  // 무기 탭 잠금 표시 갱신
+  document.querySelectorAll('.stat-tab-btn.weapon-tab').forEach(btn => {
+    const wk = btn.getAttribute('data-stat');
+    const unl = wk === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wk]);
+    btn.classList.toggle('locked', !unl);
+  });
 
-  curStatName.textContent = info.name;
-  if (statKey === 'iq') {
-    curStatLevel.textContent = `IQ ${statVal} (+${getEffectiveLevel('iq', myCharacter)}강)`;
-    curStatRule.textContent = info.rule;
-  } else if (statKey === 'wand') {
-    const wLv = myCharacter.wand || 0;
+  const statKey = currentSelectedStat;
+  const isWeapon = WEAPON_KEYS.includes(statKey);
+
+  if (isWeapon) {
+    const wSpec = WEAPON_SPECS[statKey];
+    const isUnlocked = statKey === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[statKey]);
+    const isEquipped = (myCharacter?.equippedWeapon || 'wand') === statKey;
+    const wLv = getWeaponLevelFromChar(myCharacter, statKey);
     const rate = ENHANCE_RATES[wLv];
     const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : '최고 단계(MAX)';
-    curStatLevel.textContent = `+${wLv}강 (전투력 보너스 +${wLv * 10})`;
-    curStatRule.textContent = wLv >= 30
-      ? '최고 단계(+30강)에 도달한 전설의 지팡이입니다!'
-      : `현재 +${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강, 0강 보호)`;
+
+    curStatName.innerHTML = `${wSpec.icon} ${wSpec.name} 연성 ${isEquipped ? '<span style="color:#4ade80;">[현재 장착 중]</span>' : (isUnlocked ? `<button id="btnQuickEquipInEnhance" style="margin-left:6px; background:#0e7490; border:1px solid #22d3ee; color:#fff; font-size:10px; padding:1px 6px; border-radius:3px;">지금 장착하기</button>` : '<span style="color:#f87171;">[미해금 - 대사부 NPC 전수 필요]</span>')}`;
+    curStatLevel.textContent = isUnlocked ? `+${wLv}강 (장착 시 전투력 +${wLv * 10})` : `🔒 미해금 (${wSpec.unlockDesc})`;
+    curStatTitle.textContent = getWeaponTitle(statKey, wLv);
+    curStatRule.textContent = !isUnlocked
+      ? `기숙사 동쪽 출구 앞 [대사부] NPC에게서 조건(${wSpec.unlockDesc}) 달성 후 전수받을 수 있습니다.`
+      : (wLv >= 30
+        ? `최고 단계(+30강)에 도달한 전설의 ${wSpec.name}입니다! (${wSpec.combatDesc})`
+        : `현재 +${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강) | ${wSpec.combatDesc}`);
+
+    const quickEqBtn = document.getElementById('btnQuickEquipInEnhance');
+    if (quickEqBtn) {
+      quickEqBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        socket.emit('equipWeapon', statKey, (res) => {
+          if (res && res.success) {
+            myCharacter = res.character;
+            if (players[myId]) players[myId].character = res.character;
+            updateAttackButtonLabel();
+            renderEnhanceUI();
+          }
+        });
+      });
+    }
   } else {
-    curStatLevel.textContent = `+${statVal}강`;
+    const statVal = myCharacter[statKey] || (statKey === 'iq' ? 100 : 0);
+    const info = STAT_RULES[statKey];
+    curStatName.textContent = info.name;
+    if (statKey === 'iq') {
+      curStatLevel.textContent = `IQ ${statVal} (+${getEffectiveLevel('iq', myCharacter)}강)`;
+    } else {
+      curStatLevel.textContent = `+${statVal}강`;
+    }
     curStatRule.textContent = info.rule;
+    curStatTitle.textContent = getStatTitle(statKey, statVal, myCharacter.gender);
   }
-  curStatTitle.textContent = getStatTitle(statKey, statVal, myCharacter.gender);
   modalChanceCount.textContent = myChances;
+}
+
+// 강화 버튼 클릭 순간 모달 흔들림 + 모루 불꽃 스파크 + 수치 팝업 + 모바일 진동 연출
+function triggerEnhanceImpactVisual() {
+  if (navigator.vibrate) {
+    try { navigator.vibrate(22); } catch (e) {}
+  }
+
+  enhanceModalCard.classList.remove('anvil-shake');
+  enhanceDetailBox.classList.remove('anvil-flash');
+  curStatLevel.classList.remove('val-pop');
+  enhanceExecuteBtn.classList.remove('btn-anvil-hit');
+  void enhanceModalCard.offsetWidth;
+
+  enhanceModalCard.classList.add('anvil-shake');
+  enhanceDetailBox.classList.add('anvil-flash');
+  curStatLevel.classList.add('val-pop');
+  enhanceExecuteBtn.classList.add('btn-anvil-hit');
+
+  setTimeout(() => {
+    enhanceDetailBox.classList.remove('anvil-flash');
+    curStatLevel.classList.remove('val-pop');
+    enhanceExecuteBtn.classList.remove('btn-anvil-hit');
+  }, 115);
+
+  if (enhanceSparkLayer) {
+    const colors = ['#fef08a', '#f59e0b', '#fb923c', '#ef4444', '#ffffff'];
+    for (let i = 0; i < 14; i++) {
+      const sp = document.createElement('div');
+      sp.className = 'anvil-spark';
+      const ang = (Math.PI * 2 / 14) * i + (Math.random() - 0.5) * 0.4;
+      const dist = 35 + Math.random() * 65;
+      sp.style.setProperty('--tx', `${Math.cos(ang) * dist}px`);
+      sp.style.setProperty('--ty', `${Math.sin(ang) * dist}px`);
+      sp.style.background = colors[i % colors.length];
+      sp.style.boxShadow = `0 0 8px ${colors[i % colors.length]}`;
+      enhanceSparkLayer.appendChild(sp);
+      setTimeout(() => sp.remove(), 350);
+    }
+  }
 }
 
 let isEnhancingRequest = false;
@@ -1923,6 +2178,10 @@ function executeEnhance() {
     stopEnhanceHold();
     return;
   }
+
+  // 버튼을 누르는 즉시 단발성 '깡!' 금속 타격음 & 모루 스파크/진동 발동!
+  SoundFX.anvilClang();
+  triggerEnhanceImpactVisual();
 
   isEnhancingRequest = true;
 
@@ -2002,7 +2261,7 @@ enhanceExecuteBtn.addEventListener('touchstart', startEnhanceHold, { passive: fa
 enhanceExecuteBtn.addEventListener('touchend', stopEnhanceHold);
 enhanceExecuteBtn.addEventListener('touchcancel', stopEnhanceHold);
 
-// 순위 모달
+// ================= [순위 모달 & 실시간 동시접속자 리스트 모달] =================
 async function openRankModal() {
   SoundFX.uiClick();
   rankModal.classList.remove('hidden');
@@ -2026,6 +2285,10 @@ async function openRankModal() {
       else if (item.rank === 2) { topClass = 'top2'; medal = '🥈 2위'; }
       else if (item.rank === 3) { topClass = 'top3'; medal = '🥉 3위'; }
 
+      const eqWep = item.equippedWeapon || 'wand';
+      const eqSpec = WEAPON_SPECS[eqWep] || WEAPON_SPECS.wand;
+      const eqLv = getWeaponLevelFromChar(item, eqWep);
+
       card.className = `rank-card ${topClass}`;
       card.innerHTML = `
         <div class="rank-card-top">
@@ -2037,7 +2300,7 @@ async function openRankModal() {
           <div class="rank-total-badge">전투력 ${item.totalScore}</div>
         </div>
         <div class="rank-stat-pills">
-          <div class="rank-pill">지팡이 <b>+${item.wand || 0}</b></div>
+          <div class="rank-pill">${eqSpec.icon}무기 <b>+${eqLv}</b></div>
           <div class="rank-pill">학력 <b>+${item.education}</b></div>
           <div class="rank-pill">외모 <b>+${item.appearance}</b></div>
           <div class="rank-pill">재력 <b>+${item.wealth}</b></div>
@@ -2062,6 +2325,63 @@ document.getElementById('dBtnRank').addEventListener('click', openRankModal);
 document.getElementById('mBtnRank').addEventListener('click', openRankModal);
 rankCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeRankModal(); });
 
+function getZoneNameByX(x) {
+  if (x < 20) return '🏰 기숙사 홀';
+  if (x < 40) return '🌲 동쪽숲1';
+  return '🦠 동쪽숲2(역병)';
+}
+
+function openOnlineModal() {
+  SoundFX.uiClick();
+  onlineModal.classList.remove('hidden');
+  renderOnlineList();
+}
+
+function closeOnlineModal() {
+  onlineModal.classList.add('hidden');
+}
+
+function renderOnlineList() {
+  const list = Object.values(players);
+  onlineModalTitle.textContent = `실시간 접속자 목록 (동접: ${list.length}명)`;
+  onlineListBody.innerHTML = '';
+
+  list.sort((a, b) => getTotalCombatPower(b.character) - getTotalCombatPower(a.character));
+
+  list.forEach((p, idx) => {
+    const c = p.character || {};
+    const cp = getTotalCombatPower(c);
+    const eqWep = c.equippedWeapon || 'wand';
+    const eqSpec = WEAPON_SPECS[eqWep] || WEAPON_SPECS.wand;
+    const eqLv = getEquippedWeaponLevel(c);
+    const zoneStr = getZoneNameByX(p.x || 0);
+
+    const card = document.createElement('div');
+    card.className = 'rank-card';
+    card.innerHTML = `
+      <div class="rank-card-top" style="margin-bottom:0;">
+        <div class="rank-user-ident">
+          <span style="color:#6ee7b7;">#${idx + 1}</span>
+          <span style="color:#fef08a;">${p.name}</span>
+          <span style="font-size:11px; color:#38bdf8;">[${zoneStr}]</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:11px; color:#e9d5ff;">${eqSpec.icon}+${eqLv}</span>
+          <span class="rank-total-badge">전투력 ${cp}</span>
+        </div>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      closeOnlineModal();
+      openInfoModal(p);
+    });
+    onlineListBody.appendChild(card);
+  });
+}
+
+hudOnlineCount.addEventListener('click', openOnlineModal);
+onlineCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeOnlineModal(); });
+
 document.getElementById('mBtnChat').addEventListener('click', () => {
   const msg = prompt('외칠 말을 입력하세요:');
   if (msg && msg.trim() && socket) {
@@ -2069,7 +2389,7 @@ document.getElementById('mBtnChat').addEventListener('click', () => {
   }
 });
 
-// 기운 발산 (4대 색상)
+// ================= [기운 발산 (4대 색상) & 대사부 NPC 무기 전수 모달] =================
 const AURA_PALETTES = {
   red:    { primary: '#ef4444', ring: '#fca5a5', sub: '#f43f5e', glow: 'rgba(239, 68, 68, 0.9)' },
   yellow: { primary: '#facc15', ring: '#fef08a', sub: '#f59e0b', glow: 'rgba(250, 204, 21, 0.9)' },
@@ -2124,6 +2444,82 @@ function trigger360AuraBurst(targetPlayer, playSound = false) {
   });
 }
 
+function renderMasterWeaponPanel() {
+  if (!npcWeaponPanel) return;
+  npcWeaponPanel.innerHTML = '';
+  const eq = myCharacter?.equippedWeapon || 'wand';
+
+  WEAPON_KEYS.forEach(wKey => {
+    const spec = WEAPON_SPECS[wKey];
+    const isUnlocked = wKey === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wKey]);
+    const isEquipped = eq === wKey;
+    const canUnlock = canUnlockWeaponClient(myCharacter, wKey);
+    const wLv = getWeaponLevelFromChar(myCharacter, wKey);
+
+    const row = document.createElement('div');
+    row.className = 'npc-weapon-row';
+
+    let actionBtnHtml = '';
+    if (isEquipped) {
+      actionBtnHtml = `<button class="btn-weapon-action" style="background:#065f46; border:1px solid #34d399; color:#ecfdf5;" disabled>장착 중</button>`;
+    } else if (isUnlocked) {
+      actionBtnHtml = `<button class="btn-weapon-action" data-action="equip" data-weapon="${wKey}" style="background:#0e7490; border:1px solid #22d3ee; color:#fff;">장착하기</button>`;
+    } else if (canUnlock) {
+      actionBtnHtml = `<button class="btn-weapon-action" data-action="unlock" data-weapon="${wKey}" style="background:#b45309; border:1px solid #facc15; color:#fef08a;">✨ 전수받기</button>`;
+    } else {
+      actionBtnHtml = `<button class="btn-weapon-action" style="background:#1e293b; border:1px solid #475569; color:#94a3b8; opacity:0.65;" disabled>조건 미달</button>`;
+    }
+
+    row.innerHTML = `
+      <div class="npc-weapon-info">
+        <div class="npc-weapon-title">${spec.icon} ${spec.name} ${isUnlocked ? `(+${wLv}강)` : ''}</div>
+        <div class="npc-weapon-cond">${spec.unlockDesc}</div>
+        <div style="color:#38bdf8; font-size:10px;">${spec.combatDesc}</div>
+      </div>
+      <div>${actionBtnHtml}</div>
+    `;
+    npcWeaponPanel.appendChild(row);
+  });
+
+  npcWeaponPanel.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = btn.getAttribute('data-action');
+      const wk = btn.getAttribute('data-weapon');
+      if (!socket) return;
+
+      if (act === 'unlock') {
+        socket.emit('unlockWeapon', wk, (res) => {
+          if (res && res.success) {
+            SoundFX.enhanceSuccess(true);
+            myCharacter = res.character;
+            if (players[myId]) {
+              players[myId].character = res.character;
+              trigger360AuraBurst(players[myId], false);
+            }
+            npcSpeechText.textContent = res.message;
+            updateAttackButtonLabel();
+            renderMasterWeaponPanel();
+          } else if (res && res.message) {
+            SoundFX.enhanceFail();
+            npcSpeechText.textContent = res.message;
+          }
+        });
+      } else if (act === 'equip') {
+        socket.emit('equipWeapon', wk, (res) => {
+          if (res && res.success) {
+            SoundFX.uiClick();
+            myCharacter = res.character;
+            if (players[myId]) players[myId].character = res.character;
+            npcSpeechText.textContent = res.message;
+            updateAttackButtonLabel();
+            renderMasterWeaponPanel();
+          }
+        });
+      }
+    });
+  });
+}
+
 function openNpcDialog(npc) {
   SoundFX.uiClick();
   activeNpc = npc;
@@ -2131,6 +2527,14 @@ function openNpcDialog(npc) {
   npcNameTag.textContent = `[${npc.name}]`;
   npcPortraitIcon.textContent = npc.portrait;
   npcSpeechText.textContent = npc.dialogs[0];
+
+  if (npc.id === 'npc_master') {
+    npcWeaponPanel.classList.remove('hidden');
+    renderMasterWeaponPanel();
+  } else {
+    npcWeaponPanel.classList.add('hidden');
+  }
+
   npcDialogModal.classList.remove('hidden');
 }
 
@@ -2149,400 +2553,6 @@ function advanceNpcDialog() {
   }
 }
 npcNextBtn.addEventListener('click', advanceNpcDialog);
-
-// 기운 발산 + 달리기 제어
-let isSpaceHeld = false;
-let auraSpamTimer = null;
-
-function handleSpaceAction(isHoldRepeat = false) {
-  if (!socket || !players[myId]) return;
-  const me = players[myId];
-
-  if (!npcDialogModal.classList.contains('hidden')) {
-    if (!isHoldRepeat) advanceNpcDialog();
-    return;
-  }
-
-  if (!isHoldRepeat) {
-    const nearNpc = DORM_NPCS.find(n => Math.hypot(me.x - n.x, me.y - n.y) <= 1.45);
-    if (nearNpc) {
-      openNpcDialog(nearNpc);
-      return;
-    }
-  }
-
-  trigger360AuraBurst(me, !isHoldRepeat);
-  socket.emit('emitAura');
-}
-
-function startAuraHold(e) {
-  if (e && e.cancelable) e.preventDefault();
-  isSpaceHeld = true;
-  if (auraSpamTimer) return;
-  handleSpaceAction(false);
-  auraSpamTimer = setInterval(() => {
-    handleSpaceAction(true);
-  }, 160);
-}
-function stopAuraHold() {
-  isSpaceHeld = false;
-  if (auraSpamTimer) {
-    clearInterval(auraSpamTimer);
-    auraSpamTimer = null;
-  }
-}
-
-const mBtnAura = document.getElementById('mBtnAura');
-const dBtnAura = document.getElementById('dBtnAura');
-[mBtnAura, dBtnAura].forEach(btn => {
-  btn.addEventListener('touchstart', startAuraHold, { passive: false });
-  btn.addEventListener('touchend', stopAuraHold);
-  btn.addEventListener('touchcancel', stopAuraHold);
-  btn.addEventListener('mousedown', startAuraHold);
-  btn.addEventListener('mouseup', stopAuraHold);
-  btn.addEventListener('mouseleave', stopAuraHold);
-});
-
-// ================= [A키 360도 마법 투사체 즉시 발사 (무렉 선반영)] =================
-let lastAttackClientTime = 0;
-let attackHoldTimer = null;
-
-function dirToAngle(dir) {
-  if (dir === 'up') return -Math.PI / 2;
-  if (dir === 'left') return Math.PI;
-  if (dir === 'right') return 0;
-  return Math.PI / 2;
-}
-
-function tryFireMagicProjectile() {
-  if (!socket || !players[myId]) return;
-  const now = Date.now();
-  if (now - lastAttackClientTime < 960) return;
-  lastAttackClientTime = now;
-
-  const me = players[myId];
-  const angle = typeof me.angle === 'number' ? me.angle : dirToAngle(me.dir);
-  const wandLv = myCharacter.wand || 0;
-  const combatPower = getTotalCombatPower(myCharacter);
-
-  // 클라이언트 즉시 발사 (서버 왕복 지연 0초)
-  spawnMagicProjectile({
-    ownerId: myId,
-    ownerName: myNickname,
-    x: me.x,
-    y: me.y,
-    dir: me.dir,
-    angle: angle,
-    vx: Math.cos(angle),
-    vy: Math.sin(angle),
-    wandLv: wandLv,
-    attackPower: combatPower
-  });
-
-  socket.emit('fireProjectile', {
-    x: me.x,
-    y: me.y,
-    dir: me.dir,
-    angle: angle
-  });
-}
-
-function startAttackHold(e) {
-  if (e && e.cancelable) e.preventDefault();
-  tryFireMagicProjectile();
-  if (attackHoldTimer) return;
-  attackHoldTimer = setInterval(() => {
-    tryFireMagicProjectile();
-  }, 100);
-}
-
-function stopAttackHold() {
-  if (attackHoldTimer) {
-    clearInterval(attackHoldTimer);
-    attackHoldTimer = null;
-  }
-}
-
-const dBtnAttack = document.getElementById('dBtnAttack');
-const mBtnAttack = document.getElementById('mBtnAttack');
-[dBtnAttack, mBtnAttack].forEach(btn => {
-  btn.addEventListener('touchstart', startAttackHold, { passive: false });
-  btn.addEventListener('touchend', stopAttackHold);
-  btn.addEventListener('touchcancel', stopAttackHold);
-  btn.addEventListener('mousedown', startAttackHold);
-  btn.addEventListener('mouseup', stopAttackHold);
-  btn.addEventListener('mouseleave', stopAttackHold);
-});
-
-function spawnMagicProjectile(data) {
-  const wandLv = data.wandLv || 0;
-  const attackPower = data.attackPower || 0;
-  if (data.ownerId === myId) {
-    SoundFX.magicCast(wandLv);
-  }
-
-  let vx = typeof data.vx === 'number' ? data.vx : 0;
-  let vy = typeof data.vy === 'number' ? data.vy : 0;
-  if (vx === 0 && vy === 0) {
-    const ang = typeof data.angle === 'number' ? data.angle : dirToAngle(data.dir);
-    vx = Math.cos(ang);
-    vy = Math.sin(ang);
-  } else {
-    const mag = Math.hypot(vx, vy) || 1;
-    vx /= mag;
-    vy /= mag;
-  }
-
-  const speed = 7.4 + Math.min(4.0, wandLv * 0.12);
-  const startX = data.x * TILE_SIZE + 20 + vx * 15;
-  const startY = data.y * TILE_SIZE + 20 + vy * 15;
-
-  projectiles.push({
-    ownerId: data.ownerId,
-    x: startX,
-    y: startY,
-    vx: vx * speed,
-    vy: vy * speed,
-    angle: Math.atan2(vy, vx),
-    wandLv: wandLv,
-    attackPower: attackPower,
-    trail: [],
-    born: Date.now()
-  });
-}
-
-function spawnHitExplosion(x, y, wandLv, hitTarget = false) {
-  SoundFX.magicHit(wandLv);
-  if (hitTarget) {
-    screenShakeMag = Math.min(7, 2.5 + wandLv * 0.12);
-  }
-  const hue = (200 + wandLv * 14) % 360;
-  const sparkCount = 12 + wandLv * 2;
-  const sparks = [];
-  for (let i = 0; i < sparkCount; i++) {
-    const angle = (Math.PI * 2 / sparkCount) * i + (Math.random() - 0.5) * 0.35;
-    const spd = (2.4 + Math.random() * 3.0) * (1 + wandLv * 0.04);
-    sparks.push({
-      angle,
-      spd,
-      size: 2.2 + (i % 3) + wandLv * 0.08,
-      color: i % 2 === 0 ? `hsl(${hue}, 100%, 72%)` : '#fef08a'
-    });
-  }
-
-  hitEffects.push({
-    x,
-    y,
-    wandLv,
-    hue,
-    maxRadius: 20 + wandLv * 1.5,
-    ringCount: 1 + Math.floor(wandLv / 5),
-    sparks,
-    born: Date.now(),
-    duration: 360 + wandLv * 6
-  });
-}
-
-// 소켓 연결 및 동기화
-function connectSocketGame(token, nickname) {
-  authModal.classList.add('hidden');
-  myNickname = nickname;
-  hudNick.textContent = `[${nickname}]`;
-
-  socket = io({ auth: { token } });
-
-  socket.on('connect_error', () => {
-    alert('인증이 만료되었습니다. 다시 로그인해주세요.');
-    localStorage.removeItem('azaekaban_token');
-    location.reload();
-  });
-
-  socket.on('init', (data) => {
-    myId = data.myId;
-    mapW = data.mapWidth;
-    mapH = data.mapHeight;
-    obstacles = data.obstacles || [];
-    bakeWorldBackground();
-
-    players = {};
-    monsters = {};
-
-    Object.values(data.players).forEach(p => {
-      players[p.id] = {
-        ...p,
-        angle: typeof p.angle === 'number' ? p.angle : dirToAngle(p.dir),
-        renderX: p.x * TILE_SIZE,
-        renderY: p.y * TILE_SIZE,
-        lastRenderMoveTime: 0
-      };
-    });
-
-    Object.values(data.monsters || {}).forEach(m => {
-      monsters[m.id] = {
-        ...m,
-        renderX: m.x * TILE_SIZE,
-        renderY: m.y * TILE_SIZE
-      };
-    });
-
-    if (players[myId]) {
-      myCharacter = players[myId].character || myCharacter;
-      myChances = players[myId].enhanceTokens;
-      myLastRefill = players[myId].lastTokenRefill;
-      updateHUD();
-    }
-  });
-
-  socket.on('playerJoined', (p) => {
-    players[p.id] = {
-      ...p,
-      angle: typeof p.angle === 'number' ? p.angle : dirToAngle(p.dir),
-      renderX: p.x * TILE_SIZE,
-      renderY: p.y * TILE_SIZE,
-      lastRenderMoveTime: 0
-    };
-  });
-
-  socket.on('playerMoved', (data) => {
-    const p = players[data.id];
-    if (!p) return;
-
-    // 내 캐릭터는 클라이언트 예측으로 이미 이동 중이므로 서버 강제 보정(reconcile) 시에만 위치 동기화
-    if (data.id === myId) {
-      if (data.reconcile || Math.hypot(data.x - p.x, data.y - p.y) > 2.5) {
-        p.x = data.x;
-        p.y = data.y;
-        p.renderX = data.x * TILE_SIZE;
-        p.renderY = data.y * TILE_SIZE;
-      }
-      return;
-    }
-
-    p.x = data.x;
-    p.y = data.y;
-    p.dir = data.dir || p.dir;
-    if (typeof data.angle === 'number') p.angle = data.angle;
-    p.sprint = Boolean(data.sprint);
-    p.lastRenderMoveTime = Date.now();
-  });
-
-  socket.on('monsterMoved', (data) => {
-    if (monsters[data.id]) {
-      monsters[data.id].x = data.x;
-      monsters[data.id].y = data.y;
-      monsters[data.id].dir = data.dir;
-    }
-  });
-
-  socket.on('projectileFired', (data) => {
-    // 내 투사체는 이미 발사 즉시 그렸으므로 중복 생성 방지
-    if (data.ownerId === myId) return;
-    spawnMagicProjectile(data);
-  });
-
-  socket.on('monsterDamaged', (data) => {
-    const m = monsters[data.id];
-    if (m) {
-      m.hp = data.hp;
-      m.hitFlashTime = Date.now();
-    }
-    const fx = m && m.renderX !== undefined ? m.renderX + 20 : data.x * TILE_SIZE + 20;
-    const fy = m && m.renderY !== undefined ? m.renderY + 10 : data.y * TILE_SIZE + 10;
-    floatingDamages.push({
-      x: fx,
-      y: fy,
-      text: `💥 -${data.damage}`,
-      color: '#f43f5e',
-      born: Date.now()
-    });
-  });
-
-  socket.on('monsterKilled', (data) => {
-    const m = monsters[data.id];
-    const fx = m && m.renderX !== undefined ? m.renderX + 20 : data.x * TILE_SIZE + 20;
-    const fy = m && m.renderY !== undefined ? m.renderY + 10 : data.y * TILE_SIZE + 10;
-    if (m) {
-      m.alive = false;
-      m.hp = 0;
-    }
-    floatingDamages.push({
-      x: fx,
-      y: fy,
-      text: `💥 -${data.damage} (처치!)`,
-      color: '#facc15',
-      born: Date.now()
-    });
-
-    if (data.rewarded && data.attackerId === myId) {
-      myChances = data.tokens;
-      myLastRefill = data.lastRefill;
-      updateHUD();
-      floatingDamages.push({
-        x: fx,
-        y: fy - 18,
-        text: `✨ 기회 +1 획득!`,
-        color: '#4ade80',
-        born: Date.now()
-      });
-    }
-  });
-
-  socket.on('monsterRespawned', (m) => {
-    monsters[m.id] = {
-      ...m,
-      renderX: m.x * TILE_SIZE,
-      renderY: m.y * TILE_SIZE
-    };
-  });
-
-  socket.on('playerStatUpdated', (data) => {
-    if (players[data.id]) {
-      players[data.id].character = data.character;
-      if (data.id === myId) {
-        myCharacter = data.character;
-        updateHUD();
-        renderEnhanceUI();
-      }
-    }
-  });
-
-  socket.on('playerAura', (data) => {
-    if (data && data.id !== myId && players[data.id]) {
-      trigger360AuraBurst(players[data.id], false);
-    }
-  });
-
-  socket.on('playerChat', (data) => {
-    if (players[data.id]) players[data.id].chatText = data.message;
-    SoundFX.chat();
-    addChatLog(data.name, data.message);
-  });
-
-  socket.on('playerChatClear', (data) => {
-    if (players[data.id]) players[data.id].chatText = '';
-  });
-
-  socket.on('playerLeft', (id) => {
-    if (players[id]) {
-      delete players[id];
-    }
-  });
-}
-
-function addChatLog(author, message) {
-  const isNearBottom = (chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight) < 32;
-  const line = document.createElement('div');
-  line.className = 'chat-msg';
-  line.innerHTML = `<span class="chat-author">[${author}]</span>${message}`;
-  chatLog.appendChild(line);
-
-  while (chatLog.children.length > 200) {
-    chatLog.removeChild(chatLog.children[0]);
-  }
-  if (isNearBottom) {
-    chatLog.scrollTop = chatLog.scrollHeight;
-  }
-}
 
 function updateChancesClient() {
   const now = Date.now();
@@ -2570,1665 +2580,18 @@ function updateHUD() {
   }
   hudChances.textContent = chanceStr;
   modalChanceCount.textContent = myChances;
+  const onlineCount = Math.max(1, Object.keys(players).length);
+  hudOnlineCount.textContent = `동접: ${onlineCount}`;
+  if (!onlineModal.classList.contains('hidden')) {
+    renderOnlineList();
+  }
 }
 
 setInterval(() => {
   updateChancesClient();
   updateHUD();
 }, 1000);
-
-// ================= [360도 자유 이동 + 슬라이딩 충돌 + 클라이언트 예측] =================
-const keysHeld = { up: false, down: false, left: false, right: false };
-const joyVector = { vx: 0, vy: 0, active: false };
-let lastMoveNetworkSync = 0;
-let lastStepSoundTime = 0;
-let wasMovingLastFrame = false;
-
-function isFloatPosBlockedClient(fx, fy) {
-  if (fx < 0.2 || fx > mapW - 1.2 || fy < 0.8 || fy > mapH - 1.2) return true;
-  for (let i = 0; i < obstacles.length; i++) {
-    const obs = obstacles[i];
-    if (Math.abs(fx - obs.x) < 0.68 && Math.abs(fy - obs.y) < 0.68) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function angleToCardinalDir(angle) {
-  const deg = (angle * 180 / Math.PI + 360) % 360;
-  if (deg >= 45 && deg < 135) return 'down';
-  if (deg >= 135 && deg < 225) return 'left';
-  if (deg >= 225 && deg < 315) return 'up';
-  return 'right';
-}
-
-function updateLocalPlayerMovement(dt, now) {
-  if (!socket || !myId || !players[myId]) return;
-  if (!authModal.classList.contains('hidden')) return;
-  const activeEl = document.activeElement;
-  if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) return;
-
-  let vx = 0, vy = 0;
-  if (joyVector.active) {
-    vx = joyVector.vx;
-    vy = joyVector.vy;
-  } else {
-    if (keysHeld.up) vy -= 1;
-    if (keysHeld.down) vy += 1;
-    if (keysHeld.left) vx -= 1;
-    if (keysHeld.right) vx += 1;
-    const mag = Math.hypot(vx, vy);
-    if (mag > 0) {
-      vx /= mag;
-      vy /= mag;
-    }
-  }
-
-  const me = players[myId];
-  const isMoving = Math.hypot(vx, vy) > 0.05;
-
-  if (!isMoving) {
-    if (wasMovingLastFrame) {
-      wasMovingLastFrame = false;
-      socket.emit('move', { x: me.x, y: me.y, dir: me.dir, angle: me.angle, sprint: false });
-    }
-    return;
-  }
-
-  wasMovingLastFrame = true;
-  me.angle = Math.atan2(vy, vx);
-  me.dir = angleToCardinalDir(me.angle);
-  me.sprint = isSpaceHeld;
-
-  // 걷기 초당 4.9타일, 달리기 초당 8.9타일 등속 이동
-  const tilesPerSec = isSpaceHeld ? 8.9 : 4.9;
-  const stepTiles = tilesPerSec * (dt / 1000);
-  const dx = vx * stepTiles;
-  const dy = vy * stepTiles;
-
-  // X축 / Y축 독립 슬라이딩 충돌 체크 (벽/나무 모서리에서 부드럽게 미끄러짐)
-  if (!isFloatPosBlockedClient(me.x + dx, me.y)) {
-    me.x += dx;
-  }
-  if (!isFloatPosBlockedClient(me.x, me.y + dy)) {
-    me.y += dy;
-  }
-
-  me.x = Math.max(0.2, Math.min(mapW - 1.2, me.x));
-  me.y = Math.max(0.8, Math.min(mapH - 1.2, me.y));
-  me.renderX = me.x * TILE_SIZE;
-  me.renderY = me.y * TILE_SIZE;
-  me.lastRenderMoveTime = now;
-
-  // 발걸음 먼지 파티클 및 사운드
-  const stepAudioInterval = isSpaceHeld ? 160 : 250;
-  if (now - lastStepSoundTime >= stepAudioInterval) {
-    lastStepSoundTime = now;
-    SoundFX.step(isSpaceHeld);
-    footstepDusts.push({
-      x: me.renderX + 20 + (Math.random() - 0.5) * 8,
-      y: me.renderY + 35,
-      r: isSpaceHeld ? 4.5 : 3.2,
-      born: now
-    });
-  }
-
-  // 서버로 50ms마다 가볍게 위치 동기화
-  if (now - lastMoveNetworkSync >= 50) {
-    lastMoveNetworkSync = now;
-    socket.emit('move', {
-      x: Number(me.x.toFixed(3)),
-      y: Number(me.y.toFixed(3)),
-      dir: me.dir,
-      angle: Number(me.angle.toFixed(3)),
-      sprint: isSpaceHeld
-    });
-  }
-}
-
-window.addEventListener('keydown', (e) => {
-  const activeEl = document.activeElement;
-  const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
-
-  if (isTyping) {
-    if (e.key === 'Enter') {
-      if (activeEl === chatInput) {
-        sendChatMessage();
-        chatInput.blur();
-      } else if (!authModal.classList.contains('hidden')) {
-        if (!loginFormSection.classList.contains('hidden')) authSubmitBtn.click();
-        else if (!registerFormSection.classList.contains('hidden')) regSubmitBtn.click();
-      }
-    }
-    return;
-  }
-
-  if (!authModal.classList.contains('hidden')) return;
-
-  if (e.key === 'Enter' || e.key === '/') {
-    if (e.key === 'Enter' && !npcDialogModal.classList.contains('hidden')) {
-      e.preventDefault();
-      advanceNpcDialog();
-      return;
-    }
-    e.preventDefault();
-    chatInput.focus();
-    return;
-  }
-
-  if (e.key === 'Escape') {
-    closeInfoModal();
-    closeRankModal();
-    closeEnhance();
-    npcDialogModal.classList.add('hidden');
-    return;
-  }
-
-  if (e.code === 'Space') {
-    e.preventDefault();
-    startAuraHold();
-    return;
-  }
-
-  if (e.key === 'a' || e.key === 'A' || e.key === 'ㅁ') {
-    e.preventDefault();
-    startAttackHold();
-    return;
-  }
-
-  if (e.key === 's' || e.key === 'S' || e.key === 'ㄴ') {
-    e.preventDefault();
-    if (infoModal.classList.contains('hidden')) openInfoModal(null);
-    else closeInfoModal();
-    return;
-  }
-
-  if (e.key === 'c' || e.key === 'C' || e.key === 'ㅊ') {
-    e.preventDefault();
-    if (enhanceModal.classList.contains('hidden')) openEnhance();
-    else executeEnhance();
-    return;
-  }
-
-  if (e.key === 'r' || e.key === 'R' || e.key === 'ㄱ') {
-    e.preventDefault();
-    if (rankModal.classList.contains('hidden')) openRankModal();
-    else closeRankModal();
-    return;
-  }
-
-  if (e.key === 'ArrowUp') { e.preventDefault(); keysHeld.up = true; }
-  else if (e.key === 'ArrowDown') { e.preventDefault(); keysHeld.down = true; }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); keysHeld.left = true; }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); keysHeld.right = true; }
-});
-
-window.addEventListener('keyup', (e) => {
-  if (e.code === 'Space') stopAuraHold();
-  if (e.key === 'a' || e.key === 'A' || e.key === 'ㅁ') stopAttackHold();
-  if (e.key === 'ArrowUp') keysHeld.up = false;
-  else if (e.key === 'ArrowDown') keysHeld.down = false;
-  else if (e.key === 'ArrowLeft') keysHeld.left = false;
-  else if (e.key === 'ArrowRight') keysHeld.right = false;
-});
-
-// 모바일 360도 가상 조이스틱
-const joystickZone = document.getElementById('joystickZone');
-const joystickBase = document.getElementById('joystickBase');
-const joystickStick = document.getElementById('joystickStick');
-let joystickTouchId = null;
-let isJoystickMouseDown = false;
-
-function updateJoystickByPoint(clientX, clientY) {
-  if (!joystickBase || !joystickStick) return;
-  const rect = joystickBase.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const dx = clientX - cx;
-  const dy = clientY - cy;
-  const dist = Math.hypot(dx, dy);
-  const maxRadius = 26;
-  const deadzone = 5;
-
-  let clampedX = dx;
-  let clampedY = dy;
-  if (dist > maxRadius) {
-    clampedX = (dx / dist) * maxRadius;
-    clampedY = (dy / dist) * maxRadius;
-  }
-  joystickStick.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
-
-  if (dist >= deadzone) {
-    joyVector.vx = dx / dist;
-    joyVector.vy = dy / dist;
-    joyVector.active = true;
-  } else {
-    joyVector.vx = 0;
-    joyVector.vy = 0;
-    joyVector.active = false;
-  }
-}
-
-function resetJoystick() {
-  joystickTouchId = null;
-  isJoystickMouseDown = false;
-  joyVector.vx = 0;
-  joyVector.vy = 0;
-  joyVector.active = false;
-  if (joystickStick) {
-    joystickStick.classList.remove('active');
-    joystickStick.style.transform = 'translate(0px, 0px)';
-  }
-}
-
-if (joystickZone) {
-  joystickZone.addEventListener('touchstart', (e) => {
-    if (e.cancelable) e.preventDefault();
-    if (joystickTouchId !== null) return;
-    const touch = e.changedTouches[0];
-    joystickTouchId = touch.identifier;
-    joystickStick.classList.add('active');
-    updateJoystickByPoint(touch.clientX, touch.clientY);
-  }, { passive: false });
-
-  joystickZone.addEventListener('touchmove', (e) => {
-    if (e.cancelable) e.preventDefault();
-    if (joystickTouchId === null) return;
-    for (let i = 0; i < e.changedTouches.length; i++) {
-      if (e.changedTouches[i].identifier === joystickTouchId) {
-        updateJoystickByPoint(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
-        break;
-      }
-    }
-  }, { passive: false });
-
-  const handleJoystickTouchEnd = (e) => {
-    if (joystickTouchId === null) return;
-    for (let i = 0; i < e.changedTouches.length; i++) {
-      if (e.changedTouches[i].identifier === joystickTouchId) {
-        resetJoystick();
-        break;
-      }
-    }
-  };
-  joystickZone.addEventListener('touchend', handleJoystickTouchEnd);
-  joystickZone.addEventListener('touchcancel', handleJoystickTouchEnd);
-
-  joystickZone.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    isJoystickMouseDown = true;
-    joystickStick.classList.add('active');
-    updateJoystickByPoint(e.clientX, e.clientY);
-  });
-  window.addEventListener('mousemove', (e) => {
-    if (!isJoystickMouseDown) return;
-    updateJoystickByPoint(e.clientX, e.clientY);
-  });
-  window.addEventListener('mouseup', () => {
-    if (isJoystickMouseDown) resetJoystick();
-  });
-}
-
-window.addEventListener('blur', () => {
-  keysHeld.up = keysHeld.down = keysHeld.left = keysHeld.right = false;
-  resetJoystick();
-  stopAuraHold();
-  stopAttackHold();
-  stopEnhanceHold();
-});
-
-function sendChatMessage() {
-  if (!socket) return;
-  const msg = chatInput.value.trim();
-  if (msg) {
-    socket.emit('sendChat', msg);
-    chatInput.value = '';
-  }
-}
-sendBtn.addEventListener('click', sendChatMessage);
-
-// ================= [2.5D 입체 그림자 & 배경/오브젝트/캐릭터 렌더러] =================
-
-// 2.5D 비스듬히 뻗는 실루엣 그림자 헬퍼
-function drawAngledShadow(cx, baseY, rx = 13, ry = 5.5, skewX = 7, skewY = -4) {
-  ctx.save();
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.36)';
-  ctx.beginPath();
-  ctx.ellipse(cx + skewX * 0.45, baseY + skewY * 0.35, rx * 1.12, ry * 1.1, -0.28, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.52)';
-  ctx.beginPath();
-  ctx.ellipse(cx, baseY, rx * 0.85, ry * 0.78, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-// 브론즈 디어 크레스트
-function drawBronzeDeerCrest(cx, cy, scale = 1) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(scale, scale);
-
-  ctx.strokeStyle = '#d97706';
-  ctx.fillStyle = 'rgba(69, 10, 10, 0.88)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const a = -Math.PI / 2 + (Math.PI * 2 / 6) * i;
-    const x = Math.cos(a) * 18;
-    const y = Math.sin(a) * 18;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.strokeStyle = '#fbbf24';
-  ctx.fillStyle = '#f59e0b';
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.moveTo(0, 10);
-  ctx.lineTo(-6, -1);
-  ctx.lineTo(0, -6);
-  ctx.lineTo(6, -1);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(-3, -4); ctx.lineTo(-10, -13); ctx.lineTo(-13, -9);
-  ctx.moveTo(-7, -9); ctx.lineTo(-5, -15);
-  ctx.moveTo(3, -4); ctx.lineTo(10, -13); ctx.lineTo(13, -9);
-  ctx.moveTo(7, -9); ctx.lineTo(5, -15);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-// 2.5D 지형 장애물 렌더러 (입체 고목나무, 마력 수정 바위, 고딕 기둥/테이블)
-function drawObstacle25D(obs, time) {
-  const px = obs.x * TILE_SIZE;
-  const py = obs.y * TILE_SIZE;
-  const cx = px + 20;
-  const cy = py + 20;
-
-  ctx.save();
-  if (obs.type === 'forest_tree') {
-    drawAngledShadow(cx + 3, py + 36, 20, 8, 12, -5);
-
-    // 나무 기둥 및 뿌리 명암
-    const trunkGrad = ctx.createLinearGradient(cx - 8, py + 12, cx + 8, py + 37);
-    trunkGrad.addColorStop(0, '#78350f');
-    trunkGrad.addColorStop(0.5, '#5c280b');
-    trunkGrad.addColorStop(1, '#3b1806');
-    ctx.fillStyle = trunkGrad;
-    ctx.strokeStyle = '#1c0a02';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(cx - 6, py + 12);
-    ctx.lineTo(cx - 10, py + 36);
-    ctx.lineTo(cx + 10, py + 36);
-    ctx.lineTo(cx + 6, py + 12);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 풍성한 3단 입체 잎사귀 캐노피
-    const sway = Math.sin(time * 0.002 + obs.x) * 1.2;
-    const layers = [
-      { ox: 0 + sway, oy: -4, r: 21, col: '#14532d' },
-      { ox: -10 + sway, oy: 2, r: 15, col: '#166534' },
-      { ox: 11 + sway, oy: 3, r: 15, col: '#15803d' },
-      { ox: -4 + sway, oy: -9, r: 16, col: '#22c55e' },
-      { ox: 5 + sway, oy: -12, r: 12, col: '#4ade80' },
-      { ox: -2 + sway, oy: -15, r: 7, col: '#86efac' }
-    ];
-    layers.forEach((lf, idx) => {
-      ctx.fillStyle = lf.col;
-      ctx.beginPath();
-      ctx.arc(cx + lf.ox, cy + lf.oy, lf.r, 0, Math.PI * 2);
-      ctx.fill();
-      if (idx < 3) {
-        ctx.strokeStyle = '#052e16';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-    });
-  } else if (obs.type === 'crystal_rock') {
-    drawAngledShadow(cx + 2, py + 35, 17, 6.5, 9, -4);
-
-    // 입체 바위 베이스
-    ctx.fillStyle = '#334155';
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.moveTo(px + 5, py + 34);
-    ctx.lineTo(px + 9, py + 16);
-    ctx.lineTo(px + 22, py + 12);
-    ctx.lineTo(px + 35, py + 20);
-    ctx.lineTo(px + 34, py + 34);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 바위 상단 하이라이트 면
-    ctx.fillStyle = '#64748b';
-    ctx.beginPath();
-    ctx.moveTo(px + 9, py + 16);
-    ctx.lineTo(px + 22, py + 12);
-    ctx.lineTo(px + 26, py + 22);
-    ctx.lineTo(px + 12, py + 24);
-    ctx.closePath();
-    ctx.fill();
-
-    // 빛나는 마력 수정 클러스터
-    const pulse = 0.75 + Math.sin(time * 0.005 + obs.x) * 0.25;
-    ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 10 * pulse;
-    ctx.fillStyle = '#38bdf8';
-    ctx.strokeStyle = '#bae6fd';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(cx - 2, py + 24);
-    ctx.lineTo(cx - 6, py + 6);
-    ctx.lineTo(cx + 1, py + 2);
-    ctx.lineTo(cx + 5, py + 22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#7dd3fc';
-    ctx.beginPath();
-    ctx.moveTo(cx + 4, py + 26);
-    ctx.lineTo(cx + 8, py + 10);
-    ctx.lineTo(cx + 13, py + 14);
-    ctx.lineTo(cx + 9, py + 27);
-    ctx.closePath();
-    ctx.fill();
-  } else if (obs.type === 'gate_pillar' || obs.type === 'pillar') {
-    drawAngledShadow(cx + 2, py + 36, 15, 6, 10, -4);
-    const pGrad = ctx.createLinearGradient(px + 8, py, px + 32, py);
-    pGrad.addColorStop(0, '#475569');
-    pGrad.addColorStop(0.4, '#64748b');
-    pGrad.addColorStop(1, '#1e293b');
-    ctx.fillStyle = pGrad;
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.roundRect(px + 8, py - 6, 24, 42, 4);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#d97706';
-    ctx.fillRect(px + 6, py - 8, 28, 5);
-    ctx.fillRect(px + 6, py + 32, 28, 5);
-  } else {
-    drawAngledShadow(cx, py + 36, 15, 5, 6, -3);
-    ctx.fillStyle = '#451a03';
-    ctx.strokeStyle = '#d97706';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.roundRect(px + 5, py + 8, 30, 26, 4);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#78350f';
-    ctx.fillRect(px + 8, py + 11, 24, 8);
-  }
-  ctx.restore();
-}
-
-// NPC 3인 전용 2.5D 아카데미 룩 렌더러
-function drawWizardNPC(npc, time) {
-  const rx = npc.x * TILE_SIZE;
-  const ry = npc.y * TILE_SIZE;
-  const cx = rx + 20;
-  const breathe = Math.sin(time * 0.003 + npc.x) * 1;
-
-  ctx.save();
-  drawAngledShadow(cx, ry + 36, 13, 5, 7, -4);
-
-  const bodyY = ry + 15 + breathe;
-  const headY = ry + 8 + breathe;
-
-  if (npc.id === 'npc_helicopter') {
-    ctx.fillStyle = '#1e3a8a';
-    ctx.strokeStyle = '#090507';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(cx - 8.5, bodyY, 17, 20, 3);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#fef08a';
-    ctx.fillRect(cx - 1, bodyY + 3, 2, 12);
-
-    ctx.fillStyle = '#fde6d2';
-    ctx.beginPath();
-    ctx.arc(cx, headY + 2, 7.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#1e293b';
-    ctx.beginPath();
-    ctx.arc(cx, headY - 1, 8.8, Math.PI, 0);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.strokeStyle = '#090507';
-    ctx.fillStyle = 'rgba(224, 242, 254, 0.55)';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.arc(cx - 3.3, headY + 2.5, 2.8, 0, Math.PI * 2);
-    ctx.arc(cx + 3.3, headY + 2.5, 2.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.moveTo(cx + 12, bodyY + 14);
-    ctx.lineTo(cx + 16, bodyY - 12);
-    ctx.stroke();
-    ctx.fillStyle = '#38bdf8';
-    ctx.beginPath();
-    ctx.arc(cx + 16, bodyY - 14, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-
-  } else if (npc.id === 'npc_nong') {
-    ctx.fillStyle = '#7f1d1d';
-    ctx.strokeStyle = '#090507';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(cx - 9, bodyY);
-    ctx.lineTo(cx - 13, bodyY + 20);
-    ctx.lineTo(cx + 13, bodyY + 20);
-    ctx.lineTo(cx + 9, bodyY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#fde6d2';
-    ctx.beginPath();
-    ctx.arc(cx, headY + 2, 7.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#ea580c';
-    ctx.beginPath();
-    ctx.arc(cx, headY - 1.5, 8.8, Math.PI, 0);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#b91c1c';
-    ctx.fillRect(cx - 8, bodyY - 1, 16, 4);
-
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.moveTo(cx - 12, bodyY + 16);
-    ctx.lineTo(cx - 16, bodyY - 10);
-    ctx.stroke();
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.arc(cx - 16, bodyY - 12, 3.8, 0, Math.PI * 2);
-    ctx.fill();
-
-  } else if (npc.id === 'npc_haerin') {
-    ctx.fillStyle = '#fffbeb';
-    ctx.strokeStyle = '#090507';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(cx - 8, bodyY, 16, 13, 3);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#881337';
-    ctx.beginPath();
-    ctx.moveTo(cx - 11, bodyY + 10);
-    ctx.lineTo(cx, bodyY + 21);
-    ctx.lineTo(cx + 11, bodyY + 10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#fde6d2';
-    ctx.beginPath();
-    ctx.arc(cx, headY + 2, 7.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#b45309';
-    ctx.beginPath();
-    ctx.arc(cx, headY - 1.5, 9, Math.PI, 0);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(cx + 12, bodyY + 16);
-    ctx.lineTo(cx + 12, bodyY - 14);
-    ctx.stroke();
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.arc(cx + 12, bodyY - 16, 4, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  ctx.font = 'bold 11px "DungGeunMo"';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#facc15';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 3;
-  ctx.strokeText(`[NPC] ${npc.name}`, cx, ry - 7);
-  ctx.fillText(`[NPC] ${npc.name}`, cx, ry - 7);
-
-  ctx.restore();
-}
-
-// 몬스터 3종 2.5D 입체 렌더러 (보간 좌표 적용)
-function drawMonster(m, time) {
-  if (!m.alive) return;
-  const rx = m.renderX !== undefined ? m.renderX : m.x * TILE_SIZE;
-  const ry = m.renderY !== undefined ? m.renderY : m.y * TILE_SIZE;
-  const cx = rx + 20;
-  const cy = ry + 20;
-  const isHitFlash = m.hitFlashTime && (time - m.hitFlashTime < 120);
-
-  ctx.save();
-  drawAngledShadow(cx, ry + 36, 12, 4.5, 6, -3);
-
-  if (m.type === 'mandrake') {
-    const bounce = Math.sin(time * 0.008 + rx) * 1.5;
-    const bodyGrad = ctx.createRadialGradient(cx - 3, cy + 2 + bounce, 2, cx, cy + 5 + bounce, 11);
-    bodyGrad.addColorStop(0, isHitFlash ? '#ffffff' : '#d97706');
-    bodyGrad.addColorStop(1, '#78350f');
-    ctx.fillStyle = bodyGrad;
-    ctx.strokeStyle = '#1c0a02';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.arc(cx, cy + 5 + bounce, 9.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // 귀여운 눈
-    ctx.fillStyle = '#090507';
-    ctx.beginPath();
-    ctx.arc(cx - 3.2, cy + 4 + bounce, 1.4, 0, Math.PI * 2);
-    ctx.arc(cx + 3.2, cy + 4 + bounce, 1.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 머리 위 싱그러운 잎사귀
-    ctx.fillStyle = '#22c55e';
-    ctx.strokeStyle = '#052e16';
-    ctx.lineWidth = 1.3;
-    ctx.beginPath();
-    ctx.ellipse(cx - 5, cy - 7 + bounce, 6, 3.2, -0.5, 0, Math.PI * 2);
-    ctx.ellipse(cx + 5, cy - 7 + bounce, 6, 3.2, 0.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-  } else if (m.type === 'slime') {
-    const squash = Math.sin(time * 0.009) * 2.2;
-    const sGrad = ctx.createRadialGradient(cx - 4, cy + 2 + squash, 2, cx, cy + 6 + squash, 15);
-    sGrad.addColorStop(0, isHitFlash ? '#ffffff' : '#c084fc');
-    sGrad.addColorStop(0.6, '#7e22ce');
-    sGrad.addColorStop(1, '#3b0764');
-    ctx.fillStyle = sGrad;
-    ctx.strokeStyle = '#1e0536';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + 6 + squash, 14.5, 10.5 - squash * 0.7, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // 젤리 하이라이트 광택
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-    ctx.beginPath();
-    ctx.ellipse(cx - 5, cy + 1 + squash, 3.8, 1.8, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#fef08a';
-    ctx.beginPath();
-    ctx.arc(cx - 4, cy + 5 + squash, 1.8, 0, Math.PI * 2);
-    ctx.arc(cx + 4, cy + 5 + squash, 1.8, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (m.type === 'wolf') {
-    const prowl = Math.sin(time * 0.012) * 1.5;
-    ctx.fillStyle = isHitFlash ? '#ffffff' : '#475569';
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 1.7;
-    ctx.beginPath();
-    ctx.moveTo(cx - 14, cy + 11);
-    ctx.lineTo(cx - 10, cy - 3 + prowl);
-    ctx.lineTo(cx - 6, cy - 10 + prowl);
-    ctx.lineTo(cx - 2, cy - 4 + prowl);
-    ctx.lineTo(cx + 2, cy - 4 + prowl);
-    ctx.lineTo(cx + 6, cy - 10 + prowl);
-    ctx.lineTo(cx + 10, cy - 3 + prowl);
-    ctx.lineTo(cx + 14, cy + 11);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.arc(cx - 4, cy + 1 + prowl, 1.8, 0, Math.PI * 2);
-    ctx.arc(cx + 4, cy + 1 + prowl, 1.8, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 몬스터 체력바
-  const barW = 32;
-  const barH = 4.5;
-  const bx = cx - barW / 2;
-  const by = ry + 2;
-  const hpRatio = Math.max(0, m.hp / m.maxHp);
-
-  ctx.fillStyle = 'rgba(0,0,0,0.82)';
-  ctx.fillRect(bx, by, barW, barH);
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(bx, by, barW * hpRatio, barH);
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(bx, by, barW, barH);
-
-  ctx.restore();
-}
-
-// 웅장한 지팡이 렌더러
-function drawEvolvedWand(handX, handY, rightSideSign, wandLv, time) {
-  const lv = Math.min(30, Math.max(0, wandLv || 0));
-  const shaftLen = 9 + lv * 0.68;
-  const tipX = handX + rightSideSign * (4 + lv * 0.22);
-  const tipY = handY - shaftLen;
-  const hue = (200 + lv * 12) % 360;
-
-  ctx.save();
-
-  ctx.strokeStyle = lv === 0 ? '#78350f' : (lv < 10 ? `hsl(${30 + lv * 10}, 75%, 52%)` : `hsl(${hue}, 90%, 65%)`);
-  ctx.lineWidth = 1.6 + lv * 0.08;
-  if (lv >= 5) {
-    ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-    ctx.shadowBlur = Math.min(18, lv * 0.6);
-  }
-  ctx.beginPath();
-  ctx.moveTo(handX - rightSideSign * 1.5, handY + 5);
-  ctx.lineTo(tipX, tipY);
-  ctx.stroke();
-
-  if (lv >= 1) {
-    const orbRadius = 1.9 + lv * 0.16;
-    ctx.fillStyle = lv >= 20 ? '#fef08a' : `hsl(${hue}, 100%, 70%)`;
-    ctx.beginPath();
-    ctx.arc(tipX, tipY, orbRadius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (lv >= 3) {
-    const wingCount = 1 + Math.floor(lv / 8);
-    const wingSpan = 4 + lv * 0.35;
-    ctx.strokeStyle = `hsl(${(hue + 45) % 360}, 95%, 68%)`;
-    ctx.lineWidth = 1.2 + lv * 0.03;
-    for (let w = 0; w < wingCount; w++) {
-      const spread = (w + 1) * 2.2;
-      ctx.beginPath();
-      ctx.moveTo(tipX - wingSpan, tipY + spread);
-      ctx.lineTo(tipX, tipY - 2);
-      ctx.lineTo(tipX + wingSpan, tipY + spread);
-      ctx.stroke();
-    }
-  }
-
-  if (lv >= 2) {
-    const ringLayers = Math.min(6, 1 + Math.floor(lv / 5));
-    for (let r = 0; r < ringLayers; r++) {
-      const rad = 4.5 + lv * 0.32 + r * 2.6;
-      ctx.save();
-      ctx.translate(tipX, tipY);
-      ctx.rotate(time * 0.004 * (r % 2 === 0 ? 1 : -1) * (1 + lv * 0.03) + r);
-      ctx.strokeStyle = r % 2 === 0 ? `hsl(${hue}, 100%, 72%)` : '#fef08a';
-      ctx.lineWidth = 1.1;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, rad, rad * 0.45, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-
-  if (lv >= 2) {
-    const orbiterCount = Math.floor(lv / 2);
-    const orbitR = 5 + lv * 0.42;
-    for (let i = 0; i < orbiterCount; i++) {
-      const ang = time * 0.006 + (Math.PI * 2 / orbiterCount) * i;
-      const ox = tipX + Math.cos(ang) * orbitR;
-      const oy = tipY + Math.sin(ang) * orbitR * 0.6;
-      ctx.fillStyle = i % 2 === 0 ? '#fef08a' : `hsl(${(hue + i * 25) % 360}, 100%, 75%)`;
-      ctx.beginPath();
-      ctx.arc(ox, oy, 1.3 + lv * 0.04, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  if (lv >= 10) {
-    const boltCount = 1 + Math.floor((lv - 10) / 3);
-    const boltReach = 6 + (lv - 10) * 0.8;
-    ctx.lineWidth = 1.2;
-    for (let b = 0; b < boltCount; b++) {
-      const bAng = time * 0.02 + b * 2.1;
-      ctx.strokeStyle = b % 2 === 0 ? '#fef08a' : `hsl(${(hue + 80) % 360}, 100%, 75%)`;
-      ctx.beginPath();
-      ctx.moveTo(tipX, tipY);
-      ctx.lineTo(tipX + Math.cos(bAng) * (boltReach * 0.5), tipY + Math.sin(bAng) * (boltReach * 0.5));
-      ctx.lineTo(tipX + Math.cos(bAng + 0.3) * boltReach, tipY + Math.sin(bAng + 0.3) * boltReach);
-      ctx.stroke();
-    }
-  }
-
-  ctx.restore();
-}
-
-// 2.5D SD 캐릭터 렌더러 (외곽선·머리카락 하이라이트 광택·대각선 그림자 적용)
-function drawEvolvedStudent(rx, ry, p, time) {
-  const cx = rx + 20;
-  const c = p.character || {};
-  const isFemale = c.gender === 'female';
-
-  const rArmLv = getEffectiveLevel('education', c);
-  const rLegLv = getEffectiveLevel('appearance', c);
-  const lArmLv = getEffectiveLevel('wealth', c);
-  const headLv = getEffectiveLevel('iq', c);
-  const torsoLv = getEffectiveLevel('stamina', c);
-  const lLegLv = getEffectiveLevel('personality', c);
-  const wandLv = c.wand || 0;
-
-  const rArmTier = getPartEffectTier(rArmLv);
-  const rLegTier = getPartEffectTier(rLegLv);
-  const lArmTier = getPartEffectTier(lArmLv);
-  const headTier = getPartEffectTier(headLv);
-  const torsoTier = getPartEffectTier(torsoLv);
-  const lLegTier = getPartEffectTier(lLegLv);
-
-  const isMoving = (time - (p.lastRenderMoveTime || 0)) < 110;
-  const swingSpeed = p.sprint ? 0.036 : 0.022;
-  const swing = isMoving ? Math.sin(time * swingSpeed) * 4.5 : 0;
-  const breathe = Math.sin(time * 0.004 + rx * 0.1) * 1;
-  const bodyY = ry + 15 + breathe * 0.6;
-  const headY = ry + 7.5 + breathe;
-  const hairCol = p.color || (isFemale ? '#c026d3' : '#3b82f6');
-
-  const rightSideSign = (p.dir === 'up') ? 1 : -1;
-  const leftSideSign = -rightSideSign;
-
-  const charRightLegCenterX = cx + rightSideSign * 4;
-  const charLeftLegCenterX  = cx + leftSideSign * 4;
-  const charRightArmCenterX = cx + rightSideSign * 9.5;
-  const charLeftArmCenterX  = cx + leftSideSign * 9.5;
-
-  ctx.save();
-
-  // 2.5D 대각선 실루엣 그림자
-  drawAngledShadow(cx, ry + 36, 13.5, 5, 7, -4);
-
-  if (torsoTier > 0) {
-    const wingPairs = Math.min(7, 1 + Math.floor(torsoTier / 14));
-    const wingSpan = 20 + Math.min(48, torsoTier * 0.45) + Math.sin(time * 0.008) * 3;
-    const hue = (200 + torsoTier * 15) % 360;
-
-    ctx.save();
-    ctx.translate(cx, ry + 20 + breathe);
-    ctx.strokeStyle = `hsl(${hue}, 95%, 65%)`;
-    ctx.fillStyle = `hsla(${hue}, 90%, 55%, 0.28)`;
-    ctx.lineWidth = 1.8;
-
-    for (let w = 0; w < wingPairs; w++) {
-      const spread = (w - (wingPairs - 1) / 2) * 0.28;
-      const subSpan = wingSpan * (1 - w * 0.08);
-      for (const side of [-1, 1]) {
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(side * subSpan, -15 + spread * 24);
-        ctx.lineTo(side * subSpan * 0.72, -2 + spread * 24);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
-
-  if (isFemale && p.dir !== 'up') {
-    const hairSway = isMoving ? Math.sin(time * 0.02) * 2.5 : Math.sin(time * 0.004) * 1;
-    ctx.fillStyle = hairCol;
-    ctx.strokeStyle = '#090507';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(cx - 9.5, headY + 1);
-    ctx.quadraticCurveTo(cx - 13.5 + hairSway, headY + 14, cx - 10.5 + hairSway, headY + 23);
-    ctx.lineTo(cx + 10.5 + hairSway, headY + 23);
-    ctx.quadraticCurveTo(cx + 13.5 + hairSway, headY + 14, cx + 9.5, headY + 1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  const rLegY = ry + 28 - swing * 0.6;
-  const lLegY = ry + 28 + swing * 0.6;
-
-  ctx.fillStyle = rLegLv >= 20 ? '#991b1b' : (rLegLv >= 10 ? '#78350f' : '#1c1917');
-  ctx.strokeStyle = rLegLv >= 15 ? '#fbbf24' : '#090507';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(charRightLegCenterX - 2.6, rLegY, 5.2, 8, 2);
-  ctx.fill();
-  ctx.stroke();
-
-  if (rLegTier > 0) {
-    const flameCount = Math.min(12, 2 + Math.floor(rLegTier / 8));
-    const flameHeight = 8 + Math.min(26, rLegTier * 0.25);
-    const hue = (15 + rLegTier * 11) % 360;
-    ctx.fillStyle = `hsl(${hue}, 95%, 60%)`;
-    for (let f = 0; f < flameCount; f++) {
-      const phase = (time * 0.035 + f * 3.7) % flameHeight;
-      const fx = charRightLegCenterX + Math.sin(time * 0.01 + f) * (3 + rLegTier * 0.05);
-      ctx.fillRect(fx - 1.2, rLegY + 7 - phase, 2.4, 3.8);
-    }
-  }
-
-  ctx.fillStyle = lLegLv >= 20 ? '#581c87' : (lLegLv >= 10 ? '#334155' : '#1c1917');
-  ctx.strokeStyle = lLegLv >= 15 ? '#c084fc' : '#090507';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(charLeftLegCenterX - 2.6, lLegY, 5.2, 8, 2);
-  ctx.fill();
-  ctx.stroke();
-
-  if (lLegTier > 0) {
-    const waveRings = Math.min(6, 1 + Math.floor(lLegTier / 18));
-    const maxW = 7 + Math.min(22, lLegTier * 0.22);
-    const hue = (270 + lLegTier * 13) % 360;
-    ctx.strokeStyle = `hsl(${hue}, 90%, 68%)`;
-    ctx.lineWidth = 1.5;
-    for (let w = 0; w < waveRings; w++) {
-      const pulse = ((time * 0.004 + w / waveRings) % 1);
-      ctx.beginPath();
-      ctx.ellipse(charLeftLegCenterX, lLegY + 7, maxW * pulse, 2.8 * pulse + 1, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  }
-
-  let robeColor = '#1e1620';
-  let trimColor = '#d97706';
-  if (torsoLv >= 20) { robeColor = '#3b0f38'; trimColor = '#f43f5e'; }
-  else if (torsoLv >= 10) { robeColor = '#2d1822'; trimColor = '#f59e0b'; }
-
-  ctx.fillStyle = robeColor;
-  ctx.strokeStyle = trimColor;
-  ctx.lineWidth = torsoLv >= 15 ? 1.8 : 1.4;
-  ctx.beginPath();
-  ctx.moveTo(cx - 8, bodyY);
-  ctx.lineTo(cx - 11, bodyY + 15);
-  ctx.lineTo(cx + 11, bodyY + 15);
-  ctx.lineTo(cx + 8, bodyY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#dc2626';
-  ctx.beginPath();
-  ctx.moveTo(cx - 2.2, bodyY);
-  ctx.lineTo(cx, bodyY + 9);
-  ctx.lineTo(cx + 2.2, bodyY);
-  ctx.closePath();
-  ctx.fill();
-
-  if (torsoLv >= 15) {
-    ctx.fillStyle = torsoTier > 0 ? '#ef4444' : '#d97706';
-    ctx.beginPath();
-    ctx.arc(cx, bodyY + 6, torsoTier > 0 ? 3.2 + Math.min(3, torsoTier * 0.03) : 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  const rArmY = bodyY + 1 + swing * 0.4;
-  const lArmY = bodyY + 1 - swing * 0.4;
-
-  ctx.fillStyle = rArmLv >= 20 ? '#0284c7' : (rArmLv >= 10 ? '#1e3a8a' : robeColor);
-  ctx.strokeStyle = rArmLv >= 10 ? '#38bdf8' : '#090507';
-  ctx.lineWidth = 1.3;
-  ctx.beginPath();
-  ctx.roundRect(charRightArmCenterX - 2.2, rArmY, 4.4, 11, 2);
-  ctx.fill();
-  ctx.stroke();
-
-  if (rArmTier > 0) {
-    const hue = (195 + rArmTier * 17) % 360;
-    const auraR = 5 + Math.min(12, rArmTier * 0.14);
-    ctx.strokeStyle = `hsl(${hue}, 95%, 62%)`;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.arc(charRightArmCenterX, rArmY + 5.5, auraR, 0, Math.PI * 2);
-    ctx.stroke();
-
-    const boltCount = Math.min(6, 1 + Math.floor(rArmTier / 15));
-    for (let b = 0; b < boltCount; b++) {
-      const ang = time * 0.04 + b * 1.5;
-      ctx.strokeStyle = b % 2 === 0 ? '#fde047' : `hsl(${(hue + 60) % 360}, 100%, 70%)`;
-      ctx.beginPath();
-      ctx.moveTo(charRightArmCenterX, rArmY + 5.5);
-      ctx.lineTo(charRightArmCenterX + Math.cos(ang) * (auraR + 4), rArmY + 5.5 + Math.sin(ang) * (auraR + 4));
-      ctx.stroke();
-    }
-  }
-
-  drawEvolvedWand(charRightArmCenterX, rArmY + 6, rightSideSign, wandLv, time);
-
-  ctx.fillStyle = lArmLv >= 20 ? '#facc15' : (lArmLv >= 10 ? '#b45309' : robeColor);
-  ctx.strokeStyle = lArmLv >= 10 ? '#fef08a' : '#090507';
-  ctx.lineWidth = 1.3;
-  ctx.beginPath();
-  ctx.roundRect(charLeftArmCenterX - 2.2, lArmY, 4.4, 11, 2);
-  ctx.fill();
-  ctx.stroke();
-
-  if (lArmTier > 0) {
-    const shieldLayers = Math.min(6, 1 + Math.floor(lArmTier / 16));
-    const baseRad = 8 + Math.min(18, lArmTier * 0.18);
-    const hue = (45 + lArmTier * 9) % 360;
-
-    ctx.save();
-    ctx.translate(charLeftArmCenterX + leftSideSign * 2, lArmY + 5);
-    for (let s = 0; s < shieldLayers; s++) {
-      ctx.save();
-      ctx.rotate(time * 0.005 * (s % 2 === 0 ? 1 : -1) + s * 0.5);
-      ctx.strokeStyle = s === 0 ? '#facc15' : `hsl(${hue}, 95%, 65%)`;
-      ctx.lineWidth = 1.4;
-      const r = baseRad + s * 3;
-      ctx.strokeRect(-r / 2, -r / 2, r, r);
-      ctx.restore();
-    }
-    ctx.restore();
-  }
-
-  // 얼굴 (2.5D 비율 및 선명한 외곽선)
-  ctx.fillStyle = '#fde6d2';
-  ctx.strokeStyle = '#090507';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.arc(cx, headY + 1.8, 8.2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  if (p.dir === 'up') {
-    ctx.fillStyle = hairCol;
-    ctx.strokeStyle = '#090507';
-    ctx.lineWidth = 1.4;
-    if (isFemale) {
-      const hairSway = isMoving ? Math.sin(time * 0.02) * 2.5 : 0;
-      ctx.beginPath();
-      ctx.arc(cx, headY, 9.4, Math.PI, 0);
-      ctx.lineTo(cx + 10.5 + hairSway, headY + 23);
-      ctx.quadraticCurveTo(cx + hairSway, headY + 26, cx - 10.5 + hairSway, headY + 23);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.arc(cx, headY, 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    }
-  } else {
-    const eyeOff = p.dir === 'left' ? -2 : (p.dir === 'right' ? 2 : 0);
-
-    // 눈동자 & 하이라이트
-    ctx.fillStyle = headTier > 0 ? '#ef4444' : '#0f172a';
-    ctx.beginPath();
-    ctx.arc(cx - 3.4 + eyeOff, headY + 2.4, 1.6, 0, Math.PI * 2);
-    ctx.arc(cx + 3.4 + eyeOff, headY + 2.4, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(cx - 3.8 + eyeOff, headY + 1.9, 0.65, 0, Math.PI * 2);
-    ctx.arc(cx + 3.0 + eyeOff, headY + 1.9, 0.65, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 볼터치
-    ctx.fillStyle = 'rgba(244, 63, 94, 0.28)';
-    ctx.beginPath();
-    ctx.ellipse(cx - 5.2 + eyeOff * 0.6, headY + 4.3, 1.8, 1, 0, 0, Math.PI * 2);
-    ctx.ellipse(cx + 5.2 + eyeOff * 0.6, headY + 4.3, 1.8, 1, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 앞머리 & 정수리 볼륨 + 엔젤링 광택
-    ctx.fillStyle = hairCol;
-    ctx.strokeStyle = '#090507';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(cx - 9.4, headY + 2.2);
-    ctx.quadraticCurveTo(cx - 9.5, headY - 9.5, cx, headY - 10);
-    ctx.quadraticCurveTo(cx + 9.5, headY - 9.5, cx + 9.4, headY + 2.2);
-    ctx.lineTo(cx + 5, headY - 1.5);
-    ctx.lineTo(cx + 1, headY + 1.2);
-    ctx.lineTo(cx - 2.5, headY - 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 머리카락 광택(Specular Highlight)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.42)';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.arc(cx, headY - 1.5, 6.5, Math.PI * 1.18, Math.PI * 1.82);
-    ctx.stroke();
-
-    if (isFemale) {
-      ctx.fillStyle = '#f43f5e';
-      ctx.beginPath();
-      ctx.arc(cx - 6.8, headY - 4.5, 2.3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  if (headLv >= 10) {
-    ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(cx - 6, headY - 3);
-    ctx.lineTo(cx, headY - 1);
-    ctx.lineTo(cx + 6, headY - 3);
-    ctx.stroke();
-  }
-  if (headTier > 0) {
-    const haloRings = Math.min(6, 1 + Math.floor(headTier / 16));
-    const baseHaloW = 9 + Math.min(18, headTier * 0.18);
-    const hue = (50 + headTier * 19) % 360;
-
-    for (let h = 0; h < haloRings; h++) {
-      ctx.strokeStyle = h === 0 ? '#fef08a' : `hsl(${(hue + h * 40) % 360}, 95%, 65%)`;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.ellipse(
-        cx,
-        headY - 13 - h * 2.8,
-        baseHaloW - h * 1.2,
-        2.8,
-        Math.sin(time * 0.004 + h) * 0.18,
-        0,
-        Math.PI * 2
-      );
-      ctx.stroke();
-    }
-  }
-
-  ctx.restore();
-}
-
-// 메인 캔버스 렌더링 (클라이언트 즉시 이동 + 타 유저/몬스터 보간 + 2.5D 깊이 정렬)
-function drawGame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const time = Date.now();
-  const dt = Math.min(50, Math.max(1, time - lastRenderFrameTime));
-  lastRenderFrameTime = time;
-
-  if (!isWorldBgBaked) bakeWorldBackground();
-
-  // 1. 내 캐릭터 클라이언트 측 예측 즉시 이동
-  updateLocalPlayerMovement(dt, time);
-
-  // 2. 타 플레이어 부드러운 개체 보간 (Entity Interpolation)
-  Object.values(players).forEach(p => {
-    if (p.id === myId) return;
-    const targetX = p.x * TILE_SIZE;
-    const targetY = p.y * TILE_SIZE;
-    if (p.renderX === undefined) p.renderX = targetX;
-    if (p.renderY === undefined) p.renderY = targetY;
-
-    const remX = targetX - p.renderX;
-    const remY = targetY - p.renderY;
-    const remDist = Math.hypot(remX, remY);
-
-    if (remDist > TILE_SIZE * 4) {
-      p.renderX = targetX;
-      p.renderY = targetY;
-    } else if (remDist > 0.1) {
-      const interpSpeed = (p.sprint ? 9.5 : 5.4) * TILE_SIZE * (dt / 1000);
-      const step = Math.min(remDist, Math.max(interpSpeed, remDist * 0.22));
-      p.renderX += (remX / remDist) * step;
-      p.renderY += (remY / remDist) * step;
-      p.lastRenderMoveTime = time;
-    }
-  });
-
-  // 3. 사냥터 몬스터 부드러운 개체 보간
-  Object.values(monsters).forEach(m => {
-    const targetX = m.x * TILE_SIZE;
-    const targetY = m.y * TILE_SIZE;
-    if (m.renderX === undefined) m.renderX = targetX;
-    if (m.renderY === undefined) m.renderY = targetY;
-
-    const remX = targetX - m.renderX;
-    const remY = targetY - m.renderY;
-    const remDist = Math.hypot(remX, remY);
-    if (remDist > TILE_SIZE * 3) {
-      m.renderX = targetX;
-      m.renderY = targetY;
-    } else if (remDist > 0.1) {
-      const mStep = Math.min(remDist, (TILE_SIZE * 2.4) * (dt / 1000));
-      m.renderX += (remX / remDist) * mStep;
-      m.renderY += (remY / remDist) * mStep;
-    }
-  });
-
-  const me = players[myId];
-  let camX = me ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, me.renderX - canvas.width / 2 + 20)) : 0;
-  let camY = me ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, me.renderY - canvas.height / 2 + 20)) : 0;
-
-  if (screenShakeMag > 0.1) {
-    camX += (Math.random() - 0.5) * screenShakeMag;
-    camY += (Math.random() - 0.5) * screenShakeMag;
-    screenShakeMag *= 0.82;
-  } else {
-    screenShakeMag = 0;
-  }
-
-  ctx.save();
-  ctx.translate(-camX, -camY);
-
-  // 1. 오프스크린 베이킹된 2.5D 바닥 이미지 출력
-  ctx.drawImage(worldBgCanvas, 0, 0);
-
-  // 기숙사 중앙 회전 아케인 마법진
-  ctx.save();
-  ctx.translate(400, 320);
-  ctx.rotate(time * 0.00045);
-  ctx.strokeStyle = 'rgba(251, 191, 36, 0.38)';
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.arc(0, 0, 116, 0, Math.PI * 2);
-  ctx.arc(0, 0, 92, 0, Math.PI * 2);
-  ctx.stroke();
-
-  for (let t = 0; t < 2; t++) {
-    ctx.beginPath();
-    for (let i = 0; i < 3; i++) {
-      const a = (t * Math.PI) + (Math.PI * 2 / 3) * i;
-      const vx = Math.cos(a) * 92;
-      const vy = Math.sin(a) * 92;
-      if (i === 0) ctx.moveTo(vx, vy);
-      else ctx.lineTo(vx, vy);
-    }
-    ctx.closePath();
-    ctx.stroke();
-  }
-  ctx.restore();
-  drawBronzeDeerCrest(400, 320, 1.3);
-
-  // 상단 벽난로, 고딕 창문
-  const fpX = 9 * TILE_SIZE;
-  const fpY = 1 * TILE_SIZE;
-  const fireGlow = ctx.createRadialGradient(fpX + 40, fpY + 28, 6, fpX + 40, fpY + 28, 145);
-  fireGlow.addColorStop(0, 'rgba(239, 68, 68, 0.48)');
-  fireGlow.addColorStop(0.5, 'rgba(245, 158, 11, 0.2)');
-  fireGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = fireGlow;
-  ctx.beginPath();
-  ctx.arc(fpX + 40, fpY + 28, 145, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#271c22';
-  ctx.strokeStyle = '#b45309';
-  ctx.lineWidth = 2;
-  ctx.fillRect(fpX - 6, fpY - 12, 92, 52);
-  ctx.strokeRect(fpX - 6, fpY - 12, 92, 52);
-
-  ctx.fillStyle = '#090406';
-  ctx.fillRect(fpX + 6, fpY + 4, 68, 34);
-  for (let i = 0; i < 5; i++) {
-    const fh = 14 + Math.sin(time * 0.015 + i * 1.3) * 8;
-    ctx.fillStyle = i % 2 === 0 ? '#dc2626' : '#f59e0b';
-    ctx.beginPath();
-    ctx.moveTo(fpX + 12 + i * 12, fpY + 38);
-    ctx.lineTo(fpX + 18 + i * 12, fpY + 38 - fh);
-    ctx.lineTo(fpX + 24 + i * 12, fpY + 38);
-    ctx.closePath();
-    ctx.fill();
-  }
-  drawBronzeDeerCrest(fpX + 40, fpY - 16, 0.9);
-
-  [2 * TILE_SIZE, 16 * TILE_SIZE].forEach(wx => {
-    ctx.fillStyle = '#1e1b4b';
-    ctx.strokeStyle = '#92400e';
-    ctx.lineWidth = 2;
-    ctx.fillRect(wx + 6, 8, 68, 64);
-    ctx.strokeRect(wx + 6, 8, 68, 64);
-
-    ctx.beginPath();
-    ctx.moveTo(wx + 40, 8); ctx.lineTo(wx + 40, 72);
-    ctx.moveTo(wx + 6, 40); ctx.lineTo(wx + 74, 40);
-    ctx.stroke();
-  });
-
-  // 발걸음 먼지 렌더링
-  footstepDusts = footstepDusts.filter(d => {
-    const el = time - d.born;
-    if (el > 320) return false;
-    const prog = el / 320;
-    ctx.save();
-    ctx.fillStyle = `rgba(214, 198, 175, ${(1 - prog) * 0.42})`;
-    ctx.beginPath();
-    ctx.arc(d.x, d.y - prog * 4, d.r * (1 + prog * 0.5), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    return true;
-  });
-
-  // 2.5D 깊이 정렬(Y-Sorting): 지형물, NPC, 몬스터, 플레이어를 Y좌표 순으로 정렬하여 입체 원근감 구현
-  const renderQueue = [];
-
-  obstacles.forEach(obs => {
-    if (obs.type && (obs.type.startsWith('npc_') || obs.type === 'fireplace' || obs.type === 'window')) return;
-    if (DORM_NPCS.some(n => n.x === obs.x && n.y === obs.y)) return;
-    renderQueue.push({
-      sortY: obs.y * TILE_SIZE + 34,
-      draw: () => drawObstacle25D(obs, time)
-    });
-  });
-
-  DORM_NPCS.forEach(npc => {
-    renderQueue.push({
-      sortY: npc.y * TILE_SIZE + 36,
-      draw: () => drawWizardNPC(npc, time)
-    });
-  });
-
-  Object.values(monsters).forEach(m => {
-    if (!m.alive) return;
-    const my = m.renderY !== undefined ? m.renderY : m.y * TILE_SIZE;
-    renderQueue.push({
-      sortY: my + 36,
-      draw: () => drawMonster(m, time)
-    });
-  });
-
-  Object.values(players).forEach(p => {
-    const ry = p.renderY !== undefined ? p.renderY : p.y * TILE_SIZE;
-    renderQueue.push({
-      sortY: ry + 36,
-      draw: () => {
-        const rx = p.renderX !== undefined ? p.renderX : p.x * TILE_SIZE;
-        const c = p.character || {};
-        drawEvolvedStudent(rx, ry, p, time);
-
-        const mainTitle = getSelectedOverheadTitle(c);
-        const combatPower = getTotalCombatPower(c);
-
-        ctx.font = 'bold 11px "DungGeunMo"';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = combatPower >= 100 ? '#f43f5e' : '#f59e0b';
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.strokeText(mainTitle, rx + 20, ry - 22);
-        ctx.fillText(mainTitle, rx + 20, ry - 22);
-
-        ctx.font = '12px "DungGeunMo"';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = (p.id === myId) ? '#38bdf8' : '#f8fafc';
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.strokeText(p.name, rx + 20, ry - 9);
-        ctx.fillText(p.name, rx + 20, ry - 9);
-
-        if (p.chatText) {
-          drawSpeechBubble(rx + 20, ry - 34, p.chatText);
-        }
-      }
-    });
-  });
-
-  renderQueue.sort((a, b) => a.sortY - b.sortY);
-  renderQueue.forEach(item => item.draw());
-
-  // 360도 마법 투사체 이동 및 충돌 판정 (Additive Glow)
-  projectiles = projectiles.filter(proj => {
-    proj.trail.push({ x: proj.x, y: proj.y });
-    const maxTrail = 6 + Math.floor(proj.wandLv * 0.5);
-    if (proj.trail.length > maxTrail) proj.trail.shift();
-
-    proj.x += proj.vx;
-    proj.y += proj.vy;
-
-    const tileX = Math.floor(proj.x / TILE_SIZE);
-    const tileY = Math.floor(proj.y / TILE_SIZE);
-
-    if (proj.x < 8 || proj.x > mapW * TILE_SIZE - 8 || proj.y < 8 || proj.y > mapH * TILE_SIZE - 8) {
-      spawnHitExplosion(proj.x, proj.y, proj.wandLv, false);
-      return false;
-    }
-
-    const hitMonster = Object.values(monsters).find(m => {
-      if (!m.alive) return false;
-      const mx = (m.renderX !== undefined ? m.renderX : m.x * TILE_SIZE) + 20;
-      const my = (m.renderY !== undefined ? m.renderY : m.y * TILE_SIZE) + 20;
-      return Math.hypot(proj.x - mx, proj.y - my) <= 23;
-    });
-
-    if (hitMonster) {
-      spawnHitExplosion(proj.x, proj.y, proj.wandLv, true);
-      if (proj.ownerId === myId) {
-        socket.emit('hitMonster', { monsterId: hitMonster.id });
-      }
-      return false;
-    }
-
-    const hitObs = obstacles.some(obs => obs.x === tileX && obs.y === tileY);
-    if (hitObs) {
-      spawnHitExplosion(proj.x, proj.y, proj.wandLv, false);
-      return false;
-    }
-
-    const lv = proj.wandLv;
-    const hue = (200 + lv * 14) % 360;
-    const coreR = 3.6 + lv * 0.32;
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < proj.trail.length; i++) {
-      const pt = proj.trail[i];
-      const ratio = (i + 1) / proj.trail.length;
-      ctx.fillStyle = `hsla(${hue}, 100%, 65%, ${ratio * 0.65})`;
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, coreR * ratio * 0.9, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.translate(proj.x, proj.y);
-    ctx.shadowColor = `hsl(${hue}, 100%, 65%)`;
-    ctx.shadowBlur = 10 + lv * 0.95;
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(0, 0, coreR, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = `hsl(${hue}, 100%, 68%)`;
-    ctx.lineWidth = 1.8 + lv * 0.06;
-    ctx.beginPath();
-    ctx.arc(0, 0, coreR + 2.8, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-
-    return true;
-  });
-
-  // 투사체 피격 폭발 이펙트
-  hitEffects = hitEffects.filter(eff => {
-    const elapsed = time - eff.born;
-    if (elapsed > eff.duration) return false;
-    const prog = elapsed / eff.duration;
-    const alpha = 1 - prog;
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.translate(eff.x, eff.y);
-    ctx.globalAlpha = alpha;
-    ctx.shadowColor = `hsl(${eff.hue}, 100%, 65%)`;
-    ctx.shadowBlur = 14 * alpha;
-
-    for (let r = 0; r < eff.ringCount; r++) {
-      const rad = eff.maxRadius * prog * (1 - r * 0.22);
-      ctx.strokeStyle = r % 2 === 0 ? `hsl(${eff.hue}, 100%, 70%)` : '#fef08a';
-      ctx.lineWidth = (3.0 - r * 0.4) * alpha;
-      ctx.beginPath();
-      ctx.arc(0, 0, Math.max(1, rad), 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    eff.sparks.forEach(sp => {
-      const dist = sp.spd * prog * 12;
-      const sx = Math.cos(sp.angle) * dist;
-      const sy = Math.sin(sp.angle) * dist;
-      ctx.fillStyle = sp.color;
-      ctx.beginPath();
-      ctx.arc(sx, sy, sp.size * alpha, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    ctx.restore();
-    return true;
-  });
-
-  // 피격 데미지 플로팅 텍스트
-  floatingDamages = floatingDamages.filter(fd => {
-    const elapsed = time - fd.born;
-    if (elapsed > 720) return false;
-    const prog = elapsed / 720;
-    ctx.save();
-    ctx.font = 'bold 13px "DungGeunMo"';
-    ctx.textAlign = 'center';
-    ctx.globalAlpha = 1 - prog;
-    ctx.fillStyle = fd.color;
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 3;
-    ctx.strokeText(fd.text, fd.x, fd.y - prog * 24);
-    ctx.fillText(fd.text, fd.x, fd.y - prog * 24);
-    ctx.restore();
-    return true;
-  });
-
-  // 기운 발산 이펙트 (Additive Glow)
-  burstEffects = burstEffects.filter(eff => {
-    const elapsed = time - eff.born;
-    if (elapsed > eff.duration) return false;
-
-    const progress = elapsed / eff.duration;
-    const alpha = 1 - progress;
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.translate(eff.cx, eff.cy);
-    ctx.shadowColor = eff.palette.glow;
-    ctx.shadowBlur = (16 + Math.min(26, eff.tier * 0.15)) * alpha;
-
-    for (let rIdx = 0; rIdx < eff.ringCount; rIdx++) {
-      const rScale = 1 - rIdx * (0.65 / eff.ringCount);
-      const r = eff.maxRadius * progress * rScale;
-
-      ctx.beginPath();
-      if (rIdx % 2 === 0) {
-        for (let i = 0; i < eff.polySides; i++) {
-          const a = (Math.PI * 2 / eff.polySides) * i + progress * (1.5 + rIdx * 0.4);
-          const hx = Math.cos(a) * r;
-          const hy = Math.sin(a) * r;
-          if (i === 0) ctx.moveTo(hx, hy);
-          else ctx.lineTo(hx, hy);
-        }
-        ctx.closePath();
-      } else {
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
-      }
-      ctx.strokeStyle = rIdx % 2 === 0 ? eff.palette.primary : eff.palette.ring;
-      ctx.lineWidth = (3.5 - rIdx * 0.25) * alpha;
-      ctx.globalAlpha = alpha;
-      ctx.stroke();
-    }
-
-    eff.particles.forEach(pt => {
-      ctx.fillStyle = pt.color;
-      ctx.strokeStyle = pt.color;
-      ctx.globalAlpha = alpha;
-
-      const curAngle = pt.angle + progress * (eff.tier * 0.012);
-      const dist = pt.speed * progress * 10;
-      const px = Math.cos(curAngle) * dist;
-      const py = Math.sin(curAngle) * dist;
-      const size = pt.size * (1 - progress * 0.35);
-
-      ctx.beginPath();
-      ctx.arc(px, py, size, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    ctx.restore();
-    return true;
-  });
-
-  // 배경 부유 촛불 & 반딧불이/불티 파티클
-  floatingCandles.forEach(cd => {
-    const hoverY = cd.y + Math.sin(time * 0.003 + cd.phase) * 5;
-    ctx.fillStyle = '#fef3c7';
-    ctx.fillRect(cd.x - 1.5, hoverY, 3, 9 * cd.scale);
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.arc(cd.x, hoverY - 2.5, 2.2 * cd.scale, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  emberParticles.forEach(em => {
-    em.x += em.vx;
-    em.y += em.vy;
-    if (em.y < 0) { em.y = canvas.height; em.x = Math.random() * (mapW * TILE_SIZE); }
-    if (em.x < 0) em.x = mapW * TILE_SIZE;
-    if (em.x > mapW * TILE_SIZE) em.x = 0;
-
-    ctx.fillStyle = em.x > 800 ? '#a3e635' : '#f59e0b';
-    ctx.globalAlpha = em.alpha;
-    ctx.beginPath();
-    ctx.arc(em.x, em.y, em.size * 0.7, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  ctx.restore();
-  requestAnimationFrame(drawGame);
-}
-
-function drawSpeechBubble(cx, cy, text) {
-  ctx.font = '12px "DungGeunMo"';
-  const textWidth = ctx.measureText(text).width;
-  const bw = Math.max(textWidth + 14, 34);
-  const bh = 22;
-  const bx = cx - bw / 2;
-  const by = cy - bh;
-
-  ctx.save();
-  ctx.fillStyle = 'rgba(12, 8, 12, 0.92)';
-  ctx.strokeStyle = '#f59e0b';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(bx, by, bw, bh, 4);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#fef08a';
-  ctx.textAlign = 'center';
-  ctx.fillText(text, cx, by + 15);
-  ctx.restore();
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  const token = localStorage.getItem('azaekaban_token');
-  const nick = localStorage.getItem('azaekaban_nickname');
-  if (token && nick) connectSocketGame(token, nick);
-});
-
-requestAnimationFrame(drawGame);
 </script>
-
+<script src="/game.js"></script>
 </body>
 </html>
