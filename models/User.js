@@ -35,16 +35,41 @@ const userSchema = new mongoose.Schema({
             enum: ['male', 'female'],
             default: 'male'
         },
-        // 6대 스탯 + 지팡이 강화단계(0~30강)
+        // 6대 스탯 + 기본 지팡이 호환 필드(0~30강)
         education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔)
         appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리)
         wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔)
         iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100)
         stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통)
         personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리)
-        wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (0~30강, 단계당 전투력 +10)
+        wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (하위 호환용)
 
-        // 그동안 거쳐간 모든 칭호를 자유롭게 적용하기 위한 역대 최고 달성 기록 (재력 -100강 폭락 시에도 칭호 보존)
+        // 현재 장착 중인 무기
+        equippedWeapon: {
+            type: String,
+            enum: ['wand', 'greatsword', 'daggers', 'bow', 'chakram'],
+            default: 'wand'
+        },
+
+        // 5종 무기별 개별 강화 단계 (0~30강, 장착 무기 단계당 전투력 +10)
+        weapons: {
+            wand: { type: Number, default: 0, min: 0, max: 30 },
+            greatsword: { type: Number, default: 0, min: 0, max: 30 },
+            daggers: { type: Number, default: 0, min: 0, max: 30 },
+            bow: { type: Number, default: 0, min: 0, max: 30 },
+            chakram: { type: Number, default: 0, min: 0, max: 30 }
+        },
+
+        // 대사부 NPC를 통해 전수(해금)받은 무기 목록
+        unlockedWeapons: {
+            wand: { type: Boolean, default: true },
+            greatsword: { type: Boolean, default: false },
+            daggers: { type: Boolean, default: false },
+            bow: { type: Boolean, default: false },
+            chakram: { type: Boolean, default: false }
+        },
+
+        // 그동안 거쳐간 모든 칭호 및 해금 조건을 보존하기 위한 역대 최고 달성 기록
         maxStats: {
             education: { type: Number, default: 0 },
             appearance: { type: Number, default: 0 },
@@ -52,7 +77,11 @@ const userSchema = new mongoose.Schema({
             iq: { type: Number, default: 100 },
             stamina: { type: Number, default: 0 },
             personality: { type: Number, default: 0 },
-            wand: { type: Number, default: 0 }
+            wand: { type: Number, default: 0 },
+            greatsword: { type: Number, default: 0 },
+            daggers: { type: Number, default: 0 },
+            bow: { type: Number, default: 0 },
+            chakram: { type: Number, default: 0 }
         },
 
         // 유저 커스텀 설정: 머리 위 표시 칭호 & 스페이스바 기운 색상
@@ -62,7 +91,7 @@ const userSchema = new mongoose.Schema({
         },
         titleStat: {
             type: String,
-            enum: ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality', 'wand'],
+            enum: ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality', 'wand', 'greatsword', 'daggers', 'bow', 'chakram'],
             default: 'education'
         },
         auraColor: {
