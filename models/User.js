@@ -36,36 +36,38 @@ const userSchema = new mongoose.Schema({
             default: 'male'
         },
         // 6대 스탯 + 기본 지팡이 호환 필드(0~30강)
-        education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔)
-        appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리)
-        wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔)
-        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100)
-        stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통)
-        personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리)
+        education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔 -> 망치 해금 & 50강 블랙홀)
+        appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리 -> 활 해금 & 50강 삼삼구샷)
+        wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔 -> 쌍수 해금 & 50강 새비지 블로우)
+        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100 -> 지팡이 50강 1+1)
+        stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통 -> 대검 해금 & 50강 GG)
+        personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리 -> 차크람 해금 & 50강 동서남북)
         wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (하위 호환용)
 
-        // 현재 장착 중인 무기
+        // 현재 장착 중인 무기 (6종)
         equippedWeapon: {
             type: String,
-            enum: ['wand', 'greatsword', 'daggers', 'bow', 'chakram'],
+            enum: ['wand', 'greatsword', 'hammer', 'bow', 'daggers', 'chakram'],
             default: 'wand'
         },
 
-        // 5종 무기별 개별 강화 단계 (0~30강, 장착 무기 단계당 전투력 +10)
+        // 6종 무기별 개별 강화 단계 (0~30강, 장착 무기 단계당 전투력 +10)
         weapons: {
             wand: { type: Number, default: 0, min: 0, max: 30 },
             greatsword: { type: Number, default: 0, min: 0, max: 30 },
-            daggers: { type: Number, default: 0, min: 0, max: 30 },
+            hammer: { type: Number, default: 0, min: 0, max: 30 },
             bow: { type: Number, default: 0, min: 0, max: 30 },
+            daggers: { type: Number, default: 0, min: 0, max: 30 },
             chakram: { type: Number, default: 0, min: 0, max: 30 }
         },
 
-        // 대사부 NPC를 통해 전수(해금)받은 무기 목록
+        // 대사부 NPC를 통해 전수(해금)받은 무기 목록 (6종)
         unlockedWeapons: {
             wand: { type: Boolean, default: true },
             greatsword: { type: Boolean, default: false },
-            daggers: { type: Boolean, default: false },
+            hammer: { type: Boolean, default: false },
             bow: { type: Boolean, default: false },
+            daggers: { type: Boolean, default: false },
             chakram: { type: Boolean, default: false }
         },
 
@@ -79,8 +81,9 @@ const userSchema = new mongoose.Schema({
             personality: { type: Number, default: 0 },
             wand: { type: Number, default: 0 },
             greatsword: { type: Number, default: 0 },
-            daggers: { type: Number, default: 0 },
+            hammer: { type: Number, default: 0 },
             bow: { type: Number, default: 0 },
+            daggers: { type: Number, default: 0 },
             chakram: { type: Number, default: 0 }
         },
 
@@ -91,7 +94,10 @@ const userSchema = new mongoose.Schema({
         },
         titleStat: {
             type: String,
-            enum: ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality', 'wand', 'greatsword', 'daggers', 'bow', 'chakram'],
+            enum: [
+                'education', 'appearance', 'wealth', 'iq', 'stamina', 'personality',
+                'wand', 'greatsword', 'hammer', 'bow', 'daggers', 'chakram'
+            ],
             default: 'education'
         },
         auraColor: {
