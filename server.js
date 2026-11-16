@@ -39,53 +39,86 @@ const ENHANCE_RATES = {
     25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 5종 무기 스펙 및 해금 조건 정의
+// 6종 무기 스펙, 해금 조건(+10강) 및 전용 스킬 해금 조건(+50강) 정의
 const WEAPON_SPECS = {
     wand: {
         key: 'wand',
         name: '마법 지팡이',
-        cooldownMs: 880,
+        cooldownMs: 900, // 클라이언트 1.0초 (네트워크 오차 허용)
         baseMult: 1.0,
         splashMult: 0.5,
+        skillMult: 1.0,
         unlockStat: null,
         unlockReq: 0,
-        unlockDesc: '기본 지급 무기'
+        unlockDesc: '기본 지급 무기',
+        skillStat: 'iq',
+        skillReq: 150, // IQ 150 (+50강)
+        skillName: '1+1'
     },
     greatsword: {
         key: 'greatsword',
         name: '마도 대검',
-        cooldownMs: 1050,
+        cooldownMs: 1260, // 클라이언트 1.4초
         baseMult: 1.15,
+        skillMult: 0.86, // GG: 2바퀴 회전 각 0.86배
         unlockStat: 'stamina',
         unlockReq: 10,
-        unlockDesc: '체력(몸통) +10강 이상 달성'
+        unlockDesc: '체력(몸통) +10강 이상 달성',
+        skillStat: 'stamina',
+        skillReq: 50,
+        skillName: 'GG'
     },
-    daggers: {
-        key: 'daggers',
-        name: '쌍단검',
-        cooldownMs: 300,
-        baseMult: 0.42,
-        unlockStat: 'appearance',
+    hammer: {
+        key: 'hammer',
+        name: '전투 망치',
+        cooldownMs: 720, // 클라이언트 0.8초
+        baseMult: 0.76,
+        skillMult: 0.76, // 블랙홀: 20% 확률 반경 4.5타일 흡입
+        unlockStat: 'education',
         unlockReq: 10,
-        unlockDesc: '외모(오른다리) +10강 이상 달성'
+        unlockDesc: '학력(오른팔) +10강 이상 달성',
+        skillStat: 'education',
+        skillReq: 50,
+        skillName: '블랙홀'
     },
     bow: {
         key: 'bow',
         name: '아케인 활',
-        cooldownMs: 780,
-        baseMult: 0.85,
-        unlockStat: 'iq',
-        unlockReq: 110,
-        unlockDesc: '지능(머리) IQ 110 (+10강) 이상 달성'
+        cooldownMs: 540, // 클라이언트 0.6초
+        baseMult: 0.63,
+        skillMult: 0.63, // 삼삼구샷: 3갈래 x 3연사 (발당 0.63배)
+        unlockStat: 'appearance',
+        unlockReq: 10,
+        unlockDesc: '외모(오른다리) +10강 이상 달성',
+        skillStat: 'appearance',
+        skillReq: 50,
+        skillName: '삼삼구샷'
+    },
+    daggers: {
+        key: 'daggers',
+        name: '쌍단검',
+        cooldownMs: 170, // 클라이언트 0.2초
+        baseMult: 0.24,
+        skillMult: 0.80, // 새비지 블로우: 5% 확률 0.8배 x 6연타
+        unlockStat: 'wealth',
+        unlockReq: 10,
+        unlockDesc: '재력(왼팔) +10강 이상 달성',
+        skillStat: 'wealth',
+        skillReq: 50,
+        skillName: '새비지 블로우'
     },
     chakram: {
         key: 'chakram',
         name: '차크람',
-        cooldownMs: 1100,
-        baseMult: 0.65,
-        unlockStat: 'wealth',
+        cooldownMs: 450, // 클라이언트 0.5초
+        baseMult: 0.30, // 왕복 2연타 (각 30%)
+        skillMult: 0.30, // 동서남북: 4방향 왕복 2연타 (각 30%)
+        unlockStat: 'personality',
         unlockReq: 10,
-        unlockDesc: '재력(왼팔) +10강 이상 달성'
+        unlockDesc: '성격(왼다리) +10강 이상 달성',
+        skillStat: 'personality',
+        skillReq: 50,
+        skillName: '동서남북'
     }
 };
 
@@ -114,7 +147,7 @@ function resolveTokens(charData) {
     return { tokens: currentTokens, lastRefill: new Date(last) };
 }
 
-// 기존 유저 호환, 무기 5종 데이터 및 최고 달성 스탯(maxStats) 동기화 헬퍼
+// 기존 유저 호환, 무기 6종 데이터 및 최고 달성 스탯(maxStats) 동기화 헬퍼
 function syncCharacterProgress(char) {
     if (!char) return;
     if (typeof char.wand !== 'number') char.wand = 0;
@@ -127,8 +160,9 @@ function syncCharacterProgress(char) {
         char.weapons = {
             wand: char.wand || 0,
             greatsword: 0,
-            daggers: 0,
+            hammer: 0,
             bow: 0,
+            daggers: 0,
             chakram: 0
         };
     } else {
@@ -137,8 +171,9 @@ function syncCharacterProgress(char) {
         char.weapons.wand = char.wand;
 
         if (typeof char.weapons.greatsword !== 'number') char.weapons.greatsword = 0;
-        if (typeof char.weapons.daggers !== 'number') char.weapons.daggers = 0;
+        if (typeof char.weapons.hammer !== 'number') char.weapons.hammer = 0;
         if (typeof char.weapons.bow !== 'number') char.weapons.bow = 0;
+        if (typeof char.weapons.daggers !== 'number') char.weapons.daggers = 0;
         if (typeof char.weapons.chakram !== 'number') char.weapons.chakram = 0;
     }
 
@@ -147,15 +182,17 @@ function syncCharacterProgress(char) {
         char.unlockedWeapons = {
             wand: true,
             greatsword: false,
-            daggers: false,
+            hammer: false,
             bow: false,
+            daggers: false,
             chakram: false
         };
     } else {
         char.unlockedWeapons.wand = true;
         if (typeof char.unlockedWeapons.greatsword !== 'boolean') char.unlockedWeapons.greatsword = false;
-        if (typeof char.unlockedWeapons.daggers !== 'boolean') char.unlockedWeapons.daggers = false;
+        if (typeof char.unlockedWeapons.hammer !== 'boolean') char.unlockedWeapons.hammer = false;
         if (typeof char.unlockedWeapons.bow !== 'boolean') char.unlockedWeapons.bow = false;
+        if (typeof char.unlockedWeapons.daggers !== 'boolean') char.unlockedWeapons.daggers = false;
         if (typeof char.unlockedWeapons.chakram !== 'boolean') char.unlockedWeapons.chakram = false;
     }
 
@@ -175,8 +212,9 @@ function syncCharacterProgress(char) {
             personality: char.personality || 0,
             wand: char.weapons.wand || 0,
             greatsword: char.weapons.greatsword || 0,
-            daggers: char.weapons.daggers || 0,
+            hammer: char.weapons.hammer || 0,
             bow: char.weapons.bow || 0,
+            daggers: char.weapons.daggers || 0,
             chakram: char.weapons.chakram || 0
         };
     } else {
@@ -188,8 +226,9 @@ function syncCharacterProgress(char) {
         char.maxStats.personality = Math.max(char.maxStats.personality || 0, char.personality || 0);
         char.maxStats.wand = Math.max(char.maxStats.wand || 0, char.weapons.wand || 0);
         char.maxStats.greatsword = Math.max(char.maxStats.greatsword || 0, char.weapons.greatsword || 0);
-        char.maxStats.daggers = Math.max(char.maxStats.daggers || 0, char.weapons.daggers || 0);
+        char.maxStats.hammer = Math.max(char.maxStats.hammer || 0, char.weapons.hammer || 0);
         char.maxStats.bow = Math.max(char.maxStats.bow || 0, char.weapons.bow || 0);
+        char.maxStats.daggers = Math.max(char.maxStats.daggers || 0, char.weapons.daggers || 0);
         char.maxStats.chakram = Math.max(char.maxStats.chakram || 0, char.weapons.chakram || 0);
     }
 }
@@ -213,7 +252,7 @@ function calcCombatPower(c) {
     return sixStatSum + weaponScore;
 }
 
-// 대사부 무기 해금 자격 검사 헬퍼
+// 대사부 무기 해금 자격 검사 헬퍼 (+10강 달성 여부)
 function canUnlockWeapon(char, weaponKey) {
     const spec = WEAPON_SPECS[weaponKey];
     if (!spec) return false;
@@ -222,6 +261,16 @@ function canUnlockWeapon(char, weaponKey) {
     const currentVal = spec.unlockStat === 'iq' ? (char.iq !== undefined ? char.iq : 100) : (char[spec.unlockStat] || 0);
     const bestVal = Math.max(currentVal, maxS[spec.unlockStat] || (spec.unlockStat === 'iq' ? 100 : 0));
     return bestVal >= spec.unlockReq;
+}
+
+// 무기별 대응 스탯 +50강 전용 스킬 해금 여부 검사 헬퍼
+function hasWeaponSkillUnlocked(char, weaponKey) {
+    const spec = WEAPON_SPECS[weaponKey];
+    if (!spec || !spec.skillStat) return false;
+    const maxS = char.maxStats || {};
+    const currentVal = spec.skillStat === 'iq' ? (char.iq !== undefined ? char.iq : 100) : (char[spec.skillStat] || 0);
+    const bestVal = Math.max(currentVal, maxS[spec.skillStat] || (spec.skillStat === 'iq' ? 100 : 0));
+    return bestVal >= spec.skillReq;
 }
 
 // ================= [계정 및 인증 API] =================
@@ -267,15 +316,17 @@ app.post('/api/register', async (req, res) => {
                 weapons: {
                     wand: 0,
                     greatsword: 0,
-                    daggers: 0,
+                    hammer: 0,
                     bow: 0,
+                    daggers: 0,
                     chakram: 0
                 },
                 unlockedWeapons: {
                     wand: true,
                     greatsword: false,
-                    daggers: false,
+                    hammer: false,
                     bow: false,
+                    daggers: false,
                     chakram: false
                 },
                 maxStats: {
@@ -287,8 +338,9 @@ app.post('/api/register', async (req, res) => {
                     personality: 0,
                     wand: 0,
                     greatsword: 0,
-                    daggers: 0,
+                    hammer: 0,
                     bow: 0,
+                    daggers: 0,
                     chakram: 0
                 },
                 customTitle: '',
@@ -476,7 +528,7 @@ app.get('/api/rankings', async (req, res) => {
                 personality: c.personality || 0,
                 wand: c.wand || 0,
                 equippedWeapon: c.equippedWeapon || 'wand',
-                weapons: c.weapons || { wand: c.wand || 0, greatsword: 0, daggers: 0, bow: 0, chakram: 0 },
+                weapons: c.weapons || { wand: c.wand || 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, chakram: 0 },
                 unlockedWeapons: c.unlockedWeapons || { wand: true },
                 maxStats: c.maxStats || {},
                 customTitle: c.customTitle || '',
@@ -509,7 +561,7 @@ const OBSTACLES = [
     { x: 16, y: 1, type: 'window' }, { x: 17, y: 1, type: 'window' },
     { x: 6, y: 1, type: 'bookshelf' }, { x: 13, y: 1, type: 'bookshelf' },
 
-    // 기숙사 4명의 NPC 배치 (신규 스승 NPC '대사부' 추가!)
+    // 기숙사 4명의 NPC 배치 (신규 스승 NPC '대사부' 포함)
     { x: 4, y: 3, type: 'npc_helicopter' },  // 헬리콥터 (좌측 구역)
     { x: 15, y: 3, type: 'npc_nong' },       // 농 잊을리 (우측 구역)
     { x: 10, y: 11, type: 'npc_haerin' },    // 해린이언니 (하단 중앙 구역)
@@ -560,7 +612,8 @@ const OBSTACLES = [
 const players = {};
 const monsters = {};
 
-// 동쪽숲1 & 동쪽숲2 몬스터 스펙 정의 (독감 거수는 2x2 크기 적용)
+// 동쪽숲1 & 동쪽숲2 몬스터 스펙 정의
+// (현재 보스 '독감 거수'는 블랙홀 흡입 가능하도록 pullImmune: false 적용, 추후 상위 보스에 true 확장 가능)
 const MONSTER_SPECS = {
     // [동쪽숲1 몬스터]
     mandrake: {
@@ -572,7 +625,8 @@ const MONSTER_SPECS = {
         moveInterval: 2800,
         dropRate: 0.10,
         bonusDropRate: 0,
-        aggroRange: 0
+        aggroRange: 0,
+        pullImmune: false
     },
     slime: {
         type: 'slime',
@@ -583,7 +637,8 @@ const MONSTER_SPECS = {
         moveInterval: 1700,
         dropRate: 0.30,
         bonusDropRate: 0,
-        aggroRange: 4
+        aggroRange: 4,
+        pullImmune: false
     },
     wolf: {
         type: 'wolf',
@@ -594,7 +649,8 @@ const MONSTER_SPECS = {
         moveInterval: 1100,
         dropRate: 0.70,
         bonusDropRate: 0,
-        aggroRange: 6
+        aggroRange: 6,
+        pullImmune: false
     },
     // [동쪽숲2 질병 몬스터]
     cold_virus: {
@@ -606,7 +662,8 @@ const MONSTER_SPECS = {
         moveInterval: 2200,
         dropRate: 0.75,
         bonusDropRate: 0,
-        aggroRange: 0
+        aggroRange: 0,
+        pullImmune: false
     },
     cavity_germs: {
         type: 'cavity_germs',
@@ -617,7 +674,8 @@ const MONSTER_SPECS = {
         moveInterval: 1350,
         dropRate: 0.85,
         bonusDropRate: 0,
-        aggroRange: 5
+        aggroRange: 5,
+        pullImmune: false
     },
     flu_behemoth: {
         type: 'flu_behemoth',
@@ -628,7 +686,8 @@ const MONSTER_SPECS = {
         moveInterval: 1050,
         dropRate: 1.00,      // 100% 확정 기회 +1
         bonusDropRate: 0.20, // 20% 확률로 기회 추가 +1 (총 +2)
-        aggroRange: 7.5
+        aggroRange: 7.5,
+        pullImmune: false    // 현재 보스는 군중제어(블랙홀 흡입) 허용
     }
 };
 
@@ -655,6 +714,24 @@ function isTileBlocked(x, y, ignoreMonsterId = null, size = 1) {
         }
     }
     return false;
+}
+
+// 블랙홀 흡입 시 지형/장애물만 검사하여 몬스터들이 한 지점 근처로 모일 수 있게 하는 헬퍼
+function isMonsterPullPosValid(x, y, zone = 1, size = 1) {
+    const minX = zone === 2 ? 41 : 21;
+    const maxX = (zone === 2 ? 58 : 38) - (size - 1);
+    const minY = 2;
+    const maxY = 13 - (size - 1);
+
+    if (x < minX || x > maxX || y < minY || y > maxY) return false;
+    for (let dx = 0; dx < size; dx++) {
+        for (let dy = 0; dy < size; dy++) {
+            const tx = Math.round(x) + dx;
+            const ty = Math.round(y) + dy;
+            if (OBSTACLES.some(obs => obs.x === tx && obs.y === ty)) return false;
+        }
+    }
+    return true;
 }
 
 // 360도 자유 이동용 연속 좌표(Float) 장애물 충돌 판정
@@ -715,6 +792,7 @@ function initMonsters() {
             dropRate: spec.dropRate,
             bonusDropRate: spec.bonusDropRate || 0,
             aggroRange: spec.aggroRange,
+            pullImmune: Boolean(spec.pullImmune),
             alive: true,
             lastMoveTime: Date.now() + Math.floor(Math.random() * 1500)
         };
@@ -770,8 +848,8 @@ setInterval(() => {
             }
         }
 
-        let tx = m.x;
-        let ty = m.y;
+        let tx = Math.round(m.x);
+        let ty = Math.round(m.y);
         if (chosenDir === 'up') ty -= 1;
         else if (chosenDir === 'down') ty += 1;
         else if (chosenDir === 'left') tx -= 1;
@@ -826,9 +904,9 @@ io.on('connection', async (socket) => {
     const char = dbUser ? dbUser.character : {
         gender: 'male', education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0,
         equippedWeapon: 'wand',
-        weapons: { wand: 0, greatsword: 0, daggers: 0, bow: 0, chakram: 0 },
-        unlockedWeapons: { wand: true, greatsword: false, daggers: false, bow: false, chakram: false },
-        maxStats: { education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0, greatsword: 0, daggers: 0, bow: 0, chakram: 0 },
+        weapons: { wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, chakram: 0 },
+        unlockedWeapons: { wand: true, greatsword: false, hammer: false, bow: false, daggers: false, chakram: false },
+        maxStats: { education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, chakram: 0 },
         customTitle: '', titleStat: 'education', auraColor: 'red',
         enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date()
     };
@@ -946,7 +1024,7 @@ io.on('connection', async (socket) => {
         io.emit('playerMoved', { id: socket.id, x: p.x, y: p.y, dir: p.dir, angle: p.angle, sprint: isRunning });
     });
 
-    // 무기별 공격/투사체 발사 (A키, 장착 무기별 고유 쿨타임 및 모션 동기화)
+    // 무기별 평타 & +50강 전용 스킬 발사 동기화
     socket.on('fireProjectile', (payload = {}) => {
         const p = players[socket.id];
         if (!p) return;
@@ -956,8 +1034,12 @@ io.on('connection', async (socket) => {
         const wSpec = WEAPON_SPECS[weaponType];
 
         const now = Date.now();
-        if (now - (p.lastAttackTime || 0) < wSpec.cooldownMs) return;
-        p.lastAttackTime = now;
+        // 지팡이 1+1 추가타(isExtraWandShot)는 평타 직후 0.12초 뒤에 발사되므로 쿨타임 검사를 통과시킴
+        const isExtraWandShot = Boolean(payload.isExtraWandShot && weaponType === 'wand');
+        if (!isExtraWandShot) {
+            if (now - (p.lastAttackTime || 0) < wSpec.cooldownMs * 0.82) return;
+            p.lastAttackTime = now;
+        }
 
         if (typeof payload.x === 'number' && typeof payload.y === 'number') {
             if (Math.hypot(payload.x - p.x, payload.y - p.y) <= 3.5 && !isFloatPosBlocked(payload.x, payload.y)) {
@@ -977,6 +1059,78 @@ io.on('connection', async (socket) => {
         const angle = typeof p.angle === 'number' ? p.angle : Math.PI / 2;
         const swingSide = typeof payload.swingSide === 'number' ? payload.swingSide : 1;
 
+        // +50강 전용 스킬 해금 검증 및 캐릭터 머리 위 외침 대사 동기화
+        const skillUnlocked = hasWeaponSkillUnlocked(c, weaponType);
+        const skillType = (skillUnlocked && typeof payload.skillType === 'string') ? payload.skillType : null;
+        const shoutText = (skillType && typeof payload.shoutText === 'string') ? payload.shoutText.slice(0, 35) : '';
+
+        if (shoutText) {
+            p.chatText = shoutText;
+            if (p.chatTimer) clearTimeout(p.chatTimer);
+            p.chatTimer = setTimeout(() => {
+                if (players[socket.id] && players[socket.id].chatText === shoutText) {
+                    players[socket.id].chatText = '';
+                    io.emit('playerChatClear', { id: socket.id });
+                }
+            }, 2200);
+        }
+
+        // 망치 50강 스킬 '블랙홀' 발동 시: 반경 4.5타일 내 적들을 전방 1.2타일 타격 중심점으로 흡입!
+        if (skillType === 'blackhole' && weaponType === 'hammer') {
+            const pullCenterX = p.x + Math.cos(angle) * 1.2;
+            const pullCenterY = p.y + Math.sin(angle) * 1.2;
+            const pulledList = [];
+
+            for (const mid in monsters) {
+                const m = monsters[mid];
+                if (!m.alive || m.pullImmune) continue;
+                // 플레이어와 같은 사냥터 구역에 있는 몬스터만 흡입
+                if (m.zone === 1 && (p.x < 19.5 || p.x >= 40.5)) continue;
+                if (m.zone === 2 && p.x < 39.5) continue;
+
+                const mSize = m.size || 1;
+                const mCenterX = m.x + (mSize - 1) * 0.5;
+                const mCenterY = m.y + (mSize - 1) * 0.5;
+                const dist = Math.hypot(mCenterX - p.x, mCenterY - p.y);
+
+                // 반경 4.5타일(180px) 이내 몬스터 흡입
+                if (dist <= 4.5) {
+                    const jitterX = (Math.random() - 0.5) * 0.5;
+                    const jitterY = (Math.random() - 0.5) * 0.5;
+                    let destX = Number((pullCenterX - (mSize - 1) * 0.5 + jitterX).toFixed(2));
+                    let destY = Number((pullCenterY - (mSize - 1) * 0.5 + jitterY).toFixed(2));
+
+                    const minX = m.zone === 2 ? 41 : 21;
+                    const maxX = (m.zone === 2 ? 58 : 38) - (mSize - 1);
+                    const minY = 2;
+                    const maxY = 13 - (mSize - 1);
+                    destX = Math.max(minX, Math.min(maxX, destX));
+                    destY = Math.max(minY, Math.min(maxY, destY));
+
+                    if (!isMonsterPullPosValid(destX, destY, m.zone, mSize)) {
+                        destX = Math.max(minX, Math.min(maxX, Math.round(pullCenterX)));
+                        destY = Math.max(minY, Math.min(maxY, Math.round(pullCenterY)));
+                    }
+
+                    if (isMonsterPullPosValid(destX, destY, m.zone, mSize)) {
+                        m.x = destX;
+                        m.y = destY;
+                        m.lastMoveTime = now + 650; // 끌려온 직후 잠시 멈춰 망치 타격을 맞도록 유도
+                        pulledList.push({ id: m.id, x: m.x, y: m.y });
+                    }
+                }
+            }
+
+            if (pulledList.length > 0) {
+                io.emit('monstersPulled', {
+                    ownerId: socket.id,
+                    cx: pullCenterX,
+                    cy: pullCenterY,
+                    pulled: pulledList
+                });
+            }
+        }
+
         io.emit('projectileFired', {
             ownerId: socket.id,
             ownerName: p.name,
@@ -990,7 +1144,10 @@ io.on('connection', async (socket) => {
             weaponLv: weaponLv,
             wandLv: weaponLv,
             swingSide: swingSide,
-            attackPower: combatPower
+            attackPower: combatPower,
+            skillType: skillType,
+            shoutText: shoutText,
+            isExtraWandShot: isExtraWandShot
         });
     });
 
@@ -1004,15 +1161,18 @@ io.on('connection', async (socket) => {
 
         const c = p.character || {};
         const eqWeapon = (c.equippedWeapon && WEAPON_SPECS[c.equippedWeapon]) ? c.equippedWeapon : 'wand';
+        const wSpec = WEAPON_SPECS[eqWeapon];
         const basePower = calcCombatPower(c);
 
-        // 무기별 대미지 계수 검증 (스플래시 폭발 등 반영)
-        let mult = WEAPON_SPECS[eqWeapon].baseMult;
+        // 무기별 기본 대미지 배율 및 +50강 전용 스킬 대미지 배율 검증
+        let mult = wSpec.baseMult;
         if (payload.isSplash && eqWeapon === 'wand') {
-            mult = WEAPON_SPECS.wand.splashMult;
+            mult = WEAPON_SPECS.wand.splashMult; // 지팡이 주변 폭발 50%
+        } else if (payload.skillHit && hasWeaponSkillUnlocked(c, eqWeapon)) {
+            mult = wSpec.skillMult; // GG(0.86), 새비지 블로우(0.80), 삼삼구샷(0.63), 동서남북(0.30), 블랙홀(0.76), 1+1(1.0)
         }
-        const damage = Math.max(1, Math.round(basePower * mult));
 
+        const damage = Math.max(1, Math.round(basePower * mult));
         m.hp = Math.max(0, m.hp - damage);
 
         if (m.hp > 0) {
@@ -1202,7 +1362,7 @@ io.on('connection', async (socket) => {
         });
     });
 
-    // 6대 스탯 + 무기 5종 개별 강화 소켓 이벤트
+    // 6대 스탯 + 무기 6종 개별 강화 소켓 이벤트
     socket.on('tryEnhanceStat', async (statType, callback) => {
         const p = players[socket.id];
         if (!p) return callback({ success: false, message: '플레이어 정보 없음' });
