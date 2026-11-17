@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>인생온라인</title>
 <script src="/socket.io/socket.io.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;900&family=DungGeunMo&display=swap" rel="stylesheet">
@@ -116,16 +119,17 @@
   }
   .btn-hud-icon {
     background: #1c1015;
-    border: 1px solid #7f1d1d;
+    border: 1px solid #f59e0b;
     color: #fef08a;
     font-size: 12px;
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 4px;
     cursor: pointer;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 3px;
   }
   .btn-hud-icon:active {
     transform: scale(0.94);
@@ -273,7 +277,7 @@
     min-width: 0;
   }
 
-  /* 모바일 통합 컨트롤 패널 */
+  /* 모바일 통합 컨트롤 패널 (기본 세로 모드) */
   .mobile-controller-panel {
     display: none;
     width: 100%;
@@ -344,7 +348,7 @@
     box-shadow: 0 0 14px rgba(250, 204, 21, 0.85);
   }
 
-  /* 모바일 우측 조작부 */
+  /* 모바일 우측 조작부 (기본 세로 모드) */
   .mobile-right-controls {
     display: flex;
     flex-direction: column;
@@ -424,7 +428,7 @@
     color: #faf5ff;
   }
 
-  /* 모바일 & 태블릿 100% 꽉 찬 전체화면 (위아래 검은 여백 완전 제거) */
+  /* 모바일 & 태블릿 및 전체화면 모드 공통 100% 꽉 찬 레이아웃 */
   @media (hover: none) and (pointer: coarse), (max-width: 820px) {
     body {
       padding: 0;
@@ -461,37 +465,374 @@
     .hud-chances { font-size: 11px; }
   }
 
-  /* 모바일 가로(Landscape) 모드: 휴대용 게임기 오버레이 레이아웃 */
+  /* 전체화면 강제 진입 시(PC/모바일 공통) 100% 풀스크린 확장 */
+  body.force-portrait-pad,
+  body.force-landscape-pad {
+    padding: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
+  body.force-portrait-pad .game-container,
+  body.force-landscape-pad .game-container {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+  body.force-portrait-pad .canvas-area,
+  body.force-landscape-pad .canvas-area {
+    flex: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+  }
+  body.force-portrait-pad #gameCanvas,
+  body.force-landscape-pad #gameCanvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: auto !important;
+  }
+  body.force-portrait-pad .desktop-bottom-bar,
+  body.force-landscape-pad .desktop-bottom-bar,
+  body.force-portrait-pad .guide,
+  body.force-landscape-pad .guide {
+    display: none !important;
+  }
+  body.force-portrait-pad .mobile-controller-panel,
+  body.force-landscape-pad .mobile-controller-panel {
+    display: flex !important;
+  }
+
+  /* ================= [가로 전체화면 와일드 게임패드 모드 (반투명 조이스틱 + 우측 하단 부채꼴 원형 버튼 클러스터)] ================= */
+  body.force-landscape-pad .hud-bar {
+    padding: 4px 12px;
+    font-size: 11px;
+    background: rgba(14, 8, 12, 0.78);
+    border-bottom: 1px solid rgba(127, 29, 29, 0.65);
+  }
+  body.force-landscape-pad .mobile-controller-panel {
+    position: absolute;
+    inset: 0;
+    background: transparent !important;
+    border-top: none !important;
+    padding: 0 !important;
+    pointer-events: none;
+    z-index: 14;
+  }
+  /* 왼쪽 아래: 반투명 대형 가상 조이스틱 */
+  body.force-landscape-pad .joystick-zone {
+    position: absolute;
+    left: max(18px, env(safe-area-inset-left, 18px));
+    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    width: 126px;
+    height: 126px;
+    pointer-events: auto;
+  }
+  body.force-landscape-pad .joystick-base {
+    width: 114px;
+    height: 114px;
+    background: radial-gradient(circle, rgba(20, 24, 34, 0.22) 0%, rgba(8, 10, 16, 0.46) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 0 12px rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(1.5px);
+  }
+  body.force-landscape-pad .joystick-base::before,
+  body.force-landscape-pad .joystick-base::after {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  body.force-landscape-pad .joystick-stick {
+    width: 44px;
+    height: 44px;
+    background: radial-gradient(circle at 35% 35%, rgba(226, 232, 240, 0.68), rgba(100, 116, 139, 0.58));
+    border: 2px solid rgba(255, 255, 255, 0.65);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+  body.force-landscape-pad .joystick-stick.active {
+    background: radial-gradient(circle at 35% 35%, rgba(254, 240, 138, 0.85), rgba(245, 158, 11, 0.78));
+    border-color: #ffffff;
+    box-shadow: 0 0 14px rgba(250, 204, 21, 0.8);
+  }
+
+  /* 오른쪽 아래: 와일드리프트 스타일 부채꼴 원형 버튼 클러스터 */
+  body.force-landscape-pad .mobile-right-controls {
+    position: absolute;
+    right: max(14px, env(safe-area-inset-right, 14px));
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    width: 230px;
+    height: 200px;
+    max-width: none;
+    display: block;
+    pointer-events: none;
+  }
+  body.force-landscape-pad .mobile-top-actions,
+  body.force-landscape-pad .action-grid {
+    display: contents;
+  }
+  body.force-landscape-pad #mBtnAttack,
+  body.force-landscape-pad #mBtnAura,
+  body.force-landscape-pad #mBtnEnhance,
+  body.force-landscape-pad #mBtnInfo,
+  body.force-landscape-pad #mBtnRank,
+  body.force-landscape-pad #mBtnChat {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1.15;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(2px);
+    transition: transform 0.08s;
+  }
+  body.force-landscape-pad #mBtnAttack:active,
+  body.force-landscape-pad #mBtnAura:active,
+  body.force-landscape-pad #mBtnEnhance:active,
+  body.force-landscape-pad #mBtnInfo:active,
+  body.force-landscape-pad #mBtnRank:active,
+  body.force-landscape-pad #mBtnChat:active {
+    transform: scale(0.92);
+  }
+
+  /* 1. 우측 하단 코너 메인 대형 공격 버튼 */
+  body.force-landscape-pad #mBtnAttack {
+    right: 6px;
+    bottom: 6px;
+    width: 84px;
+    height: 84px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.36) 0%, rgba(15, 23, 42, 0.72) 100%);
+    border: 3px solid rgba(56, 189, 248, 0.88);
+    color: #f0f9ff;
+    font-size: 13px;
+    text-shadow: 0 0 8px rgba(56, 189, 248, 0.8), 1px 1px 2px #000;
+  }
+  /* 2. 공격 버튼 좌측 하단: 기운·달리기 버튼 */
+  body.force-landscape-pad #mBtnAura {
+    right: 104px;
+    bottom: 8px;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.38) 0%, rgba(28, 16, 21, 0.72) 100%);
+    border: 2.5px solid rgba(251, 191, 36, 0.85);
+    color: #fef08a;
+    font-size: 10px;
+  }
+  /* 3. 공격 버튼 좌상단 대각선 아크: 스펙업(강화) 버튼 */
+  body.force-landscape-pad #mBtnEnhance {
+    right: 86px;
+    bottom: 78px;
+    width: 54px;
+    height: 54px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.38) 0%, rgba(15, 23, 42, 0.72) 100%);
+    border: 2px solid rgba(52, 211, 153, 0.85);
+    color: #ecfdf5;
+    font-size: 11px;
+  }
+  /* 4. 공격 버튼 바로 위쪽 아크: 내 정보 버튼 */
+  body.force-landscape-pad #mBtnInfo {
+    right: 14px;
+    bottom: 104px;
+    width: 54px;
+    height: 54px;
+    background: radial-gradient(circle, rgba(14, 116, 144, 0.42) 0%, rgba(15, 23, 42, 0.72) 100%);
+    border: 2px solid rgba(34, 211, 238, 0.85);
+    color: #ecfeff;
+    font-size: 11px;
+  }
+  /* 5. 바깥쪽 좌측 아크: 순위 버튼 */
+  body.force-landscape-pad #mBtnRank {
+    right: 156px;
+    bottom: 62px;
+    width: 46px;
+    height: 46px;
+    background: radial-gradient(circle, rgba(180, 83, 9, 0.42) 0%, rgba(15, 23, 42, 0.72) 100%);
+    border: 2px solid rgba(251, 191, 36, 0.8);
+    color: #fffbeb;
+    font-size: 11px;
+  }
+  /* 6. 바깥쪽 상단 아크: 채팅 버튼 */
+  body.force-landscape-pad #mBtnChat {
+    right: 76px;
+    bottom: 142px;
+    width: 46px;
+    height: 46px;
+    background: radial-gradient(circle, rgba(109, 40, 217, 0.42) 0%, rgba(15, 23, 42, 0.72) 100%);
+    border: 2px solid rgba(192, 132, 252, 0.82);
+    color: #faf5ff;
+    font-size: 11px;
+  }
+
+  /* 가로 패드 모드일 때 채팅창이 좌측 조이스틱을 가리지 않도록 위치 자동 보정 */
+  body.force-landscape-pad #chatLog {
+    left: max(154px, calc(env(safe-area-inset-left, 18px) + 136px));
+    bottom: 38px;
+    width: min(260px, 42vw);
+    max-height: 82px;
+  }
+  body.force-landscape-pad .btn-chat-history-toggle {
+    left: max(154px, calc(env(safe-area-inset-left, 18px) + 136px));
+    bottom: 12px;
+  }
+
+  /* 기기를 물리적으로 가로 회전했을 때도(세로 고정 모드가 아닐 경우) 동일하게 와일드 게임패드 UI 적용 */
   @media ((hover: none) and (pointer: coarse) and (orientation: landscape)), (max-height: 540px) and (orientation: landscape) {
-    .hud-bar {
-      padding: 4px 10px;
+    body:not(.force-portrait-pad) .hud-bar {
+      padding: 4px 12px;
       font-size: 11px;
+      background: rgba(14, 8, 12, 0.78);
+      border-bottom: 1px solid rgba(127, 29, 29, 0.65);
     }
-    .mobile-controller-panel {
+    body:not(.force-portrait-pad) .mobile-controller-panel {
       position: absolute;
-      bottom: 6px;
-      left: 0;
-      right: 0;
-      background: transparent;
-      border-top: none;
-      padding: 0 14px;
+      inset: 0;
+      background: transparent !important;
+      border-top: none !important;
+      padding: 0 !important;
+      pointer-events: none;
+      z-index: 14;
+    }
+    body:not(.force-portrait-pad) .joystick-zone {
+      position: absolute;
+      left: max(18px, env(safe-area-inset-left, 18px));
+      bottom: max(16px, env(safe-area-inset-bottom, 16px));
+      width: 126px;
+      height: 126px;
+      pointer-events: auto;
+    }
+    body:not(.force-portrait-pad) .joystick-base {
+      width: 114px;
+      height: 114px;
+      background: radial-gradient(circle, rgba(20, 24, 34, 0.22) 0%, rgba(8, 10, 16, 0.46) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 0 12px rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(1.5px);
+    }
+    body:not(.force-portrait-pad) .joystick-base::before,
+    body:not(.force-portrait-pad) .joystick-base::after {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    body:not(.force-portrait-pad) .joystick-stick {
+      width: 44px;
+      height: 44px;
+      background: radial-gradient(circle at 35% 35%, rgba(226, 232, 240, 0.68), rgba(100, 116, 139, 0.58));
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+    body:not(.force-portrait-pad) .joystick-stick.active {
+      background: radial-gradient(circle at 35% 35%, rgba(254, 240, 138, 0.85), rgba(245, 158, 11, 0.78));
+      border-color: #ffffff;
+      box-shadow: 0 0 14px rgba(250, 204, 21, 0.8);
+    }
+    body:not(.force-portrait-pad) .mobile-right-controls {
+      position: absolute;
+      right: max(14px, env(safe-area-inset-right, 14px));
+      bottom: max(12px, env(safe-area-inset-bottom, 12px));
+      width: 230px;
+      height: 200px;
+      max-width: none;
+      display: block;
       pointer-events: none;
     }
-    .joystick-zone {
+    body:not(.force-portrait-pad) .mobile-top-actions,
+    body:not(.force-portrait-pad) .action-grid {
+      display: contents;
+    }
+    body:not(.force-portrait-pad) #mBtnAttack,
+    body:not(.force-portrait-pad) #mBtnAura,
+    body:not(.force-portrait-pad) #mBtnEnhance,
+    body:not(.force-portrait-pad) #mBtnInfo,
+    body:not(.force-portrait-pad) #mBtnRank,
+    body:not(.force-portrait-pad) #mBtnChat {
+      position: absolute;
+      border-radius: 50%;
       pointer-events: auto;
-      opacity: 0.86;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1.15;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(2px);
     }
-    .mobile-right-controls {
-      pointer-events: auto;
-      opacity: 0.90;
-      max-width: 195px;
+    body:not(.force-portrait-pad) #mBtnAttack {
+      right: 6px;
+      bottom: 6px;
+      width: 84px;
+      height: 84px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.36) 0%, rgba(15, 23, 42, 0.72) 100%);
+      border: 3px solid rgba(56, 189, 248, 0.88);
+      color: #f0f9ff;
+      font-size: 13px;
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.8), 1px 1px 2px #000;
     }
-    #chatLog {
-      bottom: 108px;
-      max-height: 85px;
+    body:not(.force-portrait-pad) #mBtnAura {
+      right: 104px;
+      bottom: 8px;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.38) 0%, rgba(28, 16, 21, 0.72) 100%);
+      border: 2.5px solid rgba(251, 191, 36, 0.85);
+      color: #fef08a;
+      font-size: 10px;
     }
-    .btn-chat-history-toggle {
-      bottom: 82px;
+    body:not(.force-portrait-pad) #mBtnEnhance {
+      right: 86px;
+      bottom: 78px;
+      width: 54px;
+      height: 54px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.38) 0%, rgba(15, 23, 42, 0.72) 100%);
+      border: 2px solid rgba(52, 211, 153, 0.85);
+      color: #ecfdf5;
+      font-size: 11px;
+    }
+    body:not(.force-portrait-pad) #mBtnInfo {
+      right: 14px;
+      bottom: 104px;
+      width: 54px;
+      height: 54px;
+      background: radial-gradient(circle, rgba(14, 116, 144, 0.42) 0%, rgba(15, 23, 42, 0.72) 100%);
+      border: 2px solid rgba(34, 211, 238, 0.85);
+      color: #ecfeff;
+      font-size: 11px;
+    }
+    body:not(.force-portrait-pad) #mBtnRank {
+      right: 156px;
+      bottom: 62px;
+      width: 46px;
+      height: 46px;
+      background: radial-gradient(circle, rgba(180, 83, 9, 0.42) 0%, rgba(15, 23, 42, 0.72) 100%);
+      border: 2px solid rgba(251, 191, 36, 0.8);
+      color: #fffbeb;
+      font-size: 11px;
+    }
+    body:not(.force-portrait-pad) #mBtnChat {
+      right: 76px;
+      bottom: 142px;
+      width: 46px;
+      height: 46px;
+      background: radial-gradient(circle, rgba(109, 40, 217, 0.42) 0%, rgba(15, 23, 42, 0.72) 100%);
+      border: 2px solid rgba(192, 132, 252, 0.82);
+      color: #faf5ff;
+      font-size: 11px;
+    }
+    body:not(.force-portrait-pad) #chatLog {
+      left: max(154px, calc(env(safe-area-inset-left, 18px) + 136px));
+      bottom: 38px;
+      width: min(260px, 42vw);
+      max-height: 82px;
+    }
+    body:not(.force-portrait-pad) .btn-chat-history-toggle {
+      left: max(154px, calc(env(safe-area-inset-left, 18px) + 136px));
+      bottom: 12px;
     }
   }
 
@@ -523,7 +864,7 @@
     z-index: 50;
     padding: 8px;
   }
-  .auth-card, .enhance-modal, .rank-modal, .npc-dialog-box, .info-modal-card {
+  .auth-card, .enhance-modal, .rank-modal, .npc-dialog-box, .info-modal-card, .fs-select-card {
     background: #0e090c;
     border: 2px solid #7f1d1d;
     border-radius: 6px;
@@ -537,6 +878,34 @@
   .auth-tabs button.active { background: #7f1d1d; border-color: var(--eva-orange); color: #fef08a; }
   .auth-msg { font-size: 12px; color: #f87171; margin-top: 8px; min-height: 16px; }
   .auth-msg.success { color: #4ade80; }
+
+  /* 전체화면 모드 선택 모달 (세로 전체화면 vs 가로 전체화면 패드 모드) */
+  .fs-select-card {
+    padding: 16px;
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  .fs-mode-btn {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: 0.12s;
+  }
+  .fs-mode-btn span {
+    font-size: 10px;
+    font-weight: normal;
+    opacity: 0.85;
+  }
 
   /* 정육각형 레이더 차트 스탯 모달 */
   .info-modal-card {
@@ -1006,6 +1375,34 @@
   </div>
 </div>
 
+<!-- 전체화면 모드 선택 모달 (세로 전체화면 / 가로 전체화면 패드 모드 선택) -->
+<div id="fullscreenModal" class="modal-overlay hidden">
+  <div class="fs-select-card">
+    <h3 style="color:var(--eva-orange); margin:0 0 4px; font-size:16px;">⛶ 화면 & 패드 모드 선택</h3>
+    <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">원하는 플레이 화면과 조작 방식을 선택하세요.</div>
+
+    <button id="btnFsPortrait" class="fs-mode-btn" style="background:linear-gradient(135deg, #0e7490 0%, #155e75 100%); border:1px solid #22d3ee; color:#ecfeff;">
+      📱 세로 전체화면 모드
+      <span>한 손 조작에 최적화된 하단 분리형 패널</span>
+    </button>
+
+    <button id="btnFsLandscape" class="fs-mode-btn" style="background:linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%); border:1px solid #c084fc; color:#faf5ff;">
+      🎮 가로 전체화면 (와일드 패드 모드)
+      <span>좌측 반투명 조이스틱 + 우측 부채꼴 원형 버튼 오버레이</span>
+    </button>
+
+    <button id="btnFsNormal" class="fs-mode-btn" style="background:#1e293b; border:1px solid #475569; color:#cbd5e1;">
+      ❌ 전체화면 해제 (기본 창 복귀)
+    </button>
+
+    <div style="font-size:10px; color:#94a3b8; line-height:1.4; background:#140b0f; border:1px solid #3b161c; padding:6px; border-radius:4px; text-align:left;">
+      💡 <b>아이폰(iOS) 꿀팁:</b> 사파리 하단 공유[↑] 버튼 → <b>[홈 화면에 추가]</b>로 실행하거나 기기 화면 회전 잠금을 풀고 가로로 돌리면 주소창 없는 100% 전체화면이 됩니다!
+    </div>
+
+    <button id="btnFsModalClose" style="margin-top:2px; padding:7px; background:#1c1015; border:1px solid #5c1d24; color:#fff; border-radius:4px; font-size:12px;">닫기 (ESC)</button>
+  </div>
+</div>
+
 <!-- 정육각형 레이더 차트 스탯창 (단축키 S) -->
 <div id="infoModal" class="modal-overlay hidden">
   <div class="info-modal-card">
@@ -1054,7 +1451,7 @@
 <!-- 6대 스펙 + 무기 6종 강화 모달 -->
 <div id="enhanceModal" class="modal-overlay hidden">
   <div class="enhance-modal" id="enhanceModalCard">
-    <h3 class="enhance-title">⚡ 육체·마도 지팡이 연성소 ⚡</h3>
+    <h3 class="enhance-title">⚡ 육체·6대 무기 연성소 ⚡</h3>
     <div class="stat-select-grid">
       <button class="stat-tab-btn active" data-stat="education">🎓 학력 (오른팔)</button>
       <button class="stat-tab-btn" data-stat="appearance">✨ 외모 (오른다리)</button>
@@ -1065,10 +1462,10 @@
     </div>
     <div class="weapon-select-grid">
       <button class="stat-tab-btn weapon-tab" data-stat="wand">🪄 지팡이</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="greatsword">🗡️ 마도대검</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="hammer">🔨 전투망치</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="bow">🏹 아케인활</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="daggers">🔪 쌍단검</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="greatsword">🗡️ 대검</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="hammer">🔨 망치</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="bow">🏹 활</button>
+      <button class="stat-tab-btn weapon-tab" data-stat="daggers">🔪 쌍수</button>
       <button class="stat-tab-btn weapon-tab" data-stat="chakram">🪃 차크람</button>
     </div>
 
@@ -1144,7 +1541,7 @@
     </div>
     <div class="hud-right">
       <span class="hud-chances" id="hudChances">기회: 120/120 (00:00)</span>
-      <button class="btn-hud-icon" id="btnFullscreen" title="전체화면 전환">⛶</button>
+      <button class="btn-hud-icon" id="btnFullscreen" title="세로/가로 전체화면 모드 선택">⛶ 화면</button>
     </div>
   </div>
 
@@ -1168,7 +1565,7 @@
     </div>
   </div>
 
-  <!-- 모바일 컨트롤 패널 (360도 가상 조이스틱 적용) -->
+  <!-- 모바일 컨트롤 패널 (세로 패널형 & 가로 와일드 패드형 자동 전환) -->
   <div class="mobile-controller-panel">
     <div class="joystick-zone" id="joystickZone">
       <div class="joystick-base" id="joystickBase">
@@ -1192,7 +1589,7 @@
 </div>
 
 <div class="guide">
-  이동: [방향키 8방향/조이스틱 360도] | 달리기: [Space 홀드] | 360도 마법공격: [A] | 기운발산·대화: [Space] | 정보: [S] | 스펙업: [C] | 순위: [R]
+  이동: [방향키 8방향/조이스틱 360도] | 달리기: [Space 홀드] | 자동타게팅 공격: [A] | 기운발산·대화: [Space] | 정보: [S] | 스펙업: [C] | 순위: [R]
 </div>
 
 <script>
@@ -1226,7 +1623,6 @@ const SoundFX = {
     osc.start(now);
     osc.stop(now + duration);
   },
-  // 강화 버튼 클릭 시 짧고 강렬하게 딱 한 번 울리는 '깡!' 모루 금속 타격음
   anvilClang() {
     if (!this.enabled) return;
     this.init();
@@ -1322,20 +1718,101 @@ function toggleSfxState() {
 const btnSfxModal = document.getElementById('btnSfxToggleModal');
 if (btnSfxModal) btnSfxModal.addEventListener('click', toggleSfxState);
 
-// ================= [원터치 전체화면 토글 버튼 (모바일·PC 지원)] =================
+// ================= [세로/가로 선택형 전체화면 컨트롤러] =================
 const btnFullscreen = document.getElementById('btnFullscreen');
+const fullscreenModal = document.getElementById('fullscreenModal');
+const btnFsPortrait = document.getElementById('btnFsPortrait');
+const btnFsLandscape = document.getElementById('btnFsLandscape');
+const btnFsNormal = document.getElementById('btnFsNormal');
+const btnFsModalClose = document.getElementById('btnFsModalClose');
+
+function requestBrowserFullscreen() {
+  const docEl = document.documentElement;
+  const isFull = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!isFull) {
+    if (docEl.requestFullscreen) return docEl.requestFullscreen().catch(() => {});
+    if (docEl.webkitRequestFullscreen) {
+      try { docEl.webkitRequestFullscreen(); } catch (e) {}
+    }
+  }
+  return Promise.resolve();
+}
+
+function exitBrowserFullscreen() {
+  const isFull = document.fullscreenElement || document.webkitFullscreenElement;
+  if (isFull) {
+    if (document.exitFullscreen) return document.exitFullscreen().catch(() => {});
+    if (document.webkitExitFullscreen) {
+      try { document.webkitExitFullscreen(); } catch (e) {}
+    }
+  }
+  return Promise.resolve();
+}
+
+function closeFullscreenModal() {
+  if (fullscreenModal) fullscreenModal.classList.add('hidden');
+}
+
 if (btnFullscreen) {
   btnFullscreen.addEventListener('click', () => {
     SoundFX.uiClick();
-    const docEl = document.documentElement;
-    const isFull = document.fullscreenElement || document.webkitFullscreenElement;
-    if (!isFull) {
-      if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
-      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    if (fullscreenModal) fullscreenModal.classList.remove('hidden');
+  });
+}
+if (btnFsModalClose) {
+  btnFsModalClose.addEventListener('click', () => {
+    SoundFX.uiClick();
+    closeFullscreenModal();
+  });
+}
+
+if (btnFsPortrait) {
+  btnFsPortrait.addEventListener('click', async () => {
+    SoundFX.uiClick();
+    document.body.classList.remove('force-landscape-pad');
+    document.body.classList.add('force-portrait-pad');
+    await requestBrowserFullscreen();
+    if (screen.orientation && screen.orientation.lock) {
+      try { await screen.orientation.lock('portrait'); } catch (e) {}
     }
+    updateAttackButtonLabel();
+    closeFullscreenModal();
+    setTimeout(() => {
+      if (typeof syncCanvasViewportResolution === 'function') syncCanvasViewportResolution();
+    }, 100);
+  });
+}
+
+if (btnFsLandscape) {
+  btnFsLandscape.addEventListener('click', async () => {
+    SoundFX.uiClick();
+    document.body.classList.remove('force-portrait-pad');
+    document.body.classList.add('force-landscape-pad');
+    await requestBrowserFullscreen();
+    if (screen.orientation && screen.orientation.lock) {
+      try { await screen.orientation.lock('landscape'); } catch (e) {}
+    }
+    updateAttackButtonLabel();
+    closeFullscreenModal();
+    setTimeout(() => {
+      if (typeof syncCanvasViewportResolution === 'function') syncCanvasViewportResolution();
+    }, 100);
+  });
+}
+
+if (btnFsNormal) {
+  btnFsNormal.addEventListener('click', async () => {
+    SoundFX.uiClick();
+    document.body.classList.remove('force-landscape-pad', 'force-portrait-pad');
+    if (screen.orientation && screen.orientation.unlock) {
+      try { screen.orientation.unlock(); } catch (e) {}
+    }
+    await exitBrowserFullscreen();
+    updateAttackButtonLabel();
+    closeFullscreenModal();
+    setTimeout(() => {
+      if (typeof syncCanvasViewportResolution === 'function') syncCanvasViewportResolution();
+    }, 100);
   });
 }
 
@@ -1509,11 +1986,11 @@ const ENHANCE_RATES = {
   25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 6종 무기 클라이언트 스펙, 해금 조건(+10강) 및 +50강 전용 스킬 명세
+// 6종 무기 클라이언트 스펙 (새 이름: 지팡이, 대검, 망치, 활, 쌍수, 차크람 & 전 무기 자동 타게팅)
 const WEAPON_SPECS = {
   wand: {
     key: 'wand',
-    name: '마법 지팡이',
+    name: '지팡이',
     icon: '🪄',
     cooldownMs: 1000,
     unlockStat: null,
@@ -1522,11 +1999,11 @@ const WEAPON_SPECS = {
     skillStat: 'iq',
     skillReq: 150,
     skillName: '1+1',
-    combatDesc: '1.0초 쿨타임 · 7.5타일 유도 마법구(100% + 주변 50% 폭발) | 🧠지능 +50강 스킬 [1+1]: 25% 확률 추가타 1발'
+    combatDesc: '1.0초 쿨타임 · 7.5타일 자동 타게팅 유도 마법구(100% + 주변 50% 폭발) | 🧠지능 +50강 스킬 [1+1]: 25% 확률 추가타 1발'
   },
   greatsword: {
     key: 'greatsword',
-    name: '마도 대검',
+    name: '대검',
     icon: '🗡️',
     cooldownMs: 1400,
     unlockStat: 'stamina',
@@ -1535,11 +2012,11 @@ const WEAPON_SPECS = {
     skillStat: 'stamina',
     skillReq: 50,
     skillName: 'GG',
-    combatDesc: '1.4초 쿨타임 · 전방 150도 초대형 반달 검기(115% 피해) | 💪체력 +50강 스킬 [GG]: 3타마다 2바퀴 회전 베기(각 86%)'
+    combatDesc: '1.4초 쿨타임 · 사거리 내 자동 타게팅 150도 반달 검기(115% 피해) | 💪체력 +50강 스킬 [GG]: 3타마다 2바퀴 회전 베기(각 86%)'
   },
   hammer: {
     key: 'hammer',
-    name: '전투 망치',
+    name: '망치',
     icon: '🔨',
     cooldownMs: 800,
     unlockStat: 'education',
@@ -1548,11 +2025,11 @@ const WEAPON_SPECS = {
     skillStat: 'education',
     skillReq: 50,
     skillName: '블랙홀',
-    combatDesc: '0.8초 쿨타임 · 전방 118도 내려찍기(76% 피해) | 🎓학력 +50강 스킬 [블랙홀]: 20% 확률 반경 4.5타일 적 흡입'
+    combatDesc: '0.8초 쿨타임 · 사거리 내 자동 타게팅 118도 내려찍기(76% 피해) | 🎓학력 +50강 스킬 [블랙홀]: 20% 확률 반경 4.5타일 적 흡입'
   },
   bow: {
     key: 'bow',
-    name: '아케인 활',
+    name: '활',
     icon: '🏹',
     cooldownMs: 600,
     unlockStat: 'appearance',
@@ -1565,7 +2042,7 @@ const WEAPON_SPECS = {
   },
   daggers: {
     key: 'daggers',
-    name: '쌍단검',
+    name: '쌍수',
     icon: '🔪',
     cooldownMs: 200,
     unlockStat: 'wealth',
@@ -1574,7 +2051,7 @@ const WEAPON_SPECS = {
     skillStat: 'wealth',
     skillReq: 50,
     skillName: '새비지 블로우',
-    combatDesc: '0.2초 초고속 연타 · 초근접 양손 찌르기(24% 피해) | 💰재력 +50강 스킬 [새비지 블로우]: 5% 확률 80%×6연타 난무'
+    combatDesc: '0.2초 초고속 연타 · 사거리 내 자동 타게팅 양손 찌르기(24% 피해) | 💰재력 +50강 스킬 [새비지 블로우]: 5% 확률 80%×6연타 난무'
   },
   chakram: {
     key: 'chakram',
@@ -1592,7 +2069,7 @@ const WEAPON_SPECS = {
 };
 const WEAPON_KEYS = Object.keys(WEAPON_SPECS);
 
-// 기숙사 4인 NPC (패치 내역: 모바일 전체화면, 자동 숨김 채팅, 무기 6종 개편 & +50강 전용 스킬 안내 반영)
+// 기숙사 4인 NPC (패치 내역: 세로/가로 선택형 와일드 패드 전체화면, 6종 전 무기 자동 타게팅, 50강 전용 스킬 안내)
 const DORM_NPCS = [
   {
     x: 4, y: 3,
@@ -1600,9 +2077,9 @@ const DORM_NPCS = [
     name: '헬리콥터',
     portrait: '👓⚡',
     dialogs: [
-      "상단 바 오른쪽 끝의 [⛶] 버튼을 누르면 모바일과 PC 모두 100% 꽉 찬 전체화면으로 즐길 수 있다! 스마트폰을 가로로 돌리면 휴대용 게임기 모드로 자동 전환되지.",
-      "모바일에서는 시야가 1.6배 확대되어 캐릭터와 전투 액션이 훨씬 큼직하게 보인다. 화면을 가리지 않도록 채팅창은 5초 뒤 서서히 사라지며, 좌측 하단 [💬 기록] 버튼으로 언제든 고정해 볼 수 있다.",
-      "연성소[C]에서 강화 버튼을 누르면 대장장이 모루를 내리치는 강렬한 '깡!' 타격음과 함께 불꽃 스파크가 튀며 손맛을 더해줄 것이다."
+      "상단 바 오른쪽 끝의 [⛶ 화면] 버튼을 눌러보아라! 기존의 '세로 전체화면'과 양손 엄지로 조작하는 '가로 전체화면(와일드 패드 모드)' 중 원하는 방식을 직접 선택할 수 있다!",
+      "가로 패드 모드에서는 왼쪽 아래에 반투명 조이스틱이, 오른쪽 아래에는 큼직한 공격 버튼을 중심으로 기운·스펙업·정보·순위·채팅 원형 버튼들이 부채꼴로 펼쳐진다.",
+      "모바일에서는 시야가 1.6배 확대되며, 화면을 가리지 않도록 채팅창은 5초 뒤 서서히 사라진다. 좌측 하단 [💬 기록] 버튼으로 언제든 고정해 볼 수 있지."
     ]
   },
   {
@@ -1611,9 +2088,9 @@ const DORM_NPCS = [
     name: '농 잊을리',
     portrait: '🦊🔥',
     dialogs: [
-      "대박 소식 들었어?! 학력 +10강으로 전수받는 신규 무기 [🔨 전투 망치]가 추가돼서 총 6가지 무기를 입맛대로 고를 수 있게 됐어!",
-      "게다가 아케인 활과 차크람에는 사거리 내 가장 가까운 몬스터를 자동으로 조준하는 스마트 타게팅이 탑재됐고, 차크람은 우아한 타원 곡선을 그리며 돌아온다고!",
-      "동쪽숲2의 보스 '독감 거수'도 이제 망치 50강 스킬 '블랙홀'에 그대로 끌려오니, 몹들을 한데 모아서 시원하게 쓸어버려 봐!"
+      "대박 소식 들었어?! 이제 지팡이, 대검, 망치, 활, 쌍수, 차크람 6종 무기 전부에 '공격 범위 내 자동 타게팅'이 적용됐어!",
+      "몬스터 근처에서 공격 버튼만 누르면 내 무기의 사거리 안에 있는 가장 가까운 적을 향해 알아서 몸을 돌려 때려주니까 헛방 칠 일이 전혀 없다고!",
+      "동쪽숲2의 보스 '독감 거수'도 망치 50강 스킬 '블랙홀'에 그대로 끌려오니, 몹들을 한데 모아서 시원하게 쓸어버려 봐!"
     ]
   },
   {
@@ -1624,7 +2101,7 @@ const DORM_NPCS = [
     dialogs: [
       "각 무기에 대응하는 인생 스탯을 +50강(지능은 IQ 150)까지 올리면 무기별 궁극의 전용 스킬이 깨어난단다!",
       "지팡이는 25% 확률로 추가타가 나가는 [1+1], 대검은 3타마다 2바퀴 회전하는 [GG], 망치는 20% 확률로 적들을 끌어당기는 [블랙홀]이 발동하지!",
-      "활은 4타마다 3갈래 3연사를 날리는 [삼삼구샷], 쌍단검은 5% 확률로 6연타를 퍼붓는 [새비지 블로우], 차크람은 13% 확률로 사방에 날리는 [동서남북]이 펼쳐진단다!"
+      "활은 4타마다 3갈래 3연사를 날리는 [삼삼구샷], 쌍수는 5% 확률로 6연타를 퍼붓는 [새비지 블로우], 차크람은 13% 확률로 사방에 날리는 [동서남북]이 펼쳐진단다!"
     ]
   },
   {
@@ -1634,7 +2111,7 @@ const DORM_NPCS = [
     portrait: '🥬🧙‍♂️',
     dialogs: [
       "허허허, 김치워리어와 고추걸의 스승인 이 '대사부'가 6대 무기와 비기를 전수하기 위해 기숙사 출구 앞에 자리 잡았느니라!",
-      "기본 지팡이 외에도 체력 +10강이면 [마도 대검], 학력 +10강이면 [전투 망치], 외모 +10강이면 [아케인 활], 재력 +10강이면 [쌍단검], 성격 +10강이면 [차크람]을 전수받을 수 있다.",
+      "기본 [지팡이] 외에도 체력 +10강이면 [대검], 학력 +10강이면 [망치], 외모 +10강이면 [활], 재력 +10강이면 [쌍수], 성격 +10강이면 [차크람]을 전수받을 수 있다.",
       "더 나아가 각 무기의 대응 스탯이 +50강에 도달하면 전설의 고유 스킬까지 자동으로 체득하게 되니, 아래 목록에서 무기를 전수받고 수련에 정진하거라!"
     ]
   }
@@ -1699,12 +2176,12 @@ const PER_TITLES = [
   "절대 영역(AT)의 성자"
 ];
 const WAND_TITLES = [
-  "나뭇가지 지팡이", "견습생의 지팡이", "참나무 마법봉", "청동 마법장", "백은 마도장",
-  "자수정 지팡이", "홍옥의 마법봉", "창공의 마도장", "취옥의 마법장", "황금빛 지팡이",
-  "룬 각인 지팡이", "마력 응축 지팡이", "성운의 마법봉", "원소 지배의 장", "비전 마도사의 장",
-  "심연의 마법장", "뇌전 부름 지팡이", "홍련의 대마도장", "빙결의 영원장", "천공의 아케인장",
-  "고대 현자의 지팡이", "차원의 마도장", "성좌의 인도자", "초월자의 마법장", "신화적 마도 지팡이",
-  "태초의 마력 지팡이", "우주 공명 지팡이", "절대 마도 지배장", "아카식 레코드의 장", "창조신의 권능 지팡이",
+  "나뭇가지 지팡이", "견습생의 지팡이", "참나무 지팡이", "청동 지팡이", "백은 지팡이",
+  "자수정 지팡이", "홍옥의 지팡이", "창공의 지팡이", "취옥의 지팡이", "황금빛 지팡이",
+  "룬 각인 지팡이", "마력 응축 지팡이", "성운의 지팡이", "원소 지배 지팡이", "비전 지팡이",
+  "심연의 지팡이", "뇌전 부름 지팡이", "홍련의 지팡이", "빙결의 지팡이", "천공의 지팡이",
+  "고대 현자의 지팡이", "차원의 지팡이", "성좌의 지팡이", "초월자의 지팡이", "신화적 지팡이",
+  "태초의 마력 지팡이", "우주 공명 지팡이", "절대 마도 지팡이", "아카식 지팡이", "창조신의 지팡이",
   "딱총나무 절대 지팡이"
 ];
 
@@ -2178,7 +2655,7 @@ function openInfoModal(targetUser = null) {
   const weaponSummaryList = WEAPON_KEYS.map(wk => {
     const unl = wk === 'wand' || (c.unlockedWeapons && c.unlockedWeapons[wk]);
     const lv = getWeaponLevelFromChar(c, wk);
-    return `${WEAPON_SPECS[wk].icon}${WEAPON_SPECS[wk].name.replace('마법 ', '').replace('마도 ', '').replace('전투 ', '').replace('아케인 ', '')}: ${unl ? `+${lv}강` : '🔒'}`;
+    return `${WEAPON_SPECS[wk].icon}${WEAPON_SPECS[wk].name}: ${unl ? `+${lv}강` : '🔒'}`;
   }).join(' | ');
 
   infoStatCardList.innerHTML = `
@@ -2196,7 +2673,7 @@ function openInfoModal(targetUser = null) {
       <div class="info-stat-val">+${app}강 · ${getStatTitle('appearance', app, g)}</div>
     </div>
     <div class="info-stat-item">
-      <div class="info-stat-name"><span>💰 재력 (왼팔·쌍단검)</span><span>${getPartTierText(wea)}</span></div>
+      <div class="info-stat-name"><span>💰 재력 (왼팔·쌍수)</span><span>${getPartTierText(wea)}</span></div>
       <div class="info-stat-val">+${wea}강 · ${getStatTitle('wealth', wea, g)}</div>
     </div>
     <div class="info-stat-item">
@@ -2289,11 +2766,11 @@ deleteAccountBtn.addEventListener('click', async () => {
 
 // ================= [스펙 & 6종 무기 강화 모달 ('깡!' 타격감 연출 포함)] =================
 const STAT_RULES = {
-  education: { name: "학력 (오른팔 진화 · 전투 망치)", rule: "성공 1% (+1강) | 유지 99% (하락 없음) · 10강 시 [전투 망치] 해금 · 50강 시 망치 스킬 [블랙홀] 개방!" },
-  appearance: { name: "외모 (오른다리 진화 · 아케인 활)", rule: "성공 2% (+1강) | 유지 97% | 실패 1% (-1강, 0강 보호) · 10강 시 [아케인 활] 해금 · 50강 시 활 스킬 [삼삼구샷] 개방!" },
-  wealth: { name: "재력 (왼팔 진화 · 쌍단검)", rule: "대성공 0.99% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨대폭락 0.01% (-100강) · 10강 시 [쌍단검] 해금 · 50강 시 [새비지 블로우] 개방!" },
-  iq: { name: "지능 (머리 진화 · 마법 지팡이)", rule: "대성공 1% (+2 IQ) | 성공 1% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · IQ 150(+50강) 달성 시 지팡이 스킬 [1+1] 개방!" },
-  stamina: { name: "체력 (몸통 진화 · 마도 대검)", rule: "성공 3% (+1강) | 유지 96.5% | 실패 0.5% (-1강) · 10강 시 [마도 대검] 해금 · 50강 시 대검 스킬 [GG] 개방!" },
+  education: { name: "학력 (오른팔 진화 · 망치)", rule: "성공 1% (+1강) | 유지 99% (하락 없음) · 10강 시 [망치] 해금 · 50강 시 망치 스킬 [블랙홀] 개방!" },
+  appearance: { name: "외모 (오른다리 진화 · 활)", rule: "성공 2% (+1강) | 유지 97% | 실패 1% (-1강, 0강 보호) · 10강 시 [활] 해금 · 50강 시 활 스킬 [삼삼구샷] 개방!" },
+  wealth: { name: "재력 (왼팔 진화 · 쌍수)", rule: "대성공 0.99% (+2강) | 성공 1% (+1강) | 유지 97% | 실패 1% (-1강) | 🚨대폭락 0.01% (-100강) · 10강 시 [쌍수] 해금 · 50강 시 [새비지 블로우] 개방!" },
+  iq: { name: "지능 (머리 진화 · 지팡이)", rule: "대성공 1% (+2 IQ) | 성공 1% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · IQ 150(+50강) 달성 시 지팡이 스킬 [1+1] 개방!" },
+  stamina: { name: "체력 (몸통 진화 · 대검)", rule: "성공 3% (+1강) | 유지 96.5% | 실패 0.5% (-1강) · 10강 시 [대검] 해금 · 50강 시 대검 스킬 [GG] 개방!" },
   personality: { name: "성격 (왼다리 진화 · 차크람)", rule: "대성공 1% (+2강) | 성공 2% (+1강) | 유지 96% | 실패 1% (-1강) · 10강 시 [차크람] 해금 · 50강 시 차크람 스킬 [동서남북] 개방!" }
 };
 
