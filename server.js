@@ -43,7 +43,7 @@ const ENHANCE_RATES = {
 const WEAPON_SPECS = {
     wand: {
         key: 'wand',
-        name: '마법 지팡이',
+        name: '지팡이',
         cooldownMs: 900, // 클라이언트 1.0초 (네트워크 오차 허용)
         baseMult: 1.0,
         splashMult: 0.5,
@@ -57,7 +57,7 @@ const WEAPON_SPECS = {
     },
     greatsword: {
         key: 'greatsword',
-        name: '마도 대검',
+        name: '대검',
         cooldownMs: 1260, // 클라이언트 1.4초
         baseMult: 1.15,
         skillMult: 0.86, // GG: 2바퀴 회전 각 0.86배
@@ -70,7 +70,7 @@ const WEAPON_SPECS = {
     },
     hammer: {
         key: 'hammer',
-        name: '전투 망치',
+        name: '망치',
         cooldownMs: 720, // 클라이언트 0.8초
         baseMult: 0.76,
         skillMult: 0.76, // 블랙홀: 20% 확률 반경 4.5타일 흡입
@@ -83,7 +83,7 @@ const WEAPON_SPECS = {
     },
     bow: {
         key: 'bow',
-        name: '아케인 활',
+        name: '활',
         cooldownMs: 540, // 클라이언트 0.6초
         baseMult: 0.63,
         skillMult: 0.63, // 삼삼구샷: 3갈래 x 3연사 (발당 0.63배)
@@ -96,7 +96,7 @@ const WEAPON_SPECS = {
     },
     daggers: {
         key: 'daggers',
-        name: '쌍단검',
+        name: '쌍수',
         cooldownMs: 170, // 클라이언트 0.2초
         baseMult: 0.24,
         skillMult: 0.80, // 새비지 블로우: 5% 확률 0.8배 x 6연타
