@@ -31,7 +31,7 @@ function seededRand(seed) {
   return x - Math.floor(x);
 }
 
-// 모바일 기기 및 강제 세로/가로 패드 전체화면 판별 & 1.6배 확대 뷰포트 해상도 자동 동기화
+// 모바일 기기 및 강제 세로/가로 패드 전체화면 판별 & 줌 배율(userZoomScale) 반영 해상도 동기화
 function isMobileViewport() {
   if (
     document.body &&
@@ -45,10 +45,16 @@ function isMobileViewport() {
 
 function syncCanvasViewportResolution() {
   if (!canvas) return;
+  const zoom = (typeof window.userZoomScale === 'number' && window.userZoomScale > 0)
+    ? window.userZoomScale
+    : 1.0;
+
   if (!isMobileViewport()) {
-    if (canvas.width !== 800 || canvas.height !== 600) {
-      canvas.width = 800;
-      canvas.height = 600;
+    const targetW = Math.round(800 / zoom);
+    const targetH = Math.round(600 / zoom);
+    if (Math.abs(canvas.width - targetW) > 1 || Math.abs(canvas.height - targetH) > 1) {
+      canvas.width = targetW;
+      canvas.height = targetH;
     }
     return;
   }
@@ -56,21 +62,46 @@ function syncCanvasViewportResolution() {
   const rect = canvas.getBoundingClientRect();
   if (rect.width < 50 || rect.height < 50) return;
 
-  // 기본 800px 대비 1.6배 확대된 500px를 긴 변 기준으로 삼아 세로/가로 화면 비율을 정확히 맞춤
-  const targetLongSide = 500;
+  // 기본 520px를 기준으로 유저 줌 배율(0.6x ~ 1.6x)을 나눠 시야 범위를 자유롭게 확장/축소
+  const baseLongSide = 520;
+  const targetLongSide = Math.round(baseLongSide / zoom);
   let nextW, nextH;
   if (rect.width >= rect.height) {
     nextW = targetLongSide;
-    nextH = Math.max(220, Math.round(targetLongSide * (rect.height / rect.width)));
+    nextH = Math.max(180, Math.round(targetLongSide * (rect.height / rect.width)));
   } else {
     nextH = targetLongSide;
-    nextW = Math.max(240, Math.round(targetLongSide * (rect.width / rect.height)));
+    nextW = Math.max(200, Math.round(targetLongSide * (rect.width / rect.height)));
   }
 
   if (Math.abs(canvas.width - nextW) > 2 || Math.abs(canvas.height - nextH) > 2) {
     canvas.width = nextW;
     canvas.height = nextH;
   }
+}
+
+// 줌아웃 시 화면이 맵 크기보다 커져도 맵을 화면 정중앙에 깔끔하게 정렬해주는 카메라 계산 헬퍼
+function computeCameraPos(focusPlayer) {
+  const worldW = mapW * TILE_SIZE;
+  const worldH = mapH * TILE_SIZE;
+  let cx = 0;
+  let cy = 0;
+
+  if (worldW <= canvas.width) {
+    cx = (worldW - canvas.width) / 2;
+  } else if (focusPlayer) {
+    const px = focusPlayer.renderX !== undefined ? focusPlayer.renderX : focusPlayer.x * TILE_SIZE;
+    cx = Math.max(0, Math.min(worldW - canvas.width, px - canvas.width / 2 + 20));
+  }
+
+  if (worldH <= canvas.height) {
+    cy = (worldH - canvas.height) / 2;
+  } else if (focusPlayer) {
+    const py = focusPlayer.renderY !== undefined ? focusPlayer.renderY : focusPlayer.y * TILE_SIZE;
+    cy = Math.max(0, Math.min(worldH - canvas.height, py - canvas.height / 2 + 20));
+  }
+
+  return { camX: cx, camY: cy };
 }
 
 window.addEventListener('resize', syncCanvasViewportResolution);
@@ -402,40 +433,34 @@ function tryFireMagicProjectile() {
   // +50강 전용 스킬 발동 판정
   if (skillOpen) {
     if (eqWeapon === 'wand') {
-      // 지팡이 [1+1]: 25% 확률로 추가 유도 마법구 1발 연사 (쿨타임 독립)
       if (Math.random() < 0.25) {
         skillType = 'oneplusone';
         const shouts = ['1+1=귀요미!!', '1+1=2!!', '1+1=창문!!'];
         shoutText = shouts[Math.floor(Math.random() * shouts.length)];
       }
     } else if (eqWeapon === 'greatsword') {
-      // 대검 [GG]: 평타-평타-스킬 (3타마다 확정 발동)
       greatswordAttackCount = (greatswordAttackCount + 1) % 3;
       if (greatswordAttackCount === 0) {
         skillType = 'gg';
         shoutText = '줴줴이야!!';
       }
     } else if (eqWeapon === 'hammer') {
-      // 망치 [블랙홀]: 20% 확률로 주변 4.5타일 적들을 전방 1.2타일 타격 중심으로 흡입
       if (Math.random() < 0.20) {
         skillType = 'blackhole';
         shoutText = '일루왕♡';
       }
     } else if (eqWeapon === 'bow') {
-      // 활 [삼삼구샷]: 평타-평타-평타-스킬 (4타마다 확정 발동)
       bowAttackCount = (bowAttackCount + 1) % 4;
       if (bowAttackCount === 0) {
         skillType = 'samsamgu';
         shoutText = 'Eat kimchi, stay healthy!';
       }
     } else if (eqWeapon === 'daggers') {
-      // 쌍수 [새비지 블로우]: 5% 확률로 단일 대상 0.8배 x 6연타 난무
       if (Math.random() < 0.05) {
         skillType = 'savage';
         shoutText = 'Savege Blow!!';
       }
     } else if (eqWeapon === 'chakram') {
-      // 차크람 [동서남북]: 13% 확률로 평타 대신 4방향 동시 투척
       if (Math.random() < 0.13) {
         skillType = 'cardinal';
         shoutText = '퉁퉁퉁퉁 싸 방향 후르-!!';
@@ -444,7 +469,6 @@ function tryFireMagicProjectile() {
   }
 
   // [전 무기(6종) 공격 범위 내 자동 타게팅]
-  // 현재 장착 무기의 공격 범위(망치 블랙홀 발동 시 4.5타일, 대검 GG 발동 시 +14px 확장 반영) 내 가장 가까운 몬스터 자동 조준!
   let autoRangePx = getWeaponAutoTargetRangePx(eqWeapon, weaponLv);
   if (skillType === 'blackhole' && eqWeapon === 'hammer') {
     autoRangePx = Math.max(autoRangePx, 4.5 * TILE_SIZE);
@@ -661,7 +685,6 @@ function spawnWeaponAttack(data) {
     const reachPx = 122 + weaponLv * 1.4;
 
     if (skillType === 'gg') {
-      // [대검 50강 스킬: GG] 360도 2바퀴 회전 광역 베기 (바퀴당 0.86배 계수, 총 2타)
       pushMeleeEffectCapped({
         type: 'greatsword_gg',
         ownerId: data.ownerId,
@@ -693,12 +716,12 @@ function spawnWeaponAttack(data) {
         if (hitAny && data.ownerId === myId) screenShakeMag = Math.min(9, 4.5 + weaponLv * 0.12);
       };
 
-      triggerSpinHit(); // 1바퀴째 타격
-      setTimeout(triggerSpinHit, 220); // 2바퀴째 타격
+      triggerSpinHit();
+      setTimeout(triggerSpinHit, 220);
       return;
     }
 
-    const halfArc = (75 * Math.PI) / 180; // 중심각 150도
+    const halfArc = (75 * Math.PI) / 180;
     pushMeleeEffectCapped({
       type: 'greatsword',
       ownerId: data.ownerId,
@@ -735,8 +758,8 @@ function spawnWeaponAttack(data) {
 
   // 2. 망치 (전방 118도 내려찍기 & +50강 스킬 '블랙홀' 반경 4.5타일 흡입)
   if (weaponType === 'hammer') {
-    const reachPx = 104 + weaponLv * 1.2; // 기본 2.6타일(104px) ~ +30강 3.5타일(140px)
-    const halfArc = (59 * Math.PI) / 180; // 중심각 118도
+    const reachPx = 104 + weaponLv * 1.2;
+    const halfArc = (59 * Math.PI) / 180;
 
     if (skillType === 'blackhole') {
       const bhX = originX + Math.cos(baseAngle) * (1.2 * TILE_SIZE);
@@ -746,7 +769,7 @@ function spawnWeaponAttack(data) {
         ownerId: data.ownerId,
         x: bhX,
         y: bhY,
-        pullRadius: 4.5 * TILE_SIZE, // 반경 4.5타일 (180px)
+        pullRadius: 4.5 * TILE_SIZE,
         weaponLv: weaponLv,
         born: Date.now(),
         duration: 520
@@ -791,7 +814,7 @@ function spawnWeaponAttack(data) {
   // 3. 쌍수 (초근접 0.2초 초고속 찌르기 & +50강 스킬 '새비지 블로우' 단일 0.8배 x 6연타)
   if (weaponType === 'daggers') {
     const reachPx = 84 + weaponLv * 0.9;
-    const halfArc = (48 * Math.PI) / 180; // 중심각 96도
+    const halfArc = (48 * Math.PI) / 180;
 
     if (skillType === 'savage') {
       let targetMon = null;
@@ -874,7 +897,7 @@ function spawnWeaponAttack(data) {
   // 4. 활 (9타일 자동 타게팅 일직선 관통 & +50강 스킬 '삼삼구샷' 60도 3갈래 x 3연사)
   if (weaponType === 'bow') {
     if (skillType === 'samsamgu') {
-      const spreadAngles = [-Math.PI / 6, 0, Math.PI / 6]; // 중심각 60도 (-30도, 0도, +30도)
+      const spreadAngles = [-Math.PI / 6, 0, Math.PI / 6];
       for (let volley = 0; volley < 3; volley++) {
         setTimeout(() => {
           const curOwner = players[data.ownerId];
@@ -883,7 +906,6 @@ function spawnWeaponAttack(data) {
           if (data.ownerId === myId && volley > 0) {
             SoundFX.weaponAttack('bow', weaponLv, false, true);
           }
-          // 같은 연사(volley) 내 3발이 공유하는 피격 맵 -> 연사당 몬스터 1마리 최대 1히트 제한!
           const sharedVolleyHitMap = {};
           spreadAngles.forEach(offset => {
             pushProjectileCapped(
@@ -926,7 +948,7 @@ function spawnWeaponAttack(data) {
     vy: vy * speed,
     speed: speed,
     angle: baseAngle,
-    maxDistPx: 7.5 * TILE_SIZE, // 사거리 7.5타일 (300px)
+    maxDistPx: 7.5 * TILE_SIZE,
     hitRadius: 36,
     homing: true,
     skillHit: Boolean(data.isExtraWandShot),
@@ -1025,6 +1047,9 @@ function connectSocketGame(token, nickname) {
       myLastRefill = players[myId].lastTokenRefill;
       updateAttackButtonLabel();
       updateHUD();
+      if (window.BGMManager) {
+        window.BGMManager.updateZoneByX(players[myId].x);
+      }
     }
   });
 
@@ -1049,6 +1074,7 @@ function connectSocketGame(token, nickname) {
         p.y = data.y;
         p.renderX = data.x * TILE_SIZE;
         p.renderY = data.y * TILE_SIZE;
+        if (window.BGMManager) window.BGMManager.updateZoneByX(p.x);
       }
       return;
     }
@@ -1195,42 +1221,93 @@ function addChatLog(author, message) {
   }
 }
 
-// 캔버스 클릭으로 플레이어 스펙창 또는 4인 NPC 대화창 열기 (모바일 1.6배 확대 완벽 대응)
-canvas.addEventListener('click', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const clickX = (e.clientX - rect.left) * scaleX;
-  const clickY = (e.clientY - rect.top) * scaleY;
+// ================= [PC 마우스 휠 & 모바일 두 손가락 핀치 줌인/줌아웃 & 캔버스 클릭 판정] =================
+let pinchStartDist = null;
+let pinchStartZoom = 1.0;
+let lastPinchGestureTime = 0;
 
-  const myPl = players[myId];
-  const camX = myPl ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, (myPl.renderX !== undefined ? myPl.renderX : myPl.x * TILE_SIZE) - canvas.width / 2 + 20)) : 0;
-  const camY = myPl ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, (myPl.renderY !== undefined ? myPl.renderY : myPl.y * TILE_SIZE) - canvas.height / 2 + 20)) : 0;
+if (canvas) {
+  // 1. PC 마우스 휠 줌인·줌아웃
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (typeof window.adjustUserZoom === 'function') {
+      const delta = e.deltaY < 0 ? 0.1 : -0.1;
+      window.adjustUserZoom(delta);
+    }
+  }, { passive: false });
 
-  const worldClickX = clickX + camX;
-  const worldClickY = clickY + camY;
+  // 2. 모바일 두 손가락 핀치(Pinch) 줌인·줌아웃
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      if (e.cancelable) e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartDist = Math.hypot(dx, dy);
+      pinchStartZoom = window.userZoomScale || 1.0;
+      lastPinchGestureTime = Date.now();
+    }
+  }, { passive: false });
 
-  const clickedNpc = DORM_NPCS.find(n => {
-    const nx = n.x * TILE_SIZE + 20;
-    const ny = n.y * TILE_SIZE + 20;
-    return Math.hypot(worldClickX - nx, worldClickY - ny) <= 28;
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && pinchStartDist && pinchStartDist > 12) {
+      if (e.cancelable) e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const curDist = Math.hypot(dx, dy);
+      const ratio = curDist / pinchStartDist;
+      if (typeof window.setUserZoom === 'function') {
+        window.setUserZoom(pinchStartZoom * ratio);
+      }
+      lastPinchGestureTime = Date.now();
+    }
+  }, { passive: false });
+
+  const endPinchGesture = (e) => {
+    if (!e.touches || e.touches.length < 2) {
+      pinchStartDist = null;
+    }
+  };
+  canvas.addEventListener('touchend', endPinchGesture);
+  canvas.addEventListener('touchcancel', endPinchGesture);
+
+  // 3. 캔버스 클릭으로 플레이어 스펙창 또는 4인 NPC 대화창 열기 (모든 줌 배율 완벽 동기화)
+  canvas.addEventListener('click', (e) => {
+    if (Date.now() - lastPinchGestureTime < 260) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    const myPl = players[myId];
+    const { camX, camY } = computeCameraPos(myPl);
+
+    const worldClickX = clickX + camX;
+    const worldClickY = clickY + camY;
+
+    const clickedNpc = DORM_NPCS.find(n => {
+      const nx = n.x * TILE_SIZE + 20;
+      const ny = n.y * TILE_SIZE + 20;
+      return Math.hypot(worldClickX - nx, worldClickY - ny) <= 28;
+    });
+
+    if (clickedNpc) {
+      openNpcDialog(clickedNpc);
+      return;
+    }
+
+    const clickedPlayer = Object.values(players).find(p => {
+      const px = (p.renderX !== undefined ? p.renderX : p.x * TILE_SIZE) + 20;
+      const py = (p.renderY !== undefined ? p.renderY : p.y * TILE_SIZE) + 20;
+      return Math.hypot(worldClickX - px, worldClickY - py) <= 24;
+    });
+
+    if (clickedPlayer) {
+      openInfoModal(clickedPlayer);
+    }
   });
-
-  if (clickedNpc) {
-    openNpcDialog(clickedNpc);
-    return;
-  }
-
-  const clickedPlayer = Object.values(players).find(p => {
-    const px = (p.renderX !== undefined ? p.renderX : p.x * TILE_SIZE) + 20;
-    const py = (p.renderY !== undefined ? p.renderY : p.y * TILE_SIZE) + 20;
-    return Math.hypot(worldClickX - px, worldClickY - py) <= 24;
-  });
-
-  if (clickedPlayer) {
-    openInfoModal(clickedPlayer);
-  }
-});
+}
 
 // ================= [360도 자유 이동 + 슬라이딩 충돌 + 모바일 조이스틱] =================
 const keysHeld = { up: false, down: false, left: false, right: false };
@@ -1314,6 +1391,11 @@ function updateLocalPlayerMovement(dt, now) {
   me.renderY = me.y * TILE_SIZE;
   me.lastRenderMoveTime = now;
 
+  // 캐릭터가 로비(X < 20) ↔ 동쪽숲1·2(X >= 20) 경계를 넘을 때 배경음악 자동 전환
+  if (window.BGMManager) {
+    window.BGMManager.updateZoneByX(me.x);
+  }
+
   const stepAudioInterval = isSpaceHeld ? 160 : 250;
   if (now - lastStepSoundTime >= stepAudioInterval) {
     lastStepSoundTime = now;
@@ -1348,10 +1430,14 @@ window.addEventListener('keydown', (e) => {
       if (activeEl === chatInput) {
         sendChatMessage();
         chatInput.blur();
+      } else if (typeof mobileChatInput !== 'undefined' && activeEl === mobileChatInput) {
+        if (typeof window.submitMobileChatOverlay === 'function') window.submitMobileChatOverlay();
       } else if (!authModal.classList.contains('hidden')) {
         if (!loginFormSection.classList.contains('hidden')) authSubmitBtn.click();
         else if (!registerFormSection.classList.contains('hidden')) regSubmitBtn.click();
       }
+    } else if (e.key === 'Escape' && typeof mobileChatInput !== 'undefined' && activeEl === mobileChatInput) {
+      if (typeof window.closeMobileChatOverlay === 'function') window.closeMobileChatOverlay();
     }
     return;
   }
@@ -1375,6 +1461,7 @@ window.addEventListener('keydown', (e) => {
     closeOnlineModal();
     closeEnhance();
     if (typeof closeFullscreenModal === 'function') closeFullscreenModal();
+    if (typeof window.closeMobileChatOverlay === 'function') window.closeMobileChatOverlay();
     npcDialogModal.classList.add('hidden');
     return;
   }
@@ -1441,7 +1528,6 @@ function updateJoystickByPoint(clientX, clientY) {
   const dx = clientX - cx;
   const dy = clientY - cy;
   const dist = Math.hypot(dx, dy);
-  // 세로 모드(86px)와 가로 패드 모드(114px)의 조이스틱 베이스 크기에 맞춰 가동 반경 자동 조절
   const maxRadius = Math.max(26, Math.round(rect.width * 0.31));
   const deadzone = 5;
 
@@ -3010,8 +3096,7 @@ function drawGame() {
   });
 
   const me = players[myId];
-  let camX = me ? Math.max(0, Math.min(mapW * TILE_SIZE - canvas.width, me.renderX - canvas.width / 2 + 20)) : 0;
-  let camY = me ? Math.max(0, Math.min(mapH * TILE_SIZE - canvas.height, me.renderY - canvas.height / 2 + 20)) : 0;
+  let { camX, camY } = computeCameraPos(me);
 
   if (screenShakeMag > 0.1) {
     camX += (Math.random() - 0.5) * screenShakeMag;

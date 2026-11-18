@@ -108,7 +108,7 @@
   .hud-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     flex-shrink: 0;
   }
   .hud-chances {
@@ -116,6 +116,34 @@
     font-weight: bold;
     font-size: 13px;
     white-space: nowrap;
+  }
+  .hud-zoom-group {
+    display: inline-flex;
+    align-items: center;
+    background: #140a0e;
+    border: 1px solid #5c1d24;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .btn-hud-zoom {
+    background: #1c1015;
+    border: none;
+    color: #fef08a;
+    font-size: 12px;
+    padding: 2px 6px;
+    cursor: pointer;
+    line-height: 1.1;
+  }
+  .btn-hud-zoom:active {
+    background: #7f1d1d;
+  }
+  .hud-zoom-label {
+    font-size: 11px;
+    color: #cbd5e1;
+    padding: 0 5px;
+    min-width: 36px;
+    text-align: center;
+    cursor: pointer;
   }
   .btn-hud-icon {
     background: #1c1015;
@@ -165,6 +193,37 @@
     height: auto;
     aspect-ratio: 4 / 3;
     cursor: pointer;
+    touch-action: none;
+  }
+
+  /* 전체화면이 풀리지 않는 인게임 모바일 상단 채팅 입력 오버레이 */
+  .mobile-chat-overlay {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, 94%);
+    background: rgba(14, 8, 14, 0.94);
+    border: 2px solid var(--eva-orange);
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    z-index: 30;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+  }
+  .mobile-chat-overlay input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  .mobile-chat-overlay button {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    font-weight: bold;
   }
 
   /* 스마트 자동 페이드아웃 채팅 히스토리 창 */
@@ -998,6 +1057,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     margin-top: 2px;
     gap: 4px;
   }
@@ -1375,11 +1435,22 @@
   </div>
 </div>
 
-<!-- 전체화면 모드 선택 모달 (세로 전체화면 / 가로 전체화면 패드 모드 선택) -->
+<!-- 전체화면 모드 선택 모달 (세로 전체화면 / 가로 전체화면 패드 모드 & 시야 배율 조절) -->
 <div id="fullscreenModal" class="modal-overlay hidden">
   <div class="fs-select-card">
-    <h3 style="color:var(--eva-orange); margin:0 0 4px; font-size:16px;">⛶ 화면 & 패드 모드 선택</h3>
-    <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">원하는 플레이 화면과 조작 방식을 선택하세요.</div>
+    <h3 style="color:var(--eva-orange); margin:0 0 4px; font-size:16px;">⛶ 화면 & 시야(줌) 설정</h3>
+    <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">원하는 플레이 화면과 시야 배율을 선택하세요.</div>
+
+    <!-- 시야 배율(줌인/줌아웃) 조절 바 -->
+    <div style="background:#140b0f; border:1px solid #5c1d24; border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:5px;">
+      <div style="font-size:11px; color:#fef08a;">🔍 화면 시야 배율 (마우스 휠 / 두 손가락 핀치 가능)</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <button id="btnModalZoomOut" style="background:#1c1015; border:1px solid #f59e0b; color:#fef08a; padding:5px 12px; border-radius:4px; font-weight:bold;">- 축소(넓게)</button>
+        <span id="modalZoomLabel" style="font-size:13px; color:#38bdf8; font-weight:bold; min-width:54px;">100%</span>
+        <button id="btnModalZoomIn" style="background:#1c1015; border:1px solid #f59e0b; color:#fef08a; padding:5px 12px; border-radius:4px; font-weight:bold;">+ 확대(크게)</button>
+        <button id="btnModalZoomReset" style="background:#1e293b; border:1px solid #475569; color:#cbd5e1; padding:5px 8px; border-radius:4px; font-size:11px;">초기화</button>
+      </div>
+    </div>
 
     <button id="btnFsPortrait" class="fs-mode-btn" style="background:linear-gradient(135deg, #0e7490 0%, #155e75 100%); border:1px solid #22d3ee; color:#ecfeff;">
       📱 세로 전체화면 모드
@@ -1438,8 +1509,11 @@
     </div>
 
     <div class="info-footer-row">
-      <button id="infoCloseBtn" style="padding:7px 18px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:12px;">닫기 (S / ESC)</button>
-      <button id="btnSfxToggleModal" class="btn-sfx-toggle" style="padding:5px 10px; font-size:11px;">🔊 효과음 ON</button>
+      <button id="infoCloseBtn" style="padding:7px 14px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:12px;">닫기 (S / ESC)</button>
+      <div style="display:flex; gap:4px; align-items:center;">
+        <button id="btnSfxToggleModal" class="btn-sfx-toggle" style="padding:5px 8px; font-size:11px;">🔊 효과음 ON</button>
+        <button id="btnBgmToggleModal" class="btn-sfx-toggle" style="padding:5px 8px; font-size:11px;">🔇 BGM OFF</button>
+      </div>
       <div class="corner-account-btns" id="myAccountCornerBtns">
         <button id="logoutBtn" class="btn-tiny-corner" style="background:#1f2937; border:1px solid #4b5563; color:#cbd5e1;">로그아웃</button>
         <button id="deleteAccountBtn" class="btn-tiny-corner" style="background:#450a0a; border:1px solid #dc2626; color:#fca5a5;">캐릭삭제</button>
@@ -1541,6 +1615,11 @@
     </div>
     <div class="hud-right">
       <span class="hud-chances" id="hudChances">기회: 120/120 (00:00)</span>
+      <div class="hud-zoom-group" title="화면 확대/축소 (마우스 휠 · 두 손가락 핀치 가능)">
+        <button class="btn-hud-zoom" id="btnHudZoomOut">-</button>
+        <span class="hud-zoom-label" id="hudZoomLabel">100%</span>
+        <button class="btn-hud-zoom" id="btnHudZoomIn">+</button>
+      </div>
       <button class="btn-hud-icon" id="btnFullscreen" title="세로/가로 전체화면 모드 선택">⛶ 화면</button>
     </div>
   </div>
@@ -1548,6 +1627,14 @@
   <!-- 캔버스 전용 영역 -->
   <div class="canvas-area">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <!-- 전체화면이 깨지지 않는 인게임 모바일 상단 채팅 입력창 -->
+    <div id="mobileChatOverlay" class="mobile-chat-overlay hidden">
+      <input type="text" id="mobileChatInput" placeholder="외칠 말을 입력하세요 (최대 35자)" maxlength="35">
+      <button id="mobileChatSendBtn" style="background:#991b1b; border:1px solid #f59e0b; color:#fef08a;">전송</button>
+      <button id="mobileChatCloseBtn" style="background:#1e293b; border:1px solid #475569; color:#cbd5e1;">닫기</button>
+    </div>
+
     <div id="chatLog"></div>
     <button id="btnToggleChatHistory" class="btn-chat-history-toggle" title="클릭하여 이전 채팅 내역 고정/열기">💬 기록</button>
   </div>
@@ -1589,11 +1676,11 @@
 </div>
 
 <div class="guide">
-  이동: [방향키 8방향/조이스틱 360도] | 달리기: [Space 홀드] | 자동타게팅 공격: [A] | 기운발산·대화: [Space] | 정보: [S] | 스펙업: [C] | 순위: [R]
+  이동: [방향키 8방향/조이스틱 360도] | 시야확대·축소: [마우스 휠/핀치] | 달리기·기운·대화: [Space] | 공격: [A] | 정보: [S] | 스펙업: [C] | 순위: [R]
 </div>
 
 <script>
-// ================= [Web Audio API 합성 효과음 엔진 (단발성 '깡!' 모루 타격음 & 무기 6종/스킬 사운드 포함)] =================
+// ================= [Web Audio API 합성 효과음 엔진 (기본값 ON) & 구역별 BGM 엔진 (기본값 OFF)] =================
 const SoundFX = {
   ctx: null,
   enabled: true,
@@ -1706,6 +1793,75 @@ const SoundFX = {
   }
 };
 
+// 구역별 배경음악(BGM) 컨트롤러: 기본 설정 OFF, 기숙사 로비(bgm_lobby.mp3) / 동쪽숲1·2(bgm_forest.mp3) 자동 전환
+const BGMManager = {
+  enabled: false, // 기본값: BGM OFF
+  currentZone: null, // 'lobby' | 'forest'
+  tracks: {
+    lobby: null,
+    forest: null
+  },
+  initTracks() {
+    if (!this.tracks.lobby) {
+      const aLobby = new Audio('/bgm_lobby.mp3');
+      aLobby.loop = true;
+      aLobby.volume = 0.42;
+      aLobby.preload = 'auto';
+      this.tracks.lobby = aLobby;
+    }
+    if (!this.tracks.forest) {
+      const aForest = new Audio('/bgm_forest.mp3');
+      aForest.loop = true;
+      aForest.volume = 0.42;
+      aForest.preload = 'auto';
+      this.tracks.forest = aForest;
+    }
+  },
+  getZoneByX(x) {
+    return (typeof x === 'number' && x >= 20) ? 'forest' : 'lobby';
+  },
+  updateZoneByX(x) {
+    const nextZone = this.getZoneByX(x);
+    if (!this.enabled) {
+      this.currentZone = nextZone;
+      return;
+    }
+    this.initTracks();
+    const targetAudio = this.tracks[nextZone];
+    if (this.currentZone !== nextZone) {
+      this.currentZone = nextZone;
+      Object.entries(this.tracks).forEach(([key, audio]) => {
+        if (audio && key !== nextZone) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      });
+      if (targetAudio) {
+        targetAudio.play().catch(() => {});
+      }
+    } else if (targetAudio && targetAudio.paused) {
+      targetAudio.play().catch(() => {});
+    }
+  },
+  stopAll() {
+    Object.values(this.tracks).forEach(audio => {
+      if (audio) audio.pause();
+    });
+  },
+  toggle(playerX = 5) {
+    this.enabled = !this.enabled;
+    this.initTracks();
+    if (!this.enabled) {
+      this.stopAll();
+    } else {
+      this.currentZone = null; // 즉시 현재 구역 곡을 재생하도록 강제 갱신
+      this.updateZoneByX(playerX);
+    }
+    return this.enabled;
+  }
+};
+window.BGMManager = BGMManager;
+
 function toggleSfxState() {
   SoundFX.enabled = !SoundFX.enabled;
   const statusText = SoundFX.enabled ? '🔊 효과음 ON' : '🔇 효과음 OFF';
@@ -1717,6 +1873,73 @@ function toggleSfxState() {
 }
 const btnSfxModal = document.getElementById('btnSfxToggleModal');
 if (btnSfxModal) btnSfxModal.addEventListener('click', toggleSfxState);
+
+function toggleBgmState() {
+  SoundFX.uiClick();
+  const meX = (players && myId && players[myId]) ? players[myId].x : 5;
+  const isOn = BGMManager.toggle(meX);
+  const btnBgm = document.getElementById('btnBgmToggleModal');
+  if (btnBgm) {
+    btnBgm.textContent = isOn ? '🎵 BGM ON' : '🔇 BGM OFF';
+    btnBgm.style.borderColor = isOn ? '#10b981' : '#5c1d24';
+    btnBgm.style.color = isOn ? '#6ee7b7' : '#fef08a';
+  }
+}
+const btnBgmModal = document.getElementById('btnBgmToggleModal');
+if (btnBgmModal) btnBgmModal.addEventListener('click', toggleBgmState);
+
+// ================= [사용자 맞춤 시야 배율(줌인/줌아웃) 전역 상태 컨트롤러] =================
+const savedZoom = parseFloat(localStorage.getItem('azaekaban_zoom'));
+window.userZoomScale = (!isNaN(savedZoom) && savedZoom >= 0.6 && savedZoom <= 1.6) ? savedZoom : 1.0;
+
+function updateZoomLabels() {
+  const pctText = `${Math.round(window.userZoomScale * 100)}%`;
+  const hudLbl = document.getElementById('hudZoomLabel');
+  const modalLbl = document.getElementById('modalZoomLabel');
+  if (hudLbl) hudLbl.textContent = pctText;
+  if (modalLbl) modalLbl.textContent = pctText;
+}
+
+window.setUserZoom = function(nextScale) {
+  const clamped = Math.max(0.6, Math.min(1.6, Math.round(nextScale * 20) / 20));
+  window.userZoomScale = clamped;
+  localStorage.setItem('azaekaban_zoom', String(clamped));
+  updateZoomLabels();
+  if (typeof syncCanvasViewportResolution === 'function') {
+    syncCanvasViewportResolution();
+  }
+};
+
+window.adjustUserZoom = function(delta) {
+  window.setUserZoom((window.userZoomScale || 1.0) + delta);
+};
+
+updateZoomLabels();
+
+document.getElementById('btnHudZoomOut')?.addEventListener('click', () => {
+  SoundFX.uiClick();
+  window.adjustUserZoom(-0.1);
+});
+document.getElementById('btnHudZoomIn')?.addEventListener('click', () => {
+  SoundFX.uiClick();
+  window.adjustUserZoom(0.1);
+});
+document.getElementById('hudZoomLabel')?.addEventListener('click', () => {
+  SoundFX.uiClick();
+  window.setUserZoom(1.0);
+});
+document.getElementById('btnModalZoomOut')?.addEventListener('click', () => {
+  SoundFX.uiClick();
+  window.adjustUserZoom(-0.1);
+});
+document.getElementById('btnModalZoomIn')?.addEventListener('click', () => {
+  SoundFX.uiClick();
+  window.adjustUserZoom(0.1);
+});
+document.getElementById('btnModalZoomReset')?.addEventListener('click', () => {
+  SoundFX.uiClick();
+  window.setUserZoom(1.0);
+});
 
 // ================= [세로/가로 선택형 전체화면 컨트롤러] =================
 const btnFullscreen = document.getElementById('btnFullscreen');
@@ -1749,6 +1972,24 @@ function exitBrowserFullscreen() {
   return Promise.resolve();
 }
 
+// 모바일 키보드 입력 후 전체화면 및 가로/세로 방향 고정이 풀렸을 때 즉시 복원하는 헬퍼
+async function restoreFullscreenIfLockedMode() {
+  const isLandscapePad = document.body.classList.contains('force-landscape-pad');
+  const isPortraitPad = document.body.classList.contains('force-portrait-pad');
+  if (!isLandscapePad && !isPortraitPad) return;
+
+  await requestBrowserFullscreen();
+  if (screen.orientation && screen.orientation.lock) {
+    try {
+      await screen.orientation.lock(isLandscapePad ? 'landscape' : 'portrait');
+    } catch (e) {}
+  }
+  setTimeout(() => {
+    if (typeof syncCanvasViewportResolution === 'function') syncCanvasViewportResolution();
+  }, 80);
+}
+window.restoreFullscreenIfLockedMode = restoreFullscreenIfLockedMode;
+
 function closeFullscreenModal() {
   if (fullscreenModal) fullscreenModal.classList.add('hidden');
 }
@@ -1756,6 +1997,7 @@ function closeFullscreenModal() {
 if (btnFullscreen) {
   btnFullscreen.addEventListener('click', () => {
     SoundFX.uiClick();
+    updateZoomLabels();
     if (fullscreenModal) fullscreenModal.classList.remove('hidden');
   });
 }
@@ -1825,6 +2067,10 @@ const hexCtx = hexCanvas.getContext('2d');
 
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
+const mobileChatOverlay = document.getElementById('mobileChatOverlay');
+const mobileChatInput = document.getElementById('mobileChatInput');
+const mobileChatSendBtn = document.getElementById('mobileChatSendBtn');
+const mobileChatCloseBtn = document.getElementById('mobileChatCloseBtn');
 const chatLog = document.getElementById('chatLog');
 const btnToggleChatHistory = document.getElementById('btnToggleChatHistory');
 const hudNick = document.getElementById('hudNick');
@@ -1835,13 +2081,17 @@ const hudChances = document.getElementById('hudChances');
 let chatAutoHideTimer = null;
 let isChatPinned = false;
 
+function isAnyChatInputFocused() {
+  return document.activeElement === chatInput || document.activeElement === mobileChatInput;
+}
+
 function wakeUpChatLog() {
   if (!chatLog) return;
   chatLog.classList.remove('chat-faded');
   if (chatAutoHideTimer) clearTimeout(chatAutoHideTimer);
-  if (isChatPinned || document.activeElement === chatInput) return;
+  if (isChatPinned || isAnyChatInputFocused()) return;
   chatAutoHideTimer = setTimeout(() => {
-    if (!isChatPinned && document.activeElement !== chatInput) {
+    if (!isChatPinned && !isAnyChatInputFocused()) {
       chatLog.classList.add('chat-faded');
     }
   }, 5000);
@@ -1875,13 +2125,65 @@ if (btnToggleChatHistory) {
   });
 }
 
-if (chatInput) {
-  chatInput.addEventListener('focus', () => {
+[chatInput, mobileChatInput].forEach(inp => {
+  if (!inp) return;
+  inp.addEventListener('focus', () => {
     chatLog.classList.remove('chat-faded');
     if (chatAutoHideTimer) clearTimeout(chatAutoHideTimer);
   });
-  chatInput.addEventListener('blur', () => {
+  inp.addEventListener('blur', () => {
     wakeUpChatLog();
+  });
+});
+
+// ================= [모바일 전체화면 유지형 인게임 채팅 입력 바 컨트롤러] =================
+function openMobileChatOverlay() {
+  SoundFX.uiClick();
+  wakeUpChatLog();
+  if (!mobileChatOverlay || !mobileChatInput) return;
+  mobileChatOverlay.classList.remove('hidden');
+  mobileChatInput.focus();
+}
+
+function closeMobileChatOverlay() {
+  if (!mobileChatOverlay || !mobileChatInput) return;
+  mobileChatInput.blur();
+  mobileChatOverlay.classList.add('hidden');
+  wakeUpChatLog();
+  restoreFullscreenIfLockedMode();
+}
+window.closeMobileChatOverlay = closeMobileChatOverlay;
+
+function submitMobileChatOverlay() {
+  if (!mobileChatInput) return;
+  const msg = mobileChatInput.value.trim();
+  if (msg && socket) {
+    socket.emit('sendChat', msg);
+  }
+  mobileChatInput.value = '';
+  closeMobileChatOverlay();
+}
+window.submitMobileChatOverlay = submitMobileChatOverlay;
+
+document.getElementById('mBtnChat')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (mobileChatOverlay && !mobileChatOverlay.classList.contains('hidden')) {
+    closeMobileChatOverlay();
+  } else {
+    openMobileChatOverlay();
+  }
+});
+if (mobileChatSendBtn) {
+  mobileChatSendBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    submitMobileChatOverlay();
+  });
+}
+if (mobileChatCloseBtn) {
+  mobileChatCloseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    SoundFX.uiClick();
+    closeMobileChatOverlay();
   });
 }
 
@@ -2069,7 +2371,7 @@ const WEAPON_SPECS = {
 };
 const WEAPON_KEYS = Object.keys(WEAPON_SPECS);
 
-// 기숙사 4인 NPC (패치 내역: 세로/가로 선택형 와일드 패드 전체화면, 6종 전 무기 자동 타게팅, 50강 전용 스킬 안내)
+// 기숙사 4인 NPC (패치 내역: 줌인/줌아웃, 구역별 BGM, 세로/가로 선택형 와일드 패드 전체화면 안내)
 const DORM_NPCS = [
   {
     x: 4, y: 3,
@@ -2077,9 +2379,9 @@ const DORM_NPCS = [
     name: '헬리콥터',
     portrait: '👓⚡',
     dialogs: [
-      "상단 바 오른쪽 끝의 [⛶ 화면] 버튼을 눌러보아라! 기존의 '세로 전체화면'과 양손 엄지로 조작하는 '가로 전체화면(와일드 패드 모드)' 중 원하는 방식을 직접 선택할 수 있다!",
-      "가로 패드 모드에서는 왼쪽 아래에 반투명 조이스틱이, 오른쪽 아래에는 큼직한 공격 버튼을 중심으로 기운·스펙업·정보·순위·채팅 원형 버튼들이 부채꼴로 펼쳐진다.",
-      "모바일에서는 시야가 1.6배 확대되며, 화면을 가리지 않도록 채팅창은 5초 뒤 서서히 사라진다. 좌측 하단 [💬 기록] 버튼으로 언제든 고정해 볼 수 있지."
+      "상단 바 오른쪽의 [-][100%][+] 버튼이나 PC 마우스 휠, 모바일 두 손가락 핀치로 게임 시야를 내 취향대로 줌인·줌아웃할 수 있다!",
+      "[⛶ 화면] 버튼을 누르면 기존의 '세로 전체화면'과 양손 엄지로 조작하는 '가로 전체화면(와일드 패드 모드)'을 선택할 수 있으며, 채팅을 쳐도 전체화면이 절대 풀리지 않지.",
+      "내 정보[S] 창 하단에서 [🎵 BGM ON]을 켜면 기숙사 로비와 동쪽숲 사냥터마다 신나는 전용 배경음악이 흘러나온다!"
     ]
   },
   {
@@ -3106,14 +3408,6 @@ function renderOnlineList() {
 
 hudOnlineCount.addEventListener('click', openOnlineModal);
 onlineCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeOnlineModal(); });
-
-document.getElementById('mBtnChat').addEventListener('click', () => {
-  wakeUpChatLog();
-  const msg = prompt('외칠 말을 입력하세요:');
-  if (msg && msg.trim() && socket) {
-    socket.emit('sendChat', msg.trim());
-  }
-});
 
 // ================= [기운 발산 (4대 색상) & 대사부 NPC 무기 전수 모달] =================
 const AURA_PALETTES = {
