@@ -1362,7 +1362,7 @@ io.on('connection', async (socket) => {
         });
     });
 
-    // 6대 스탯 + 무기 6종 개별 강화 소켓 이벤트
+    // 6대 스탯(기댓값 +1.00% 통일 밸런스) + 무기 6종 개별 강화 소켓 이벤트
     socket.on('tryEnhanceStat', async (statType, callback) => {
         const p = players[socket.id];
         if (!p) return callback({ success: false, message: '플레이어 정보 없음' });
@@ -1442,7 +1442,7 @@ io.on('connection', async (socket) => {
             }
         } else {
             switch (statType) {
-                // 1. 학력: 성공 1% (+1), 유지 99%
+                // 1. 학력: 성공 1% (+1), 유지 99%, 실패 0%
                 case 'education': {
                     if (rand < 1.0) {
                         u.character.education += 1;
@@ -1451,60 +1451,35 @@ io.on('connection', async (socket) => {
                     break;
                 }
 
-                // 2. 외모: 성공 2% (+1), 유지 97%, 실패 1% (-1) [0강 보호]
+                // 2. 외모: 성공 11% (+1), 유지 79%, 실패 10% (-1) [0강 보호]
                 case 'appearance': {
-                    if (rand < 2.0) {
+                    if (rand < 11.0) {
                         u.character.appearance += 1;
                         result = { type: 'success', change: 1, message: '✨ 외모 관리 성공! 아우라가 달라졌습니다. (전투력 +1)' };
-                    } else if (rand >= 99.0 && u.character.appearance > 0) {
+                    } else if (rand >= 90.0 && u.character.appearance > 0) {
                         u.character.appearance -= 1;
                         result = { type: 'fail', change: -1, message: '💦 관리 소홀... 외모가 조금 서운해졌습니다. (전투력 -1)' };
                     }
                     break;
                 }
 
-                // 3. 재력: 성공 1% (+1), 대성공 0.99% (+2), 유지 97%, 실패 1% (-1), 대폭락 0.01% (-100강) [0강 보호]
+                // 3. 재력: 성공 41% (+1), 유지 19%, 실패 40% (-1) [0강 보호]
                 case 'wealth': {
-                    if (u.character.wealth === 0) {
-                        if (rand < 1.0) {
-                            u.character.wealth += 1;
-                            result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 소득이 늘었습니다. (전투력 +1)' };
-                        } else if (rand < 1.99) {
-                            u.character.wealth += 2;
-                            result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 투자 대박 (+2강 · 전투력 +2)!' };
-                        }
-                    } else {
-                        if (rand < 1.0) {
-                            u.character.wealth += 1;
-                            result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 자산이 증식되었습니다. (전투력 +1)' };
-                        } else if (rand < 1.99) {
-                            u.character.wealth += 2;
-                            result = { type: 'great_success', change: 2, message: '💎 재력 대성공!! 벼락부자가 되었습니다 (+2강 · 전투력 +2)!' };
-                        } else if (rand >= 98.99 && rand < 99.99) {
-                            u.character.wealth -= 1;
-                            result = { type: 'fail', change: -1, message: '📉 투자 손실... 자산이 줄었습니다 (-1강 · 전투력 -1).' };
-                        } else if (rand >= 99.99) {
-                            const prevWealth = u.character.wealth;
-                            u.character.wealth = Math.max(0, prevWealth - 100);
-                            const dropped = u.character.wealth - prevWealth;
-                            result = {
-                                type: 'catastrophe',
-                                change: dropped,
-                                message: `🚨 0.01% 대폭락!! 자산 시장의 거대한 충격으로 재력이 100강 하락했습니다! (현재 +${u.character.wealth}강)`
-                            };
-                        }
+                    if (rand < 41.0) {
+                        u.character.wealth += 1;
+                        result = { type: 'success', change: 1, message: '💰 재력 강화 성공! 자산이 증식되었습니다. (전투력 +1)' };
+                    } else if (rand >= 60.0 && u.character.wealth > 0) {
+                        u.character.wealth -= 1;
+                        result = { type: 'fail', change: -1, message: '📉 투자 손실... 자산이 줄었습니다 (-1강 · 전투력 -1).' };
                     }
                     break;
                 }
 
-                // 4. 지능: 기본값 IQ100 / 성공 1% (+1), 대성공 1% (+2), 유지 97%, 실패 1% (-1) [IQ 0 보호]
+                // 4. 지능: 기본값 IQ100 / 성공 2% (+1), 유지 97%, 실패 1% (-1) [IQ 0 보호]
                 case 'iq': {
-                    if (rand < 1.0) {
+                    if (rand < 2.0) {
                         u.character.iq += 1;
                         result = { type: 'success', change: 1, message: '🧠 지능 향상 성공 (+1 IQ · 전투력 +1)!' };
-                    } else if (rand < 2.0) {
-                        u.character.iq += 2;
-                        result = { type: 'great_success', change: 2, message: '💡 번뜩이는 영감 폭발 (+2 IQ · 전투력 +2)!' };
                     } else if (rand >= 99.0 && u.character.iq > 0) {
                         u.character.iq -= 1;
                         result = { type: 'fail', change: -1, message: '😵 뇌정지가 왔습니다 (-1 IQ).' };
@@ -1512,27 +1487,24 @@ io.on('connection', async (socket) => {
                     break;
                 }
 
-                // 5. 체력: 성공 3% (+1), 유지 96.5%, 실패 0.5% (-1) [0강 보호]
+                // 5. 체력: 성공 7% (+1), 유지 87%, 실패 6% (-1) [0강 보호]
                 case 'stamina': {
-                    if (rand < 3.0) {
+                    if (rand < 7.0) {
                         u.character.stamina += 1;
                         result = { type: 'success', change: 1, message: '💪 체력 강화 성공! 피지컬이 상승했습니다. (전투력 +1)' };
-                    } else if (rand >= 99.5 && u.character.stamina > 0) {
+                    } else if (rand >= 94.0 && u.character.stamina > 0) {
                         u.character.stamina -= 1;
                         result = { type: 'fail', change: -1, message: '🩹 무리한 운동으로 근육통이 왔습니다 (-1강 · 전투력 -1).' };
                     }
                     break;
                 }
 
-                // 6. 성격: 성공 2% (+1), 대성공 1% (+2), 유지 96%, 실패 1% (-1) [0강 보호]
+                // 6. 성격: 성공 5% (+1), 유지 91%, 실패 4% (-1) [0강 보호]
                 case 'personality': {
-                    if (rand < 2.0) {
+                    if (rand < 5.0) {
                         u.character.personality += 1;
                         result = { type: 'success', change: 1, message: '🍀 성격 수양 성공! 인성이 깊어졌습니다. (전투력 +1)' };
-                    } else if (rand < 3.0) {
-                        u.character.personality += 2;
-                        result = { type: 'great_success', change: 2, message: '🕊️ 성격 대성공!! 해탈의 경지에 다가섭니다 (+2강 · 전투력 +2)!' };
-                    } else if (rand >= 99.0 && u.character.personality > 0) {
+                    } else if (rand >= 96.0 && u.character.personality > 0) {
                         u.character.personality -= 1;
                         result = { type: 'fail', change: -1, message: '💢 욱하는 마음에 인성이 깎였습니다 (-1강 · 전투력 -1).' };
                     }
