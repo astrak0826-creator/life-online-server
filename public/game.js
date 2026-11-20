@@ -342,9 +342,10 @@ let lastAttackClientTime = 0;
 let attackHoldTimer = null;
 let localSwingToggle = 1;
 
-// 사이클 기반 스킬 카운터 (대검 GG: 3타마다, 활 삼삼구샷: 4타마다)
+// 사이클 기반 스킬 카운터 (대검 GG: 3타마다, 활 삼삼구샷: 4타마다, 차크람 동서남북: 4타마다)
 let greatswordAttackCount = 0;
 let bowAttackCount = 0;
+let chakramAttackCount = 0;
 
 function dirToAngle(dir) {
   if (dir === 'up') return -Math.PI / 2;
@@ -374,7 +375,7 @@ function getWeaponAutoTargetRangePx(weaponType, weaponLv = 0) {
   if (weaponType === 'wand') return 7.5 * TILE_SIZE;      // 300px (7.5타일)
   if (weaponType === 'greatsword') return 122 + lv * 1.4; // 122px ~ 164px
   if (weaponType === 'hammer') return 104 + lv * 1.2;     // 104px ~ 140px
-  if (weaponType === 'bow') return 9.0 * TILE_SIZE;       // 360px (9.0타일)
+  if (weaponType === 'bow') return 12.0 * TILE_SIZE;      // 480px (12.0타일 확장)
   if (weaponType === 'daggers') return 84 + lv * 0.9;     // 84px ~ 111px
   if (weaponType === 'chakram') return 6.5 * TILE_SIZE;   // 260px (6.5타일)
   return 7.5 * TILE_SIZE;
@@ -456,12 +457,15 @@ function tryFireMagicProjectile() {
         shoutText = 'Eat kimchi, stay healthy!';
       }
     } else if (eqWeapon === 'daggers') {
-      if (Math.random() < 0.05) {
+      // 새비지 블로우: 10% 확률 발동 (80% x 6연타)
+      if (Math.random() < 0.10) {
         skillType = 'savage';
         shoutText = 'Savege Blow!!';
       }
     } else if (eqWeapon === 'chakram') {
-      if (Math.random() < 0.13) {
+      // 동서남북: 4타마다 확정 4방향 투척
+      chakramAttackCount = (chakramAttackCount + 1) % 4;
+      if (chakramAttackCount === 0) {
         skillType = 'cardinal';
         shoutText = '퉁퉁퉁퉁 싸 방향 후르-!!';
       }
@@ -471,7 +475,7 @@ function tryFireMagicProjectile() {
   // [전 무기(6종) 공격 범위 내 자동 타게팅]
   let autoRangePx = getWeaponAutoTargetRangePx(eqWeapon, weaponLv);
   if (skillType === 'blackhole' && eqWeapon === 'hammer') {
-    autoRangePx = Math.max(autoRangePx, 4.5 * TILE_SIZE);
+    autoRangePx = Math.max(autoRangePx, 4.0 * TILE_SIZE);
   } else if (skillType === 'gg' && eqWeapon === 'greatsword') {
     autoRangePx += 14;
   } else if (skillType === 'savage' && eqWeapon === 'daggers') {
@@ -614,7 +618,7 @@ function createChakramProjectile(ownerId, originX, originY, launchAngle, weaponL
   };
 }
 
-// 활 화살 생성 헬퍼 (단일 평타 및 삼삼구샷 연사 공용)
+// 활 화살 생성 헬퍼 (단일 평타 및 삼삼구샷 연사 공용 - 사거리 12타일 확장)
 function createBowArrowProjectile(ownerId, originX, originY, arrowAngle, weaponLv, sharedVolleyHitMap = null, isSkillHit = false) {
   const speed = 13.8 + Math.min(4.2, weaponLv * 0.14);
   const vx = Math.cos(arrowAngle);
@@ -630,7 +634,7 @@ function createBowArrowProjectile(ownerId, originX, originY, arrowAngle, weaponL
     vy: vy * speed,
     speed: speed,
     angle: arrowAngle,
-    maxDistPx: 9.0 * TILE_SIZE, // 사거리 9.0타일 (360px)
+    maxDistPx: 12.0 * TILE_SIZE, // 사거리 12.0타일 (480px)
     hitRadius: 30,
     pierce: true,
     hitMonsterIds: sharedVolleyHitMap || {},
@@ -756,7 +760,7 @@ function spawnWeaponAttack(data) {
     return;
   }
 
-  // 2. 망치 (전방 118도 내려찍기 & +50강 스킬 '블랙홀' 반경 4.5타일 흡입)
+  // 2. 망치 (전방 118도 내려찍기 & +50강 스킬 '블랙홀' 반경 4타일 흡입)
   if (weaponType === 'hammer') {
     const reachPx = 104 + weaponLv * 1.2;
     const halfArc = (59 * Math.PI) / 180;
@@ -769,7 +773,7 @@ function spawnWeaponAttack(data) {
         ownerId: data.ownerId,
         x: bhX,
         y: bhY,
-        pullRadius: 4.5 * TILE_SIZE,
+        pullRadius: 4.0 * TILE_SIZE,
         weaponLv: weaponLv,
         born: Date.now(),
         duration: 520
@@ -791,7 +795,7 @@ function spawnWeaponAttack(data) {
     });
 
     if (data.ownerId === myId) {
-      const pullRadiusPx = 4.5 * TILE_SIZE;
+      const pullRadiusPx = 4.0 * TILE_SIZE;
       let hitAny = false;
       Object.values(monsters).forEach(m => {
         if (!m.alive) return;
@@ -811,20 +815,20 @@ function spawnWeaponAttack(data) {
     return;
   }
 
-  // 3. 쌍수 (초근접 0.2초 초고속 찌르기 & +50강 스킬 '새비지 블로우' 단일 0.8배 x 6연타)
+  // 3. 쌍수 (초근접 0.2초 초고속 단일 찌르기 100% 피해 & +50강 스킬 '새비지 블로우' 10% 확률 80% x 6연타)
   if (weaponType === 'daggers') {
     const reachPx = 84 + weaponLv * 0.9;
     const halfArc = (48 * Math.PI) / 180;
 
     if (skillType === 'savage') {
       let targetMon = null;
-      let bestDist = reachPx + 42;
+      let bestEffDist = reachPx + 42;
       Object.values(monsters).forEach(m => {
         if (!m.alive) return;
         const mc = getMonsterWorldCenter(m);
-        const d = Math.hypot(mc.cx - originX, mc.cy - originY);
-        if (d <= bestDist + mc.radius) {
-          bestDist = d - mc.radius;
+        const effDist = Math.max(0, Math.hypot(mc.cx - originX, mc.cy - originY) - mc.radius);
+        if (effDist <= bestEffDist) {
+          bestEffDist = effDist;
           targetMon = m;
         }
       });
@@ -877,7 +881,11 @@ function spawnWeaponAttack(data) {
       duration: 150
     });
 
+    // 범위 내 가장 가까운 적 1마리만 단일 타격
     if (data.ownerId === myId) {
+      let nearestTarget = null;
+      let minEffDist = Infinity;
+
       Object.values(monsters).forEach(m => {
         if (!m.alive) return;
         const mc = getMonsterWorldCenter(m);
@@ -885,16 +893,24 @@ function spawnWeaponAttack(data) {
         if (dist <= reachPx + mc.radius) {
           const mAng = Math.atan2(mc.cy - originY, mc.cx - originX);
           if (Math.abs(angleDiff(mAng, baseAngle)) <= halfArc + 0.25) {
-            spawnHitExplosion(mc.cx, mc.cy, weaponLv, true);
-            socket.emit('hitMonster', { monsterId: m.id });
+            const effDist = Math.max(0, dist - mc.radius);
+            if (effDist < minEffDist) {
+              minEffDist = effDist;
+              nearestTarget = { m, mc };
+            }
           }
         }
       });
+
+      if (nearestTarget) {
+        spawnHitExplosion(nearestTarget.mc.cx, nearestTarget.mc.cy, weaponLv, true);
+        socket.emit('hitMonster', { monsterId: nearestTarget.m.id });
+      }
     }
     return;
   }
 
-  // 4. 활 (9타일 자동 타게팅 일직선 관통 & +50강 스킬 '삼삼구샷' 60도 3갈래 x 3연사)
+  // 4. 활 (12타일 자동 타게팅 일직선 관통 150% 피해 & +50강 스킬 '삼삼구샷' 60도 3갈래 x 3연사)
   if (weaponType === 'bow') {
     if (skillType === 'samsamgu') {
       const spreadAngles = [-Math.PI / 6, 0, Math.PI / 6];
@@ -921,7 +937,7 @@ function spawnWeaponAttack(data) {
     return;
   }
 
-  // 5. 차크람 (6.5타일 타원 곡선 왕복 2연타 & +50강 스킬 '동서남북' 십자 4방향 동시 투척)
+  // 5. 차크람 (6.5타일 타원 곡선 왕복 2연타 & +50강 스킬 '동서남북' 4타마다 십자 4방향 동시 투척)
   if (weaponType === 'chakram') {
     if (skillType === 'cardinal') {
       const fourDirs = [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2];
@@ -935,7 +951,7 @@ function spawnWeaponAttack(data) {
     return;
   }
 
-  // 6. 지팡이 (사거리 7.5타일 자동 타게팅 + 유도 마법구 + 착탄 주변 50% 폭발)
+  // 6. 지팡이 (사거리 7.5타일 자동 타게팅 + 유도 마법구 + 넓은 주변 100% 폭발)
   const speed = 7.8 + Math.min(3.8, weaponLv * 0.12);
   pushProjectileCapped({
     weaponType: 'wand',
@@ -959,17 +975,17 @@ function spawnWeaponAttack(data) {
   });
 }
 
-function spawnHitExplosion(x, y, wandLv, hitTarget = false) {
+function spawnHitExplosion(x, y, wandLv, hitTarget = false, isWandSplashBurst = false) {
   SoundFX.magicHit(wandLv);
   if (hitTarget) {
     screenShakeMag = Math.min(7, 2.5 + wandLv * 0.12);
   }
   const hue = (200 + wandLv * 14) % 360;
-  const sparkCount = Math.min(20, 8 + Math.floor(wandLv * 0.5));
+  const sparkCount = Math.min(22, (isWandSplashBurst ? 12 : 8) + Math.floor(wandLv * 0.5));
   const sparks = [];
   for (let i = 0; i < sparkCount; i++) {
     const angle = (Math.PI * 2 / sparkCount) * i + (Math.random() - 0.5) * 0.35;
-    const spd = (2.4 + Math.random() * 2.8) * (1 + wandLv * 0.03);
+    const spd = (isWandSplashBurst ? 4.2 + Math.random() * 3.6 : 2.4 + Math.random() * 2.8) * (1 + wandLv * 0.03);
     sparks.push({
       angle,
       spd,
@@ -984,11 +1000,12 @@ function spawnHitExplosion(x, y, wandLv, hitTarget = false) {
     y,
     wandLv,
     hue,
-    maxRadius: 22 + wandLv * 1.4,
-    ringCount: 1 + Math.min(3, Math.floor(wandLv / 8)),
+    maxRadius: isWandSplashBurst ? 96 : (22 + wandLv * 1.4),
+    isWandSplashBurst: Boolean(isWandSplashBurst),
+    ringCount: isWandSplashBurst ? 3 : (1 + Math.min(3, Math.floor(wandLv / 8))),
     sparks,
     born: Date.now(),
-    duration: 330 + wandLv * 4
+    duration: (isWandSplashBurst ? 380 : 330) + wandLv * 4
   });
 }
 
@@ -1176,6 +1193,22 @@ function connectSocketGame(token, nickname) {
         updateHUD();
         renderEnhanceUI();
       }
+    }
+  });
+
+  // 한국 시각(KST) 00:00 스탯 자연 하락 안내 수신
+  socket.on('statDecayNotice', (data) => {
+    if (!data) return;
+    if (data.character) {
+      myCharacter = data.character;
+      if (players[myId]) players[myId].character = data.character;
+      updateAttackButtonLabel();
+      updateHUD();
+      if (typeof renderEnhanceUI === 'function') renderEnhanceUI();
+    }
+    if (data.message) {
+      SoundFX.enhanceFail();
+      addChatLog('시스템', data.message);
     }
   });
 
@@ -1425,6 +1458,20 @@ window.addEventListener('keydown', (e) => {
   const activeEl = document.activeElement;
   const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
 
+  // +15강 이상 무기 강화 2차 확인 창이 떠 있을 때는 C/Enter/Space 키 입력을 완전히 차단 (ESC로만 닫기 가능)
+  if (typeof isEnhanceConfirmOpen === 'function' && isEnhanceConfirmOpen()) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (typeof closeEnhanceConfirmModal === 'function') closeEnhanceConfirmModal();
+    } else if (
+      e.key === 'c' || e.key === 'C' || e.key === 'ㅊ' ||
+      e.key === 'Enter' || e.code === 'Space'
+    ) {
+      e.preventDefault();
+    }
+    return;
+  }
+
   if (isTyping) {
     if (e.key === 'Enter') {
       if (activeEl === chatInput) {
@@ -1459,6 +1506,7 @@ window.addEventListener('keydown', (e) => {
     closeInfoModal();
     closeRankModal();
     closeOnlineModal();
+    if (typeof closeEnhanceConfirmModal === 'function') closeEnhanceConfirmModal();
     closeEnhance();
     if (typeof closeFullscreenModal === 'function') closeFullscreenModal();
     if (typeof window.closeMobileChatOverlay === 'function') window.closeMobileChatOverlay();
@@ -3425,7 +3473,7 @@ function drawGame() {
     return true;
   });
 
-  // 투사체 무기(지팡이 유도 폭발 / 활 무제한 관통 / 차크람 타원 왕복 2타) 이동 및 판정
+  // 투사체 무기(지팡이 유도 광역 100% 폭발 / 활 12타일 무제한 관통 / 차크람 타원 왕복 2타) 이동 및 판정
   projectiles = projectiles.filter(proj => {
     proj.trail.push({ x: proj.x, y: proj.y });
     const maxTrail = 5 + Math.floor(proj.weaponLv * 0.25);
@@ -3528,13 +3576,14 @@ function drawGame() {
             }
           }
         } else {
-          spawnHitExplosion(proj.x, proj.y, proj.weaponLv, true);
+          // 지팡이: 넓어진 96px 반경으로 주변 적도 100% 동일 폭발 피해
+          spawnHitExplosion(proj.x, proj.y, proj.weaponLv, true, true);
           if (proj.ownerId === myId) {
             socket.emit('hitMonster', { monsterId: m.id, skillHit: Boolean(proj.skillHit) });
             Object.values(monsters).forEach(other => {
               if (!other.alive || other.id === m.id) return;
               const oc = getMonsterWorldCenter(other);
-              if (Math.hypot(oc.cx - proj.x, oc.cy - proj.y) <= 68 + oc.radius) {
+              if (Math.hypot(oc.cx - proj.x, oc.cy - proj.y) <= 96 + oc.radius) {
                 socket.emit('hitMonster', { monsterId: other.id, isSplash: true });
               }
             });
@@ -3647,6 +3696,13 @@ function drawGame() {
     ctx.globalAlpha = alpha;
     ctx.shadowColor = `hsl(${eff.hue}, 100%, 65%)`;
     ctx.shadowBlur = 12 * alpha;
+
+    if (eff.isWandSplashBurst) {
+      ctx.fillStyle = `hsla(${eff.hue}, 95%, 60%, ${alpha * 0.22})`;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(2, eff.maxRadius * prog), 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     for (let r = 0; r < eff.ringCount; r++) {
       const rad = eff.maxRadius * prog * (1 - r * 0.22);

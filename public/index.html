@@ -923,20 +923,78 @@
     z-index: 50;
     padding: 8px;
   }
-  .auth-card, .enhance-modal, .rank-modal, .npc-dialog-box, .info-modal-card, .fs-select-card {
+  .auth-card, .enhance-modal, .rank-modal, .npc-dialog-box, .info-modal-card, .fs-select-card, .enhance-confirm-card {
     background: #0e090c;
     border: 2px solid #7f1d1d;
     border-radius: 6px;
     box-shadow: 0 15px 40px rgba(0,0,0,0.95), 0 0 20px rgba(220, 38, 38, 0.15);
   }
-  .auth-card { padding: 20px; width: 100%; max-width: 350px; text-align: center; }
+  .auth-card {
+    position: relative;
+    padding: 20px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+  }
   .auth-card h2 { color: var(--eva-orange); margin: 0 0 12px; font-size: 18px; }
   .auth-card input, .auth-card select { width: 100%; margin-bottom: 8px; }
+  .btn-auth-bgm {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #1c1015;
+    border: 1px solid #5c1d24;
+    color: #fef08a;
+    font-size: 10px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1.2;
+  }
+  .btn-auth-bgm:active {
+    transform: scale(0.94);
+  }
   .auth-tabs { display: flex; margin-bottom: 12px; gap: 4px; }
   .auth-tabs button { flex: 1; background: #1c1015; border: 1px solid #451a1c; color: #94a3b8; font-size: 12px; padding: 6px 4px; border-radius: 3px; }
   .auth-tabs button.active { background: #7f1d1d; border-color: var(--eva-orange); color: #fef08a; }
   .auth-msg { font-size: 12px; color: #f87171; margin-top: 8px; min-height: 16px; }
   .auth-msg.success { color: #4ade80; }
+
+  /* +15강 이상 무기 강화 2차 확인 모달 */
+  #enhanceConfirmModal {
+    z-index: 70;
+    background: rgba(4, 2, 6, 0.82);
+  }
+  .enhance-confirm-card {
+    padding: 18px 16px;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+    border-color: #f59e0b;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 24px rgba(245, 158, 11, 0.28);
+  }
+  .enhance-confirm-title {
+    color: #facc15;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 0 8px;
+  }
+  .enhance-confirm-desc {
+    font-size: 12px;
+    color: #e2e8f0;
+    line-height: 1.55;
+    background: #140b0f;
+    border: 1px solid #5c1d24;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 12px;
+    white-space: pre-line;
+  }
+  .enhance-confirm-warn {
+    font-size: 11px;
+    color: #fca5a5;
+    margin-bottom: 12px;
+  }
 
   /* 전체화면 모드 선택 모달 (세로 전체화면 vs 가로 전체화면 패드 모드) */
   .fs-select-card {
@@ -1381,6 +1439,7 @@
 <!-- 인증 모달 -->
 <div id="authModal" class="modal-overlay">
   <div class="auth-card">
+    <button id="btnBgmToggleAuth" class="btn-auth-bgm" title="배경음악 켜기/끄기">🔇 BGM OFF</button>
     <h2 id="modalTitle">인생온라인</h2>
     <div class="auth-tabs">
       <button id="tabLogin" class="active">로그인</button>
@@ -1488,6 +1547,10 @@
 
     <div class="info-stat-grid" id="infoStatCardList"></div>
 
+    <div style="width:100%; font-size:10px; color:#94a3b8; text-align:center; margin-bottom:6px;">
+      🌙 6대 스탯 강화단계 총합 100 초과 시 매일 00:00(KST) 랜덤 1스탯 -1강
+    </div>
+
     <div class="custom-pref-box" id="myCustomPrefBox">
       <div class="pref-col full-span">
         <span class="pref-label">⚔️ 현재 장착 무기 (전수받은 무기 중 선택)</span>
@@ -1548,17 +1611,30 @@
       <div id="curStatName" style="font-size:12px; color:#fca5a5;">학력 스탯 현황</div>
       <div id="curStatLevel" class="cur-stat-val">+0강</div>
       <div id="curStatTitle" class="cur-stat-desc">문맹</div>
-      <div id="curStatRule" class="cur-stat-rule">성공 1% (+1강) | 유지 99% (하락 없음)</div>
+      <div id="curStatRule" class="cur-stat-rule">성공 1% (+1강) | 유지 99% | 실패 0% (하락 없음)</div>
       <div style="margin-top:8px; font-size:13px; color:#38bdf8;">
         소모 기회: 1회 (남은 기회: <span id="modalChanceCount">120</span>/120)
       </div>
     </div>
 
-    <div id="enhanceResultMsg" class="enhance-result-box">강화 버튼을 0.5초 이상 누르고 있으면 고속 연속 연성이 진행됩니다!</div>
+    <div id="enhanceResultMsg" class="enhance-result-box">강화 버튼을 0.5초 이상 누르고 있으면 고속 연속 연성이 진행됩니다! (+15강 이상 무기는 확인 창 표시)</div>
 
     <div style="display:flex; gap:8px;">
       <button id="enhanceCloseBtn" style="flex:1; background:#1c1015; border:1px solid #5c1d24; color:#fff; border-radius:4px; padding:8px;">닫기 (ESC)</button>
       <button id="enhanceExecuteBtn" style="flex:2; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:8px; font-weight:bold; touch-action:none;">강화 시도 (C · 홀드 연타)</button>
+    </div>
+  </div>
+</div>
+
+<!-- +15강 이상 고강 무기 강화 2차 확인 모달 (C/Enter/Space 수락 불가 · 클릭/터치 전용) -->
+<div id="enhanceConfirmModal" class="modal-overlay hidden">
+  <div class="enhance-confirm-card">
+    <h3 class="enhance-confirm-title" id="enhanceConfirmTitle">⚠️ 고강 무기 강화 확인</h3>
+    <div class="enhance-confirm-desc" id="enhanceConfirmDesc">정말 강화를 진행하시겠습니까?</div>
+    <div class="enhance-confirm-warn">실수 방지를 위해 키보드(C/Enter/Space)로는 수락되지 않습니다.<br>직접 클릭하거나 터치하여 진행하세요.</div>
+    <div style="display:flex; gap:8px;">
+      <button id="btnEnhanceConfirmCancel" tabindex="-1" style="flex:1; background:#1e293b; border:1px solid #475569; color:#cbd5e1; border-radius:4px; padding:8px; font-size:12px;">취소 (ESC)</button>
+      <button id="btnEnhanceConfirmOk" tabindex="-1" style="flex:1.4; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:8px; font-size:12px; font-weight:bold;">강화 진행 (클릭)</button>
     </div>
   </div>
 </div>
@@ -1874,19 +1950,32 @@ function toggleSfxState() {
 const btnSfxModal = document.getElementById('btnSfxToggleModal');
 if (btnSfxModal) btnSfxModal.addEventListener('click', toggleSfxState);
 
+function syncBgmButtonsUI(isOn) {
+  const buttons = [
+    document.getElementById('btnBgmToggleAuth'),
+    document.getElementById('btnBgmToggleModal')
+  ];
+  buttons.forEach(btn => {
+    if (!btn) return;
+    btn.textContent = isOn ? '🎵 BGM ON' : '🔇 BGM OFF';
+    btn.style.borderColor = isOn ? '#10b981' : '#5c1d24';
+    btn.style.color = isOn ? '#6ee7b7' : '#fef08a';
+  });
+}
+
 function toggleBgmState() {
   SoundFX.uiClick();
-  const meX = (players && myId && players[myId]) ? players[myId].x : 5;
+  const meX = (typeof players !== 'undefined' && typeof myId !== 'undefined' && myId && players[myId])
+    ? players[myId].x
+    : 5;
   const isOn = BGMManager.toggle(meX);
-  const btnBgm = document.getElementById('btnBgmToggleModal');
-  if (btnBgm) {
-    btnBgm.textContent = isOn ? '🎵 BGM ON' : '🔇 BGM OFF';
-    btnBgm.style.borderColor = isOn ? '#10b981' : '#5c1d24';
-    btnBgm.style.color = isOn ? '#6ee7b7' : '#fef08a';
-  }
+  syncBgmButtonsUI(isOn);
 }
+const btnBgmAuth = document.getElementById('btnBgmToggleAuth');
+if (btnBgmAuth) btnBgmAuth.addEventListener('click', toggleBgmState);
 const btnBgmModal = document.getElementById('btnBgmToggleModal');
 if (btnBgmModal) btnBgmModal.addEventListener('click', toggleBgmState);
+syncBgmButtonsUI(BGMManager.enabled);
 
 // ================= [사용자 맞춤 시야 배율(줌인/줌아웃) 전역 상태 컨트롤러] =================
 const savedZoom = parseFloat(localStorage.getItem('azaekaban_zoom'));
@@ -2232,7 +2321,7 @@ const myAccountCornerBtns = document.getElementById('myAccountCornerBtns');
 const logoutBtn = document.getElementById('logoutBtn');
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
-// 강화 모달
+// 강화 모달 & +15강 2차 확인 모달
 const enhanceModal = document.getElementById('enhanceModal');
 const enhanceModalCard = document.getElementById('enhanceModalCard');
 const enhanceDetailBox = document.getElementById('enhanceDetailBox');
@@ -2245,6 +2334,12 @@ const curStatTitle = document.getElementById('curStatTitle');
 const curStatRule = document.getElementById('curStatRule');
 const modalChanceCount = document.getElementById('modalChanceCount');
 const enhanceResultMsg = document.getElementById('enhanceResultMsg');
+
+const enhanceConfirmModal = document.getElementById('enhanceConfirmModal');
+const enhanceConfirmTitle = document.getElementById('enhanceConfirmTitle');
+const enhanceConfirmDesc = document.getElementById('enhanceConfirmDesc');
+const btnEnhanceConfirmCancel = document.getElementById('btnEnhanceConfirmCancel');
+const btnEnhanceConfirmOk = document.getElementById('btnEnhanceConfirmOk');
 
 // 랭킹, 동접자 & NPC 모달
 const rankModal = document.getElementById('rankModal');
@@ -2288,7 +2383,7 @@ const ENHANCE_RATES = {
   25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 6종 무기 클라이언트 스펙 (새 이름: 지팡이, 대검, 망치, 활, 쌍수, 차크람 & 전 무기 자동 타게팅)
+// 6종 무기 클라이언트 스펙 (무기 5종 밸런스 패치 반영)
 const WEAPON_SPECS = {
   wand: {
     key: 'wand',
@@ -2301,7 +2396,7 @@ const WEAPON_SPECS = {
     skillStat: 'iq',
     skillReq: 150,
     skillName: '1+1',
-    combatDesc: '1.0초 쿨타임 · 7.5타일 자동 타게팅 유도 마법구(100% + 주변 50% 폭발) | 🧠지능 +50강 스킬 [1+1]: 25% 확률 추가타 1발'
+    combatDesc: '1.0초 쿨타임 · 7.5타일 자동 타게팅 유도 마법구(100% + 넓은 주변 100% 폭발) | 🧠지능 +50강 스킬 [1+1]: 25% 확률 추가타 1발'
   },
   greatsword: {
     key: 'greatsword',
@@ -2327,7 +2422,7 @@ const WEAPON_SPECS = {
     skillStat: 'education',
     skillReq: 50,
     skillName: '블랙홀',
-    combatDesc: '0.8초 쿨타임 · 사거리 내 자동 타게팅 118도 내려찍기(76% 피해) | 🎓학력 +50강 스킬 [블랙홀]: 20% 확률 반경 4.5타일 적 흡입'
+    combatDesc: '0.8초 쿨타임 · 사거리 내 자동 타게팅 118도 내려찍기(76% 피해) | 🎓학력 +50강 스킬 [블랙홀]: 20% 확률 반경 4타일 적 흡입'
   },
   bow: {
     key: 'bow',
@@ -2340,7 +2435,7 @@ const WEAPON_SPECS = {
     skillStat: 'appearance',
     skillReq: 50,
     skillName: '삼삼구샷',
-    combatDesc: '0.6초 쿨타임 · 9타일 자동 타게팅 무제한 관통 화살(63% 피해) | ✨외모 +50강 스킬 [삼삼구샷]: 4타마다 3갈래×3연사'
+    combatDesc: '0.6초 쿨타임 · 12타일 자동 타게팅 무제한 관통 화살(150% 피해) | ✨외모 +50강 스킬 [삼삼구샷]: 4타마다 3갈래×3연사'
   },
   daggers: {
     key: 'daggers',
@@ -2353,7 +2448,7 @@ const WEAPON_SPECS = {
     skillStat: 'wealth',
     skillReq: 50,
     skillName: '새비지 블로우',
-    combatDesc: '0.2초 초고속 연타 · 사거리 내 자동 타게팅 양손 찌르기(24% 피해) | 💰재력 +50강 스킬 [새비지 블로우]: 5% 확률 80%×6연타 난무'
+    combatDesc: '0.2초 초고속 연타 · 범위 내 가장 가까운 적 1마리 단일 찌르기(100% 피해) | 💰재력 +50강 스킬 [새비지 블로우]: 10% 확률 80%×6연타 난무'
   },
   chakram: {
     key: 'chakram',
@@ -2366,12 +2461,12 @@ const WEAPON_SPECS = {
     skillStat: 'personality',
     skillReq: 50,
     skillName: '동서남북',
-    combatDesc: '0.5초 쿨타임 · 6.5타일 자동 타게팅 타원 왕복 2연타(각 30% 피해) | 🍀성격 +50강 스킬 [동서남북]: 13% 확률 4방향 투척'
+    combatDesc: '0.5초 쿨타임 · 6.5타일 자동 타게팅 타원 왕복 2연타(각 30% 피해) | 🍀성격 +50강 스킬 [동서남북]: 4타마다 4방향 투척'
   }
 };
 const WEAPON_KEYS = Object.keys(WEAPON_SPECS);
 
-// 기숙사 4인 NPC (패치 내역: 줌인/줌아웃, 구역별 BGM, 세로/가로 선택형 와일드 패드 전체화면 안내)
+// 기숙사 4인 NPC
 const DORM_NPCS = [
   {
     x: 4, y: 3,
@@ -2381,7 +2476,7 @@ const DORM_NPCS = [
     dialogs: [
       "상단 바 오른쪽의 [-][100%][+] 버튼이나 PC 마우스 휠, 모바일 두 손가락 핀치로 게임 시야를 내 취향대로 줌인·줌아웃할 수 있다!",
       "[⛶ 화면] 버튼을 누르면 기존의 '세로 전체화면'과 양손 엄지로 조작하는 '가로 전체화면(와일드 패드 모드)'을 선택할 수 있으며, 채팅을 쳐도 전체화면이 절대 풀리지 않지.",
-      "내 정보[S] 창 하단에서 [🎵 BGM ON]을 켜면 기숙사 로비와 동쪽숲 사냥터마다 신나는 전용 배경음악이 흘러나온다!"
+      "로그인 창이나 내 정보[S] 창에서 [🎵 BGM ON]을 켜면 기숙사 로비와 동쪽숲 사냥터마다 전용 배경음악이 흘러나온다! 또한 6대 스탯 총합이 100을 넘으면 매일 한국 시각 00:00마다 랜덤 스탯이 1강 하락하니 꾸준한 수련을 잊지 마라!"
     ]
   },
   {
@@ -2392,7 +2487,7 @@ const DORM_NPCS = [
     dialogs: [
       "대박 소식 들었어?! 이제 지팡이, 대검, 망치, 활, 쌍수, 차크람 6종 무기 전부에 '공격 범위 내 자동 타게팅'이 적용됐어!",
       "몬스터 근처에서 공격 버튼만 누르면 내 무기의 사거리 안에 있는 가장 가까운 적을 향해 알아서 몸을 돌려 때려주니까 헛방 칠 일이 전혀 없다고!",
-      "동쪽숲2의 보스 '독감 거수'도 망치 50강 스킬 '블랙홀'에 그대로 끌려오니, 몹들을 한데 모아서 시원하게 쓸어버려 봐!"
+      "무기 +15강부터는 실수로 연타하다 미끄러지지 않도록 2차 확인 창도 뜨니까 안심하고 강화에 도전해 봐!"
     ]
   },
   {
@@ -2402,8 +2497,8 @@ const DORM_NPCS = [
     portrait: '✨📖',
     dialogs: [
       "각 무기에 대응하는 인생 스탯을 +50강(지능은 IQ 150)까지 올리면 무기별 궁극의 전용 스킬이 깨어난단다!",
-      "지팡이는 25% 확률로 추가타가 나가는 [1+1], 대검은 3타마다 2바퀴 회전하는 [GG], 망치는 20% 확률로 적들을 끌어당기는 [블랙홀]이 발동하지!",
-      "활은 4타마다 3갈래 3연사를 날리는 [삼삼구샷], 쌍수는 5% 확률로 6연타를 퍼붓는 [새비지 블로우], 차크람은 13% 확률로 사방에 날리는 [동서남북]이 펼쳐진단다!"
+      "지팡이는 25% 확률로 추가타가 나가는 [1+1], 대검은 3타마다 2바퀴 회전하는 [GG], 망치는 20% 확률로 반경 4타일 적들을 끌어당기는 [블랙홀]이 발동하지!",
+      "활은 4타마다 3갈래 3연사를 날리는 [삼삼구샷], 쌍수는 10% 확률로 6연타를 퍼붓는 [새비지 블로우], 차크람은 4타마다 사방에 날리는 [동서남북]이 펼쳐진단다!"
     ]
   },
   {
@@ -2940,6 +3035,7 @@ function openInfoModal(targetUser = null) {
 
   infoModalTitle.textContent = isMe ? `📊 [${name}] 내 육각형 스펙` : `🔍 [${name}] 님의 스펙 분석`;
   infoTotalScoreBadge.textContent = `전투력 ${combatPower}`;
+  syncBgmButtonsUI(BGMManager.enabled);
 
   if (isMe) {
     myAccountCornerBtns.classList.remove('hidden');
@@ -3066,7 +3162,7 @@ deleteAccountBtn.addEventListener('click', async () => {
   }
 });
 
-// ================= [스펙 & 6종 무기 강화 모달 (기댓값 +1.00% 통일 밸런스 패치 & '깡!' 타격감 연출)] =================
+// ================= [스펙 & 6종 무기 강화 모달 (기댓값 +1.00% 통일 밸런스 & +15강 2차 확인 창)] =================
 const STAT_RULES = {
   education: { name: "학력 (오른팔 진화 · 망치)", rule: "성공 1% (+1강) | 유지 99% | 실패 0% (하락 없음) · 10강 시 [망치] 해금 · 50강 시 망치 스킬 [블랙홀] 개방!" },
   appearance: { name: "외모 (오른다리 진화 · 활)", rule: "성공 11% (+1강) | 유지 79% | 실패 10% (-1강, 0강 보호) · 10강 시 [활] 해금 · 50강 시 활 스킬 [삼삼구샷] 개방!" },
@@ -3082,6 +3178,7 @@ document.querySelectorAll('.stat-tab-btn').forEach(btn => {
     document.querySelectorAll('.stat-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentSelectedStat = btn.getAttribute('data-stat');
+    closeEnhanceConfirmModal();
     renderEnhanceUI();
   });
 });
@@ -3094,8 +3191,53 @@ function openEnhance() {
 }
 function closeEnhance() {
   stopEnhanceHold();
+  closeEnhanceConfirmModal();
   enhanceModal.classList.add('hidden');
 }
+
+function isEnhanceConfirmOpen() {
+  return Boolean(enhanceConfirmModal && !enhanceConfirmModal.classList.contains('hidden'));
+}
+
+function openEnhanceConfirmModal(weaponKey, curLv) {
+  stopEnhanceHold();
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
+  const wSpec = WEAPON_SPECS[weaponKey];
+  const rate = ENHANCE_RATES[curLv];
+  const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : '0%';
+  enhanceConfirmTitle.textContent = `⚠️ ${wSpec.icon} ${wSpec.name} +${curLv}강 → +${curLv + 1}강`;
+  enhanceConfirmDesc.textContent =
+    `[${wSpec.name}]의 현재 단계가 +${curLv}강입니다.\n` +
+    `성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강)\n` +
+    `정말로 강화를 시도하시겠습니까?`;
+  enhanceConfirmModal.classList.remove('hidden');
+}
+
+function closeEnhanceConfirmModal() {
+  if (enhanceConfirmModal) enhanceConfirmModal.classList.add('hidden');
+}
+
+btnEnhanceConfirmCancel.addEventListener('click', () => {
+  SoundFX.uiClick();
+  closeEnhanceConfirmModal();
+});
+
+btnEnhanceConfirmOk.addEventListener('keydown', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+});
+
+btnEnhanceConfirmOk.addEventListener('click', (e) => {
+  // 키보드(Enter/Space 등)로 발생한 합성 클릭(detail === 0) 차단
+  if (e && e.detail === 0) {
+    e.preventDefault();
+    return;
+  }
+  closeEnhanceConfirmModal();
+  executeEnhance(true);
+});
 
 function renderEnhanceUI() {
   document.querySelectorAll('.stat-tab-btn.weapon-tab').forEach(btn => {
@@ -3123,7 +3265,7 @@ function renderEnhanceUI() {
       ? `기숙사 동쪽 출구 앞 [대사부] NPC에게서 조건(${wSpec.unlockDesc}) 달성 후 전수받을 수 있습니다.`
       : (wLv >= 30
         ? `최고 단계(+30강)에 도달한 전설의 ${wSpec.name}입니다! (${wSpec.combatDesc})`
-        : `현재 +${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강) | ${wSpec.combatDesc}`);
+        : `현재 +${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강)${wLv >= 15 ? ' | ⚠️ +15강 이상 2차 확인 창 보호' : ''} | ${wSpec.combatDesc}`);
 
     const quickEqBtn = document.getElementById('btnQuickEquipInEnhance');
     if (quickEqBtn) {
@@ -3197,8 +3339,10 @@ let isEnhancingRequest = false;
 let enhanceHoldDelayTimer = null;
 let enhanceAutoRepeatTimer = null;
 
-function executeEnhance() {
+function executeEnhance(confirmed = false) {
   if (!socket || isEnhancingRequest) return;
+  if (!confirmed && isEnhanceConfirmOpen()) return;
+
   if (myChances < 1) {
     SoundFX.enhanceFail();
     enhanceResultMsg.className = 'enhance-result-box fail';
@@ -3207,12 +3351,25 @@ function executeEnhance() {
     return;
   }
 
+  // 무기 +15강 이상(15~29강)은 2차 확인 창을 거쳐야만 강화 실행
+  const statKey = currentSelectedStat;
+  const isWeapon = WEAPON_KEYS.includes(statKey);
+  if (isWeapon && !confirmed) {
+    const isUnlocked = statKey === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[statKey]);
+    const wLv = getWeaponLevelFromChar(myCharacter, statKey);
+    if (isUnlocked && wLv >= 15 && wLv < 30) {
+      SoundFX.uiClick();
+      openEnhanceConfirmModal(statKey, wLv);
+      return;
+    }
+  }
+
   SoundFX.anvilClang();
   triggerEnhanceImpactVisual();
 
   isEnhancingRequest = true;
 
-  socket.emit('tryEnhanceStat', currentSelectedStat, (res) => {
+  socket.emit('tryEnhanceStat', statKey, (res) => {
     isEnhancingRequest = false;
     if (!res.success) {
       SoundFX.enhanceFail();
@@ -3226,6 +3383,12 @@ function executeEnhance() {
     myLastRefill = res.lastRefill;
     myCharacter = res.character;
     if (players[myId]) players[myId].character = res.character;
+
+    // 14강에서 홀드 연타 중 15강에 도달하면 즉시 연타 정지
+    if (isWeapon && getWeaponLevelFromChar(myCharacter, statKey) >= 15) {
+      stopEnhanceHold();
+    }
+
     updateHUD();
     renderEnhanceUI();
 
@@ -3250,15 +3413,17 @@ function executeEnhance() {
 
 function startEnhanceHold(e) {
   if (e && e.cancelable) e.preventDefault();
-  executeEnhance();
+  executeEnhance(false);
   stopEnhanceHold();
+  if (isEnhanceConfirmOpen()) return;
+
   enhanceHoldDelayTimer = setTimeout(() => {
     enhanceAutoRepeatTimer = setInterval(() => {
-      if (enhanceModal.classList.contains('hidden') || myChances < 1) {
+      if (enhanceModal.classList.contains('hidden') || isEnhanceConfirmOpen() || myChances < 1) {
         stopEnhanceHold();
         return;
       }
-      executeEnhance();
+      executeEnhance(false);
     }, 105);
   }, 500);
 }
@@ -3277,7 +3442,7 @@ function stopEnhanceHold() {
 document.getElementById('dBtnEnhance').addEventListener('click', openEnhance);
 document.getElementById('mBtnEnhance').addEventListener('click', () => {
   if (enhanceModal.classList.contains('hidden')) openEnhance();
-  else executeEnhance();
+  else executeEnhance(false);
 });
 enhanceCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeEnhance(); });
 
