@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
         education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔 -> 망치 해금 & 50강 블랙홀)
         appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리 -> 활 해금 & 50강 삼삼구샷)
         wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔 -> 쌍수 해금 & 50강 새비지 블로우)
-        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100 -> 지팡이 50강 1+1)
+        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100, 최저 0 -> 지팡이 50강 1+1)
         stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통 -> 대검 해금 & 50강 GG)
         personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리 -> 차크람 해금 & 50강 동서남북)
         wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (하위 호환용)
@@ -109,6 +109,10 @@ const userSchema = new mongoose.Schema({
         // 기회 시스템 (1분당 1충전 + 몬스터 사냥 보상 획득, 최대 120개)
         enhanceTokens: { type: Number, default: 120, min: 0, max: 120 },
         lastTokenRefill: { type: Date, default: Date.now },
+
+        // 한국 시각(KST) 00:00 스탯 총합 100 초과 자연 하락 마지막 정산 날짜 ('YYYY-MM-DD')
+        lastDecayDate: { type: String, default: '' },
+
         color: { type: String, default: '#3b82f6' }
     },
     createdAt: {
