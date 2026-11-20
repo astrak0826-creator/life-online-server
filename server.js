@@ -29,6 +29,89 @@ mongoose.connect(MONGO_URI)
 const MAX_TOKENS = 120;
 const REFILL_INTERVAL_MS = 60 * 1000; // 1분당 1개 충전
 
+const STAT_LABELS = {
+    education: '학력',
+    appearance: '외모',
+    wealth: '재력',
+    iq: '지능',
+    stamina: '체력',
+    personality: '성격'
+};
+
+// 한국 시각(KST, UTC+9) 기준 날짜 문자열 ('YYYY-MM-DD') 반환
+function getKstDateString(date = new Date()) {
+    const kstMs = date.getTime() + 9 * 60 * 60 * 1000;
+    return new Date(kstMs).toISOString().slice(0, 10);
+}
+
+// 두 KST 날짜 문자열 사이의 경과 일수 계산
+function countKstDaysBetween(fromDateStr, toDateStr) {
+    if (!fromDateStr || !toDateStr) return 0;
+    const fromMs = Date.parse(`${fromDateStr}T00:00:00Z`);
+    const toMs = Date.parse(`${toDateStr}T00:00:00Z`);
+    if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || toMs <= fromMs) return 0;
+    return Math.floor((toMs - fromMs) / (24 * 60 * 60 * 1000));
+}
+
+// 6대 스탯 강화단계 총합 계산 (지능은 기본 100 대비 증감분 반영)
+function calcSixStatSum(c) {
+    if (!c) return 0;
+    const iqDiff = (c.iq !== undefined ? c.iq : 100) - 100;
+    return iqDiff + (c.education || 0) + (c.appearance || 0) + (c.wealth || 0) + (c.stamina || 0) + (c.personality || 0);
+}
+
+// KST 00:00 기준 6대 스탯 총합 100 초과 시 하루 랜덤 1스탯 -1강 정산
+function applyDailyStatDecay(char, todayKst = getKstDateString()) {
+    if (!char) return [];
+    if (!char.lastDecayDate) {
+        char.lastDecayDate = todayKst;
+        return [];
+    }
+
+    const daysElapsed = countKstDaysBetween(char.lastDecayDate, todayKst);
+    if (daysElapsed <= 0) return [];
+
+    const logs = [];
+    for (let d = 0; d < daysElapsed; d++) {
+        if (calcSixStatSum(char) <= 100) break;
+
+        const candidates = [];
+        if ((char.education || 0) > 0) candidates.push('education');
+        if ((char.appearance || 0) > 0) candidates.push('appearance');
+        if ((char.wealth || 0) > 0) candidates.push('wealth');
+        if ((char.stamina || 0) > 0) candidates.push('stamina');
+        if ((char.personality || 0) > 0) candidates.push('personality');
+        if ((char.iq !== undefined ? char.iq : 100) > 0) candidates.push('iq');
+
+        if (candidates.length === 0) break;
+
+        const picked = candidates[Math.floor(Math.random() * candidates.length)];
+        if (picked === 'iq') {
+            char.iq = Math.max(0, (char.iq !== undefined ? char.iq : 100) - 1);
+        } else {
+            char[picked] = Math.max(0, (char[picked] || 0) - 1);
+        }
+        logs.push({ stat: picked, name: STAT_LABELS[picked] });
+    }
+
+    char.lastDecayDate = todayKst;
+    return logs;
+}
+
+function formatDecayNotice(logs) {
+    if (!logs || logs.length === 0) return '';
+    if (logs.length === 1) {
+        const suffix = logs[0].stat === 'iq' ? '1 (IQ -1)' : '1강';
+        return `🌙 자정(00:00) 정산: 6대 스탯 총합이 100을 초과하여 [${logs[0].name}]이(가) ${suffix} 하락했습니다.`;
+    }
+    const counts = {};
+    logs.forEach(item => {
+        counts[item.name] = (counts[item.name] || 0) + 1;
+    });
+    const summary = Object.entries(counts).map(([name, cnt]) => `${name} -${cnt}`).join(', ');
+    return `🌙 자정(00:00) 누적 정산(${logs.length}일): 6대 스탯 총합 100 초과로 [${summary}] 하락했습니다.`;
+}
+
 // 무기 0강 -> 1강부터 29강 -> 30강까지의 강화 확률 테이블
 const ENHANCE_RATES = {
     0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
@@ -46,7 +129,7 @@ const WEAPON_SPECS = {
         name: '지팡이',
         cooldownMs: 900, // 클라이언트 1.0초 (네트워크 오차 허용)
         baseMult: 1.0,
-        splashMult: 0.5,
+        splashMult: 1.0, // 착탄 주변 폭발 100% 피해로 상향
         skillMult: 1.0,
         unlockStat: null,
         unlockReq: 0,
@@ -73,7 +156,7 @@ const WEAPON_SPECS = {
         name: '망치',
         cooldownMs: 720, // 클라이언트 0.8초
         baseMult: 0.76,
-        skillMult: 0.76, // 블랙홀: 20% 확률 반경 4.5타일 흡입
+        skillMult: 0.76, // 블랙홀: 20% 확률 반경 4타일 흡입
         unlockStat: 'education',
         unlockReq: 10,
         unlockDesc: '학력(오른팔) +10강 이상 달성',
@@ -85,7 +168,7 @@ const WEAPON_SPECS = {
         key: 'bow',
         name: '활',
         cooldownMs: 540, // 클라이언트 0.6초
-        baseMult: 0.63,
+        baseMult: 1.50, // 평타 150% 피해로 상향 (사거리 12타일)
         skillMult: 0.63, // 삼삼구샷: 3갈래 x 3연사 (발당 0.63배)
         unlockStat: 'appearance',
         unlockReq: 10,
@@ -98,8 +181,8 @@ const WEAPON_SPECS = {
         key: 'daggers',
         name: '쌍수',
         cooldownMs: 170, // 클라이언트 0.2초
-        baseMult: 0.24,
-        skillMult: 0.80, // 새비지 블로우: 5% 확률 0.8배 x 6연타
+        baseMult: 1.0, // 단일 타격 100% 피해로 상향
+        skillMult: 0.80, // 새비지 블로우: 10% 확률 0.8배 x 6연타
         unlockStat: 'wealth',
         unlockReq: 10,
         unlockDesc: '재력(왼팔) +10강 이상 달성',
@@ -112,7 +195,7 @@ const WEAPON_SPECS = {
         name: '차크람',
         cooldownMs: 450, // 클라이언트 0.5초
         baseMult: 0.30, // 왕복 2연타 (각 30%)
-        skillMult: 0.30, // 동서남북: 4방향 왕복 2연타 (각 30%)
+        skillMult: 0.30, // 동서남북: 4타마다 4방향 왕복 2연타 (각 30%)
         unlockStat: 'personality',
         unlockReq: 10,
         unlockDesc: '성격(왼다리) +10강 이상 달성',
@@ -154,6 +237,7 @@ function syncCharacterProgress(char) {
     if (typeof char.customTitle !== 'string') char.customTitle = '';
     if (!char.titleStat) char.titleStat = 'education';
     if (!char.auraColor) char.auraColor = 'red';
+    if (typeof char.lastDecayDate !== 'string') char.lastDecayDate = '';
 
     // 무기별 강화 단계 초기화 및 기존 wand 값과 양방향 동기화
     if (!char.weapons || typeof char.weapons !== 'object') {
@@ -347,7 +431,8 @@ app.post('/api/register', async (req, res) => {
                 titleStat: 'education',
                 auraColor: 'red',
                 enhanceTokens: MAX_TOKENS,
-                lastTokenRefill: new Date()
+                lastTokenRefill: new Date(),
+                lastDecayDate: getKstDateString()
             }
         });
 
@@ -374,6 +459,9 @@ app.post('/api/login', async (req, res) => {
         }
 
         syncCharacterProgress(user.character);
+        if (!user.character.lastDecayDate) {
+            user.character.lastDecayDate = getKstDateString();
+        }
         const tokenState = resolveTokens(user.character);
         user.character.enhanceTokens = tokenState.tokens;
         user.character.lastTokenRefill = tokenState.lastRefill;
@@ -878,6 +966,62 @@ setInterval(() => {
     }
 }, 200);
 
+// ================= [한국 시각(KST) 매일 00:00 스탯 자연 하락 배치 스케줄러] =================
+let lastGlobalDecayDate = getKstDateString();
+let isRunningMidnightDecay = false;
+
+async function runMidnightStatDecayIfNeeded() {
+    if (isRunningMidnightDecay) return;
+    const todayKst = getKstDateString();
+    if (todayKst === lastGlobalDecayDate) return;
+
+    isRunningMidnightDecay = true;
+    try {
+        lastGlobalDecayDate = todayKst;
+        const users = await User.find({ 'character.lastDecayDate': { $ne: todayKst } });
+
+        for (const u of users) {
+            if (!u.character) continue;
+            syncCharacterProgress(u.character);
+
+            const logs = applyDailyStatDecay(u.character, todayKst);
+            if (logs.length > 0) {
+                u.markModified('character');
+                await u.save();
+
+                const uidStr = String(u._id);
+                for (const sid in players) {
+                    if (String(players[sid].userId) === uidStr) {
+                        players[sid].character = u.character;
+                        io.emit('playerStatUpdated', {
+                            id: sid,
+                            character: u.character
+                        });
+                        io.to(sid).emit('statDecayNotice', {
+                            logs,
+                            message: formatDecayNotice(logs),
+                            character: u.character
+                        });
+                    }
+                }
+            }
+        }
+
+        // 하락 대상이 없던 유저들도 정산 날짜만 일괄 동기화
+        await User.updateMany(
+            { 'character.lastDecayDate': { $ne: todayKst } },
+            { $set: { 'character.lastDecayDate': todayKst } }
+        );
+        console.log(`🌙 KST ${todayKst} 00:00 스탯 자연 하락 정산 완료`);
+    } catch (err) {
+        console.error('자정 스탯 정산 오류:', err);
+    } finally {
+        isRunningMidnightDecay = false;
+    }
+}
+
+setInterval(runMidnightStatDecayIfNeeded, 30 * 1000);
+
 // ================= [소켓 통신] =================
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
@@ -908,9 +1052,13 @@ io.on('connection', async (socket) => {
         unlockedWeapons: { wand: true, greatsword: false, hammer: false, bow: false, daggers: false, chakram: false },
         maxStats: { education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, chakram: 0 },
         customTitle: '', titleStat: 'education', auraColor: 'red',
-        enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date()
+        enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date(),
+        lastDecayDate: getKstDateString()
     };
     syncCharacterProgress(char);
+
+    // 오프라인 중 지난 KST 00:00 일수만큼 스탯 자연 하락 정산
+    const decayLogs = applyDailyStatDecay(char, getKstDateString());
     const tokenState = resolveTokens(char);
 
     if (dbUser) {
@@ -954,6 +1102,14 @@ io.on('connection', async (socket) => {
         players: players,
         monsters: monsters
     });
+
+    if (decayLogs.length > 0) {
+        socket.emit('statDecayNotice', {
+            logs: decayLogs,
+            message: formatDecayNotice(decayLogs),
+            character: char
+        });
+    }
 
     socket.broadcast.emit('playerJoined', players[socket.id]);
 
@@ -1075,7 +1231,7 @@ io.on('connection', async (socket) => {
             }, 2200);
         }
 
-        // 망치 50강 스킬 '블랙홀' 발동 시: 반경 4.5타일 내 적들을 전방 1.2타일 타격 중심점으로 흡입!
+        // 망치 50강 스킬 '블랙홀' 발동 시: 반경 4타일 내 적들을 전방 1.2타일 타격 중심점으로 흡입
         if (skillType === 'blackhole' && weaponType === 'hammer') {
             const pullCenterX = p.x + Math.cos(angle) * 1.2;
             const pullCenterY = p.y + Math.sin(angle) * 1.2;
@@ -1093,8 +1249,8 @@ io.on('connection', async (socket) => {
                 const mCenterY = m.y + (mSize - 1) * 0.5;
                 const dist = Math.hypot(mCenterX - p.x, mCenterY - p.y);
 
-                // 반경 4.5타일(180px) 이내 몬스터 흡입
-                if (dist <= 4.5) {
+                // 반경 4타일(160px) 이내 몬스터 흡입
+                if (dist <= 4.0) {
                     const jitterX = (Math.random() - 0.5) * 0.5;
                     const jitterY = (Math.random() - 0.5) * 0.5;
                     let destX = Number((pullCenterX - (mSize - 1) * 0.5 + jitterX).toFixed(2));
@@ -1167,7 +1323,7 @@ io.on('connection', async (socket) => {
         // 무기별 기본 대미지 배율 및 +50강 전용 스킬 대미지 배율 검증
         let mult = wSpec.baseMult;
         if (payload.isSplash && eqWeapon === 'wand') {
-            mult = WEAPON_SPECS.wand.splashMult; // 지팡이 주변 폭발 50%
+            mult = WEAPON_SPECS.wand.splashMult; // 지팡이 주변 폭발 100%
         } else if (payload.skillHit && hasWeaponSkillUnlocked(c, eqWeapon)) {
             mult = wSpec.skillMult; // GG(0.86), 새비지 블로우(0.80), 삼삼구샷(0.63), 동서남북(0.30), 블랙홀(0.76), 1+1(1.0)
         }
