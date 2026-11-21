@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    // 캐릭터 인생 스탯 데이터
+    // 캐릭터 인생 스탯 및 커스텀 데이터
     character: {
         gender: {
             type: String,
@@ -36,18 +36,18 @@ const userSchema = new mongoose.Schema({
             default: 'male'
         },
         // 6대 스탯 + 기본 지팡이 호환 필드(0~30강)
-        education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔 -> 망치 해금 & 50강 블랙홀)
-        appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리 -> 활 해금 & 50강 삼삼구샷)
-        wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔 -> 쌍수 해금 & 50강 새비지 블로우)
-        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100, 최저 0 -> 지팡이 50강 1+1)
-        stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통 -> 대검 해금 & 50강 GG)
-        personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리 -> 차크람 해금 & 50강 동서남북)
+        education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔 -> 망치: 10 해금 / 50 블랙홀 / 100 운석 강하)
+        appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리 -> 활: 10 해금 / 50 삼삼구샷 / 100 비연 곡예사격)
+        wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔 -> 쌍수: 10 해금 / 50 새비지 블로우 / 100 환영 순보)
+        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100 -> 지팡이: 150 1+1 / 200 차원 도약 포격)
+        stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통 -> 대검: 10 해금 / 50 GG / 100 패왕 돌진베기)
+        personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리 -> 태극구: 10 해금 / 50 음양양의 / 100 무위 축지)
         wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (하위 호환용)
 
-        // 현재 장착 중인 무기 (6종)
+        // 현재 장착 중인 무기 (6종 + 기존 chakram 데이터 마이그레이션 호환)
         equippedWeapon: {
             type: String,
-            enum: ['wand', 'greatsword', 'hammer', 'bow', 'daggers', 'chakram'],
+            enum: ['wand', 'greatsword', 'hammer', 'bow', 'daggers', 'taijiorb', 'chakram'],
             default: 'wand'
         },
 
@@ -58,20 +58,22 @@ const userSchema = new mongoose.Schema({
             hammer: { type: Number, default: 0, min: 0, max: 30 },
             bow: { type: Number, default: 0, min: 0, max: 30 },
             daggers: { type: Number, default: 0, min: 0, max: 30 },
-            chakram: { type: Number, default: 0, min: 0, max: 30 }
+            taijiorb: { type: Number, default: 0, min: 0, max: 30 },
+            chakram: { type: Number, default: 0, min: 0, max: 30 } // 기존 DB 이관용
         },
 
-        // 대사부 NPC를 통해 전수(해금)받은 무기 목록 (6종)
+        // 대사부 NPC를 통해 전수받은 무기 이력 (실제 사용/장착은 실시간 스탯 기준으로 검사)
         unlockedWeapons: {
             wand: { type: Boolean, default: true },
             greatsword: { type: Boolean, default: false },
             hammer: { type: Boolean, default: false },
             bow: { type: Boolean, default: false },
             daggers: { type: Boolean, default: false },
-            chakram: { type: Boolean, default: false }
+            taijiorb: { type: Boolean, default: false },
+            chakram: { type: Boolean, default: false } // 기존 DB 이관용
         },
 
-        // 그동안 거쳐간 모든 칭호 및 해금 조건을 보존하기 위한 역대 최고 달성 기록
+        // 칭호 해금 이력 보존용 역대 최고 달성 기록
         maxStats: {
             education: { type: Number, default: 0 },
             appearance: { type: Number, default: 0 },
@@ -84,6 +86,7 @@ const userSchema = new mongoose.Schema({
             hammer: { type: Number, default: 0 },
             bow: { type: Number, default: 0 },
             daggers: { type: Number, default: 0 },
+            taijiorb: { type: Number, default: 0 },
             chakram: { type: Number, default: 0 }
         },
 
@@ -96,7 +99,7 @@ const userSchema = new mongoose.Schema({
             type: String,
             enum: [
                 'education', 'appearance', 'wealth', 'iq', 'stamina', 'personality',
-                'wand', 'greatsword', 'hammer', 'bow', 'daggers', 'chakram'
+                'wand', 'greatsword', 'hammer', 'bow', 'daggers', 'taijiorb', 'chakram'
             ],
             default: 'education'
         },
@@ -104,6 +107,13 @@ const userSchema = new mongoose.Schema({
             type: String,
             enum: ['red', 'yellow', 'blue', 'green'],
             default: 'red'
+        },
+
+        // 해린이언니 커스터마이징 외형 (48x48 압축 PNG/WebP DataURL, 빈 문자열이면 기본 외형)
+        customAvatar: {
+            type: String,
+            default: '',
+            maxlength: 20480
         },
 
         // 기회 시스템 (1분당 1충전 + 몬스터 사냥 보상 획득, 최대 120개)
