@@ -769,6 +769,7 @@
   .settings-section-title { font-size: 12px; color: #fef08a; font-weight: bold; }
   .settings-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .pref-col { display: flex; flex-direction: column; gap: 4px; }
+  .pref-col.span-2 { grid-column: span 2; }
   .pref-col select { width: 100%; padding: 5px 6px; font-size: 12px; }
   .pref-label { font-size: 11px; color: #cbd5e1; }
   .patch-history-box {
@@ -1048,7 +1049,7 @@
 
     <button id="btnFsPcFull" class="fs-mode-btn" style="background:linear-gradient(135deg, #0e7490 0%, #155e75 100%); border:1px solid #22d3ee; color:#ecfeff;">
       🖥️ PC 전체화면 모드
-      <span>조이스틱 없는 깔끔한 키보드 전용 전체화면</span>
+      <span>ESC를 눌러도 풀리지 않는 키보드 전용 전체화면</span>
     </button>
 
     <button id="btnFsPortrait" class="fs-mode-btn hidden" style="background:linear-gradient(135deg, #0e7490 0%, #155e75 100%); border:1px solid #22d3ee; color:#ecfeff;">
@@ -1117,6 +1118,13 @@
             <option value="green">술이되리 (초록)</option>
           </select>
         </div>
+        <div class="pref-col span-2">
+          <span class="pref-label">손에 쥔 장착 무기 외형 표시 (모든 유저에게 동기화 · 검기/투사체 유지)</span>
+          <select id="selectShowWeapon">
+            <option value="true">🗡️ 보이기 (기본)</option>
+            <option value="false">👻 숨기기 (무기 외형만 숨김)</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -1131,18 +1139,20 @@
     <div class="settings-section">
       <div class="settings-section-title">📜 최근 업데이트 내역 & 패치 히스토리</div>
       <div class="patch-history-box" id="patchHistoryBox">
+        <span class="patch-ver-tag">⚔️ [v3.2 전 무기 6종 밸런스 리워크 · 무기 숨기기 · PC 전체화면 ESC 잠금]</span>
+        <ul>
+          <li><b>50강·100강 스킬 중첩 유지 & 강제 이동 전면 삭제:</b> 100강 달성 시 50강 스킬이 사라지지 않고 함께 발동하며, 보스 장판 회피를 방해하던 강제 돌진·점프·스텝·텔레포트를 제거했습니다.</li>
+          <li><b>🗡️ 대검 리워크:</b> 공속 1.0초 · 평타 320% / 50강 [회전 참격(GG)] 3타마다 360° 240%×2타 / 100강 [패왕의 검기] 5.5타일 거대 관통 검기 파동(280%) 추가 발사</li>
+          <li><b>🔨 망치 리워크:</b> 공속 0.8초 · 평타 250% / 50강 [블랙홀] 30% 확률 4.5타일 흡입+360° 360% / 100강 [운석 강하] 5.5타일 내 적 머리 위 원격 운석 낙하(반경 3.8타일 240%)</li>
+          <li><b>🏹 활 리워크:</b> 공속 0.6초 · 평타 195% / 50강 [삼삼구샷] 4타마다 3갈래×3연사 110%(100강 시 140%) / 100강 [이중 관통 사격] 기본 2연발 관통</li>
+          <li><b>🔪 쌍수 리워크:</b> 공속 0.25초 · 평타 100% / 50강 [새비지 블로우] 20% 확률 고속 6연타(50%×6) / 100강 [환영 분신] 적 뒤편 그림자 분신 95% 추가타</li>
+          <li><b>☯️ 태극구 리워크:</b> 평타 150% / 50강 [음양양의] 4.8타일 내 모든 적(내부 포함) 90% 추가 중첩 / 100강 [무위 축지] 이속 +28% + 4구슬 150%×2연타</li>
+          <li><b>👻 장착 무기 보이기/숨기기:</b> 설정 창에서 손에 든 무기 외형을 숨길 수 있으며 모든 유저에게 실시간 동기화됩니다.</li>
+          <li><b>🖥️ PC 전체화면 ESC 풀림 방지:</b> 전체화면 상태에서 ESC를 눌러도 창이 풀리지 않고 설정 창만 열립니다.</li>
+        </ul>
         <span class="patch-ver-tag">🔥 [v3.1 대장간 · 2무기 스왑 · 지팡이 3속성 · 캐릭터 크기 업데이트]</span>
         <ul>
-          <li><b>🪄 지팡이 전면 리워크:</b> 공속 0.5초 · <b>화염구</b>(100%/스플60%), <b>빙결구</b>(100%/스플10%·3초 이속 50%), <b>뇌전구</b>(100%+하늘번개 100~300% 2타) 랜덤 발사 / 50강(IQ150) 20% 반경 4타일 밀쳐내기 / 100강(IQ200) 2연속 발사</li>
-          <li><b>모든 [BOSS] CC기 완전 면역 & 스킬 외침 제거:</b> 모든 보스 몬스터에 빙결·넉백·흡입 등 군중제어기 면역 적용, 전투 중 스킬 텍스트 외침 삭제</li>
-          <li><b>2×2 대형 NPC [대장간] 신설:</b> 무기 제작·강화·출정 2슬롯 세팅을 대장간 전담으로 이관 (스펙업 창은 6대 신체 스탯 전용)</li>
-          <li><b>[무기 변경(X)] 버튼 신설:</b> 대장간에서 세팅한 2종 무기를 필드에서 X 키 또는 버튼으로 즉시 스왑</li>
-          <li><b>로비 전광판 넘버패드 추가:</b> 하이잭 디스 감성의 0~9 버튼 키패드 입력 지원</li>
-          <li><b>해린이언니 커스텀 개편:</b> 캐릭터 크기 1~3×1~3블록 자유 설정(크기만큼 피격 판정 연동), 유저 직접 드래그 수동 크롭 추가, 도트 감성 보정 삭제</li>
-        </ul>
-        <span class="patch-ver-tag">✨ [v3.0 대규모 확장 & Zero-Lag 업데이트]</span>
-        <ul>
-          <li>100×15 월드 대확장(오솔길 + 동쪽숲 3 심연의 고대 숲), [BOSS] 심연의 마수왕, 로비 중앙 전광판, 신규 무기 태극구, 무렉 최적화 적용</li>
+          <li>지팡이 3속성(화염·빙결·뇌전) 리워크, 모든 [BOSS] CC기 면역, 2×2 [대장간] NPC & 출정 2슬롯(X 스왑), 전광판 넘버패드, 해린이언니 1~3×1~3 크기·수동 크롭 적용</li>
         </ul>
       </div>
     </div>
@@ -1714,8 +1724,20 @@ document.getElementById('btnModalZoomOut')?.addEventListener('click', () => { So
 document.getElementById('btnModalZoomIn')?.addEventListener('click', () => { SoundFX.uiClick(); window.adjustUserZoom(0.1); });
 document.getElementById('btnModalZoomReset')?.addEventListener('click', () => { SoundFX.uiClick(); window.setUserZoom(1.0); });
 
-// ================= [PC / 모바일 분기 전체화면 컨트롤러] =================
+// ================= [PC / 모바일 분기 전체화면 컨트롤러 + PC ESC 키 잠금] =================
 const fullscreenModal = document.getElementById('fullscreenModal');
+
+async function lockEscapeKeyForFullscreen() {
+  if (navigator.keyboard && typeof navigator.keyboard.lock === 'function') {
+    try { await navigator.keyboard.lock(['Escape']); } catch (e) {}
+  }
+}
+
+function unlockEscapeKeyForFullscreen() {
+  if (navigator.keyboard && typeof navigator.keyboard.unlock === 'function') {
+    try { navigator.keyboard.unlock(); } catch (e) {}
+  }
+}
 
 function requestBrowserFullscreen() {
   const docEl = document.documentElement;
@@ -1727,12 +1749,23 @@ function requestBrowserFullscreen() {
 }
 
 function exitBrowserFullscreen() {
+  unlockEscapeKeyForFullscreen();
   if (document.fullscreenElement || document.webkitFullscreenElement) {
     if (document.exitFullscreen) return document.exitFullscreen().catch(() => {});
     if (document.webkitExitFullscreen) { try { document.webkitExitFullscreen(); } catch (e) {} }
   }
   return Promise.resolve();
 }
+
+document.addEventListener('fullscreenchange', () => {
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  if (isFs && document.body.classList.contains('pc-fullscreen')) {
+    lockEscapeKeyForFullscreen();
+  } else if (!isFs) {
+    unlockEscapeKeyForFullscreen();
+  }
+  setTimeout(() => { if (typeof syncCanvasViewportResolution === 'function') syncCanvasViewportResolution(); }, 80);
+});
 
 async function restoreFullscreenIfLockedMode() {
   const isLandscapePad = document.body.classList.contains('force-landscape-pad');
@@ -1741,6 +1774,9 @@ async function restoreFullscreenIfLockedMode() {
   if (!isLandscapePad && !isPortraitPad && !isPcFull) return;
 
   await requestBrowserFullscreen();
+  if (isPcFull) {
+    await lockEscapeKeyForFullscreen();
+  }
   if ((isLandscapePad || isPortraitPad) && screen.orientation && screen.orientation.lock) {
     try { await screen.orientation.lock(isLandscapePad ? 'landscape' : 'portrait'); } catch (e) {}
   }
@@ -1762,6 +1798,7 @@ document.getElementById('btnFsPcFull')?.addEventListener('click', async () => {
   SoundFX.uiClick();
   document.body.classList.add('pc-fullscreen');
   await requestBrowserFullscreen();
+  await lockEscapeKeyForFullscreen();
   closeFullscreenModal();
   setTimeout(() => { if (typeof syncCanvasViewportResolution === 'function') syncCanvasViewportResolution(); }, 100);
 });
@@ -1942,6 +1979,7 @@ const infoCloseBtn = document.getElementById('infoCloseBtn');
 const settingsModal = document.getElementById('settingsModal');
 const selectTitleStat = document.getElementById('selectTitleStat');
 const selectAuraColor = document.getElementById('selectAuraColor');
+const selectShowWeapon = document.getElementById('selectShowWeapon');
 const logoutBtn = document.getElementById('logoutBtn');
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
@@ -2022,6 +2060,8 @@ let projectiles = [];
 let meleeEffects = [];
 let hitEffects = [];
 let lightningEffects = [];
+let meteorEffects = [];
+let shadowClones = [];
 let floatingDamages = [];
 let skillPopups = [];
 let bossTelegraphs = [];
@@ -2051,7 +2091,7 @@ const ENHANCE_RATES = {
   25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 6종 무기 클라이언트 스펙 (지팡이 3속성 리워크 반영)
+// 6종 무기 클라이언트 스펙 (v3.2 밸런스 리워크 & 50/100강 중첩 유지 반영)
 const WEAPON_SPECS = {
   wand: {
     key: 'wand',
@@ -2066,13 +2106,13 @@ const WEAPON_SPECS = {
     skill100Req: 200,
     skill50Name: '마력 충격파(넉백)',
     skill100Name: '이중 원소 연사',
-    combatDesc: '공속 0.5초 · 화염(100%/스플60%)·빙결(100%/스플10%·3초둔화)·뇌전(100%+하늘번개100~300% 2타) | 50강(IQ150): 20% 4타일 밀쳐내기 | 100강(IQ200): 2연속 발사'
+    combatDesc: '공속 0.5초 · 화염(100%/스플60%)·빙결(100%/스플10%·3초둔화)·뇌전(100%+하늘번개100~300% 2타) | 50강(IQ150): 20% 4타일 밀쳐내기 | 100강(IQ200): 2연속 발사 (50강 중첩)'
   },
   greatsword: {
     key: 'greatsword',
     name: '대검',
     icon: '🗡️',
-    cooldownMs: 1400,
+    cooldownMs: 1000,
     unlockStat: 'stamina',
     unlockReq: 10,
     unlockDesc: '현재 체력(몸통) +10강 이상 유지',
@@ -2080,8 +2120,8 @@ const WEAPON_SPECS = {
     skill50Req: 50,
     skill100Req: 100,
     skill50Name: '회전 참격(GG)',
-    skill100Name: '패왕 돌진베기',
-    combatDesc: '150도 거대 검기(115%) | 50강: [GG] 2바퀴 회전 베기 | 100강: [패왕 돌진베기] 고속 돌진 일소'
+    skill100Name: '패왕의 검기',
+    combatDesc: '공속 1.0초 · 전방 160° 3.2타일 광역 베기(320%) | 50강: [GG] 3타마다 360° 240%×2타 | 100강: [패왕의 검기] 5.5타일 거대 관통 검기(280%) 추가 발사 (50강 중첩)'
   },
   hammer: {
     key: 'hammer',
@@ -2096,7 +2136,7 @@ const WEAPON_SPECS = {
     skill100Req: 100,
     skill50Name: '중력 붕괴(블랙홀)',
     skill100Name: '운석 강하',
-    combatDesc: '118도 내려찍기(76%) | 50강: [블랙홀] 4타일 적 흡입 | 100강: [운석 강하] 공중 도약 충격파'
+    combatDesc: '공속 0.8초 · 전방 130° 2.8타일 내려찍기(250%) | 50강: [블랙홀] 30% 확률 4.5타일 흡입+360° 360% | 100강: [운석 강하] 5.5타일 내 적 머리 위 원격 운석(3.8타일 240%) (50강 중첩)'
   },
   bow: {
     key: 'bow',
@@ -2110,14 +2150,14 @@ const WEAPON_SPECS = {
     skill50Req: 50,
     skill100Req: 100,
     skill50Name: '삼삼구샷',
-    skill100Name: '비연 곡예사격',
-    combatDesc: '12타일 무제한 관통(150%) | 50강: [삼삼구샷] 3갈래×3연사 | 100강: [비연 곡예사격] 회피 스텝 무빙샷'
+    skill100Name: '이중 관통 사격',
+    combatDesc: '공속 0.6초 · 12타일 무제한 관통(195%) | 50강: [삼삼구샷] 4타마다 3갈래×3연사(110%→100강 140%) | 100강: [이중 관통 사격] 기본 2연발 관통 (50강 중첩)'
   },
   daggers: {
     key: 'daggers',
     name: '쌍수',
     icon: '🔪',
-    cooldownMs: 200,
+    cooldownMs: 250,
     unlockStat: 'wealth',
     unlockReq: 10,
     unlockDesc: '현재 재력(왼팔) +10강 이상 유지',
@@ -2125,8 +2165,8 @@ const WEAPON_SPECS = {
     skill50Req: 50,
     skill100Req: 100,
     skill50Name: '새비지 블로우',
-    skill100Name: '환영 순보',
-    combatDesc: '0.2초 초고속 단일 찌르기(100%) | 50강: [새비지 블로우] 6연타 | 100강: [환영 순보] 적 배후 순간이동 연타'
+    skill100Name: '환영 분신',
+    combatDesc: '공속 0.25초 · 단일 2.6타일 초고속 찌르기(100%) | 50강: [새비지 블로우] 20% 확률 50%×6연타 | 100강: [환영 분신] 적 뒤편 그림자 분신 95% 추가타 (50강 중첩)'
   },
   taijiorb: {
     key: 'taijiorb',
@@ -2141,7 +2181,7 @@ const WEAPON_SPECS = {
     skill100Req: 100,
     skill50Name: '음양양의',
     skill100Name: '무위 축지',
-    combatDesc: '공격 홀드 시 반경 3타일 음·양 2구슬 360° 회전 타격(73%) | 50강: [음양양의] 외곽 거대 역회전 2구슬 | 100강: [무위 축지] 이속 증가+4구슬 초고속 회전'
+    combatDesc: '공격 홀드 시 반경 3.35타일 음·양 구슬 360° 회전 타격(150%) | 50강: [음양양의] 4.8타일 내 모든 적(내부 포함) 90% 추가 중첩 | 100강: [무위 축지] 이속+28% + 4구슬 150%×2연타'
   }
 };
 const WEAPON_KEYS = Object.keys(WEAPON_SPECS);
@@ -2170,9 +2210,9 @@ const DORM_NPCS = [
     name: '헬리콥터',
     portrait: '👓⚡',
     dialogs: [
-      "[v3.1 패치 브리핑] 지팡이가 공속 0.5초의 화염·빙결·뇌전 3속성으로 전면 개편되었고, 모든 [BOSS] 몬스터에게 CC기 면역이 적용되었다!",
-      "이제 무기 제작·강화와 사냥터 출정 무기 2종 세팅은 오른쪽 2×2 대형 NPC [대장간]에서만 가능하다! 필드에서는 X 키(또는 무기 변경 버튼)로 2종 무기를 즉시 바꿔 써라!",
-      "해린이언니에게 가면 캐릭터 크기를 1×1부터 3×3까지 정하고, 사진도 직접 드래그해 크롭할 수 있다. (단, 덩치가 커지면 피격 판정도 그만큼 커지니 주의해라!)"
+      "[v3.2 패치 브리핑] 지팡이 수준에 맞춰 대검·망치·활·쌍수·태극구 5종 무기가 전면 리워크되었고, 이제 100강을 찍어도 50강 스킬이 사라지지 않고 함께 중첩된다!",
+      "보스 장판 회피를 방해하던 100강 강제 이동도 모두 제거해, 대검 검기 파동·망치 원격 운석·쌍수 그림자 분신·활 2연발 관통으로 진화했다!",
+      "설정 창(ESC)에서 손에 쥔 무기 외형 보이기/숨기기(전체 유저 동기화)를 고를 수 있고, PC 전체화면에서 ESC를 눌러도 창이 풀리지 않도록 개선되었다!"
     ]
   },
   {
@@ -2225,6 +2265,7 @@ let myCharacter = {
   customTitle: '',
   titleStat: 'education',
   auraColor: 'red',
+  showWeapon: true,
   customAvatar: '',
   avatarWidth: 1,
   avatarHeight: 1
@@ -2680,7 +2721,7 @@ function openInfoModal(targetUser = null) {
   drawHexagonRadar(c);
 
   const skillText = s100
-    ? `★★100강 [${eqSpec.skill100Name}] 개방`
+    ? `★★50/100강 [${eqSpec.skill50Name}+${eqSpec.skill100Name}]`
     : (s50 ? `★50강 [${eqSpec.skill50Name}] 개방` : `50/100강 스킬 미개방`);
 
   infoStatCardList.innerHTML = `
@@ -2759,6 +2800,9 @@ function openSettingsModal() {
   SoundFX.uiClick();
   populateUnlockedTitleSelect(myCharacter);
   selectAuraColor.value = myCharacter?.auraColor || 'red';
+  if (selectShowWeapon) {
+    selectShowWeapon.value = (myCharacter?.showWeapon === false) ? 'false' : 'true';
+  }
   syncBgmButtonsUI(BGMManager.enabled);
   const sfxBtn = document.getElementById('btnSfxToggleModal');
   if (sfxBtn) sfxBtn.textContent = SoundFX.enabled ? '🔊 효과음 ON' : '🔇 효과음 OFF';
@@ -2787,6 +2831,14 @@ selectAuraColor.addEventListener('change', () => {
   myCharacter.auraColor = val;
   if (players[myId]) players[myId].character.auraColor = val;
   if (socket) socket.emit('updatePreferences', { auraColor: val });
+});
+
+selectShowWeapon?.addEventListener('change', () => {
+  SoundFX.uiClick();
+  const isShow = selectShowWeapon.value !== 'false';
+  myCharacter.showWeapon = isShow;
+  if (players[myId]) players[myId].character.showWeapon = isShow;
+  if (socket) socket.emit('updatePreferences', { showWeapon: isShow });
 });
 
 logoutBtn.addEventListener('click', () => {
@@ -2946,7 +2998,7 @@ document.getElementById('bbSubmitTextBtn')?.addEventListener('click', () => {
   });
 });
 
-// ================= [해린이언니: 캐릭터 크기(1~3x1~3) + 수동 크롭 + 잔여 배경 제거 (도트 보정 삭제)] =================
+// ================= [해린이언니: 캐릭터 크기(1~3x1~3) + 수동 크롭 + 잔여 배경 제거] =================
 const avatarSizeW = document.getElementById('avatarSizeW');
 const avatarSizeH = document.getElementById('avatarSizeH');
 const btnApplyAvatarSize = document.getElementById('btnApplyAvatarSize');
@@ -2962,8 +3014,8 @@ const avatarSizeInfo = document.getElementById('avatarSizeInfo');
 
 let loadedRawAvatarImg = null;
 let preparedAvatarDataUrl = '';
-let cropDisplayRect = { x: 0, y: 0, w: 192, h: 192 }; // 192x192 캔버스 내 원본 표시 영역
-let manualCropNorm = { x: 0, y: 0, w: 1, h: 1 };      // 원본 이미지 기준 0~1 정규화 크롭 박스
+let cropDisplayRect = { x: 0, y: 0, w: 192, h: 192 };
+let manualCropNorm = { x: 0, y: 0, w: 1, h: 1 };
 let isDraggingCrop = false;
 let cropDragStart = { x: 0, y: 0 };
 
@@ -2985,7 +3037,6 @@ function renderCropEditorCanvas() {
   avatarCropCtx.imageSmoothingEnabled = true;
   avatarCropCtx.drawImage(loadedRawAvatarImg, dx, dy, dw, dh);
 
-  // 선택 영역 바깥 어둡게 처리
   const rx = dx + manualCropNorm.x * dw;
   const ry = dy + manualCropNorm.y * dh;
   const rw = manualCropNorm.w * dw;
@@ -2997,7 +3048,6 @@ function renderCropEditorCanvas() {
   avatarCropCtx.fillRect(0, ry, rx, rh);
   avatarCropCtx.fillRect(rx + rw, ry, cw - (rx + rw), rh);
 
-  // 크롭 테두리 및 가이드라인
   avatarCropCtx.strokeStyle = '#38bdf8';
   avatarCropCtx.lineWidth = 2;
   avatarCropCtx.strokeRect(rx + 0.5, ry + 0.5, Math.max(2, rw - 1), Math.max(2, rh - 1));
@@ -3070,14 +3120,12 @@ function processAndPreviewAvatar() {
   const aw = Math.min(3, Math.max(1, parseInt(avatarSizeW?.value || myCharacter?.avatarWidth || 1, 10) || 1));
   const ah = Math.min(3, Math.max(1, parseInt(avatarSizeH?.value || myCharacter?.avatarHeight || 1, 10) || 1));
 
-  // 크기에 비례한 내부 해상도 (1블록당 48px, 최대 144x144)
   const targetW = aw * 48;
   const targetH = ah * 48;
   avatarPreviewCanvas.width = targetW;
   avatarPreviewCanvas.height = targetH;
   avatarPreviewCtx.clearRect(0, 0, targetW, targetH);
 
-  // 미리보기 박스 비율 표시
   const maxBox = 76;
   const boxScale = Math.min(maxBox / targetW, maxBox / targetH);
   avatarPreviewCanvas.style.width = `${Math.max(36, Math.round(targetW * boxScale))}px`;
@@ -3104,13 +3152,11 @@ function processAndPreviewAvatar() {
   const iw = loadedRawAvatarImg.naturalWidth || loadedRawAvatarImg.width;
   const ih = loadedRawAvatarImg.naturalHeight || loadedRawAvatarImg.height;
 
-  // 유저가 지정한 수동 크롭 영역 계산
   const srcX = Math.max(0, Math.floor(manualCropNorm.x * iw));
   const srcY = Math.max(0, Math.floor(manualCropNorm.y * ih));
   const srcW = Math.max(1, Math.min(iw - srcX, Math.round(manualCropNorm.w * iw)));
   const srcH = Math.max(1, Math.min(ih - srcY, Math.round(manualCropNorm.h * ih)));
 
-  // 1단계: 수동 크롭 영역을 목표 해상도 캔버스에 비율 유지 배치
   const step1 = document.createElement('canvas');
   step1.width = targetW;
   step1.height = targetH;
@@ -3127,7 +3173,6 @@ function processAndPreviewAvatar() {
   const s1Img = s1ctx.getImageData(0, 0, targetW, targetH);
   const s1Data = s1Img.data;
 
-  // 2단계: 실제 그림 영역 외곽 4변에서 최빈 배경색 추출
   let transparentBorderCount = 0;
   let totalBorderCount = 0;
   const colorBuckets = new Map();
@@ -3193,7 +3238,6 @@ function processAndPreviewAvatar() {
     return false;
   }
 
-  // 3단계: 상하좌우 남은 여백 자동 크롭
   let minX = targetW, minY = targetH, maxX = -1, maxY = -1;
   for (let y = 0; y < targetH; y++) {
     for (let x = 0; x < targetW; x++) {
@@ -3218,7 +3262,6 @@ function processAndPreviewAvatar() {
   const cctx = croppedCanvas.getContext('2d', { willReadFrequently: true });
   cctx.drawImage(step1, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
 
-  // 4단계: 크롭 후에도 남은 배경 완전 제거 (외곽 Flood-Fill + 안쪽 배경 구멍 + 프린지 정리)
   if (removeBg && hasOpaqueBg) {
     const cImg = cctx.getImageData(0, 0, cropW, cropH);
     const cd = cImg.data;
@@ -3319,7 +3362,6 @@ function processAndPreviewAvatar() {
     cctx.putImageData(cImg, 0, 0);
   }
 
-  // 최종 출력 (도트 픽셀 강제 보정 없음 · 하단 발끝 정렬)
   const finalScale = Math.min(targetW / cropW, targetH / cropH);
   const fw = Math.max(1, Math.round(cropW * finalScale));
   const fh = Math.max(1, Math.round(cropH * finalScale));
@@ -3329,7 +3371,6 @@ function processAndPreviewAvatar() {
   avatarPreviewCtx.imageSmoothingEnabled = false;
   avatarPreviewCtx.drawImage(croppedCanvas, 0, 0, cropW, cropH, fx, fy, fw, fh);
 
-  // 32KB 제한 내 안전 압축 (PNG -> WebP 0.85 -> WebP 0.65 -> 축소 WebP)
   let outUrl = avatarPreviewCanvas.toDataURL('image/png');
   if (outUrl.length > 30000) outUrl = avatarPreviewCanvas.toDataURL('image/webp', 0.85);
   if (outUrl.length > 30000) outUrl = avatarPreviewCanvas.toDataURL('image/webp', 0.65);
@@ -3438,11 +3479,11 @@ document.getElementById('btnResetDefaultAvatar')?.addEventListener('click', () =
 
 // ================= [6대 신체 스펙 강화 모달 (C) — 무기 강화는 대장간 NPC 전담] =================
 const STAT_RULES = {
-  education:   { name: "학력 (오른팔 · 망치)", rule: "성공 1% (+1) | 유지 99% | 실패 0% · 현재 10강 [망치] / 50강 [블랙홀] / 100강 [운석 강하]" },
-  appearance:  { name: "외모 (오른다리 · 활)", rule: "성공 11% (+1) | 유지 79% | 실패 10% (-1) · 현재 10강 [활] / 50강 [삼삼구샷] / 100강 [비연 곡예사격]" },
-  wealth:      { name: "재력 (왼팔 · 쌍수)",   rule: "성공 41% (+1) | 유지 19% | 실패 40% (-1) · 현재 10강 [쌍수] / 50강 [새비지 블로우] / 100강 [환영 순보]" },
+  education:   { name: "학력 (오른팔 · 망치)", rule: "성공 1% (+1) | 유지 99% | 실패 0% · 현재 10강 [망치] / 50강 [블랙홀] / 100강 [운석 강하(원격)]" },
+  appearance:  { name: "외모 (오른다리 · 활)", rule: "성공 11% (+1) | 유지 79% | 실패 10% (-1) · 현재 10강 [활] / 50강 [삼삼구샷] / 100강 [이중 관통 사격]" },
+  wealth:      { name: "재력 (왼팔 · 쌍수)",   rule: "성공 41% (+1) | 유지 19% | 실패 40% (-1) · 현재 10강 [쌍수] / 50강 [새비지 블로우 6타] / 100강 [환영 분신]" },
   iq:          { name: "지능 (머리 · 지팡이)", rule: "성공 2% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · IQ 150 [마력 충격파(넉백)] / IQ 200 [이중 원소 연사]" },
-  stamina:     { name: "체력 (몸통 · 대검)",   rule: "성공 7% (+1) | 유지 87% | 실패 6% (-1) · 현재 10강 [대검] / 50강 [GG] / 100강 [패왕 돌진베기]" },
+  stamina:     { name: "체력 (몸통 · 대검)",   rule: "성공 7% (+1) | 유지 87% | 실패 6% (-1) · 현재 10강 [대검] / 50강 [GG] / 100강 [패왕의 검기]" },
   personality: { name: "성격 (왼다리 · 태극구)", rule: "성공 5% (+1) | 유지 91% | 실패 4% (-1) · 현재 10강 [태극구] / 50강 [음양양의] / 100강 [무위 축지]" }
 };
 
@@ -3693,7 +3734,7 @@ function renderBlacksmithPanel() {
     ? (meetsNow ? '<span style="color:#facc15;">[제작 가능!]</span>' : '<span style="color:#f87171;">[조건 미달]</span>')
     : (!meetsNow ? '<span style="color:#f87171;">[🔒 스탯 하락 봉인]</span>' : '<span style="color:#4ade80;">[보유 중]</span>');
   const skillBadge = s100
-    ? `<span style="color:#f43f5e; margin-left:4px;">★★[${spec.skill100Name}]</span>`
+    ? `<span style="color:#f43f5e; margin-left:4px;">★★[${spec.skill50Name}+${spec.skill100Name}]</span>`
     : (s50 ? `<span style="color:#facc15; margin-left:4px;">★[${spec.skill50Name}]</span>` : '');
 
   bsWeaponName.innerHTML = `${spec.icon} ${spec.name} ${statusBadge} ${skillBadge}`;

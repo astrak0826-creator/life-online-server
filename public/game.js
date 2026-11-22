@@ -442,6 +442,7 @@ function connectSocketGame(token, nickname) {
     SoundFX.tone(680, 'sawtooth', 0.14, 0.1, 140);
   });
 
+  // 망치 50강: 4.5타일 블랙홀 흡입 동기화
   socket.on('monstersPulled', (data) => {
     if (!data || !Array.isArray(data.pulled)) return;
     data.pulled.forEach(item => {
@@ -451,10 +452,10 @@ function connectSocketGame(token, nickname) {
     hitEffects.push({
       x: data.cx * TILE_SIZE + 20,
       y: data.cy * TILE_SIZE + 20,
-      radius: 135,
+      radius: 170,
       color: '#a855f7',
       born: Date.now(),
-      duration: 360
+      duration: 380
     });
   });
 
@@ -472,19 +473,19 @@ function connectSocketGame(token, nickname) {
     const cx = (m.renderX !== undefined ? m.renderX : m.x * TILE_SIZE) + (mSize * TILE_SIZE) / 2;
     const cy = (m.renderY !== undefined ? m.renderY : m.y * TILE_SIZE) + (data.hitType === 'lightning_bolt' ? -6 : 10);
 
-    if (floatingDamages.length > 35) floatingDamages.shift();
-    const dmgPrefix = data.hitType === 'lightning_bolt' ? '⚡-' : '-';
-    const dmgColor = data.isDebuffed
-      ? '#94a3b8'
-      : (data.hitType === 'lightning_bolt'
-        ? '#facc15'
-        : (data.hitType === 'ice'
-          ? '#7dd3fc'
-          : (data.attackerId === myId ? '#fef08a' : '#cbd5e1')));
+    if (floatingDamages.length > 42) floatingDamages.shift();
+    const dmgPrefix = data.hitType === 'lightning_bolt' ? '⚡-' : (data.hitType === 'hammer_100' ? '☄️-' : '-');
+    let dmgColor = data.attackerId === myId ? '#fef08a' : '#cbd5e1';
+    if (data.isDebuffed) dmgColor = '#94a3b8';
+    else if (data.hitType === 'lightning_bolt') dmgColor = '#facc15';
+    else if (data.hitType === 'ice') dmgColor = '#7dd3fc';
+    else if (data.hitType === 'greatsword_100') dmgColor = '#fb7185';
+    else if (data.hitType === 'hammer_100') dmgColor = '#fb923c';
+    else if (data.hitType === 'daggers_100') dmgColor = '#22d3ee';
 
     floatingDamages.push({
-      x: cx + (Math.random() - 0.5) * 18,
-      y: cy,
+      x: cx + (Math.random() - 0.5) * 22,
+      y: cy + (Math.random() - 0.5) * 10,
       text: data.isDebuffed ? `${data.damage} (약화)` : `${dmgPrefix}${data.damage}`,
       color: dmgColor,
       born: Date.now(),
@@ -630,13 +631,11 @@ function triggerSpaceInteractOrAura() {
   const me = players[myId];
   if (!me || !socket) return;
 
-  // 1) 로비 중앙 전광판 근접 체크
   if (me.x >= 7.6 && me.x <= 11.4 && me.y >= 1.0 && me.y <= 3.0) {
     openBillboardModal();
     return;
   }
 
-  // 2) 로비 4인 NPC 근접 체크 (2x2 대형 NPC 대장간 반경 반영)
   for (let i = 0; i < DORM_NPCS.length; i++) {
     const npc = DORM_NPCS[i];
     const sz = npc.size || 1;
@@ -649,7 +648,6 @@ function triggerSpaceInteractOrAura() {
     }
   }
 
-  // 3) 그 외 기운 발산
   trigger360AuraBurst(me, true);
   socket.emit('emitAura');
 }
@@ -882,13 +880,11 @@ canvas.addEventListener('click', (e) => {
   const tileX = worldPxX / TILE_SIZE;
   const tileY = worldPxY / TILE_SIZE;
 
-  // 1) 로비 중앙 전광판 클릭
   if (tileX >= 7.2 && tileX <= 12.8 && tileY >= 0.1 && tileY <= 2.3) {
     openBillboardModal();
     return;
   }
 
-  // 2) 로비 4인 NPC 클릭 (2x2 대장간 포함)
   for (let i = 0; i < DORM_NPCS.length; i++) {
     const npc = DORM_NPCS[i];
     const sz = npc.size || 1;
@@ -898,7 +894,6 @@ canvas.addEventListener('click', (e) => {
     }
   }
 
-  // 3) 다른 유저 클릭 시 스펙 정보 창 열기 (1~3x1~3 캐릭터 크기 반영)
   for (const sid in players) {
     const p = players[sid];
     const c = p.character || {};
@@ -951,7 +946,7 @@ canvas.addEventListener('touchmove', (e) => {
   }
 }, { passive: false });
 
-// ================= [충돌 검사 & 무기 6종 전투 엔진 (지팡이 3속성 리워크 · 스킬 외침 제거)] =================
+// ================= [충돌 검사 & 무기 6종 v3.2 리워크 전투 엔진 (50/100강 중첩 · 강제 이동 제거)] =================
 function isClientPosBlocked(fx, fy) {
   if (fx < 0.2 || fx > mapW - 1.2 || fy < 0.8 || fy > mapH - 1.2) return true;
   for (let i = 0; i < obstacles.length; i++) {
@@ -993,6 +988,87 @@ let taijiHoldStartTime = 0;
 let lastTaijiOuterTrigger = 0;
 let taijiOrbitAngle = 0;
 
+function spawnMeteorImpact(meteorX, meteorY, isMine = false) {
+  const px = meteorX * TILE_SIZE + 20;
+  const py = meteorY * TILE_SIZE + 20;
+  const now = Date.now();
+  meteorEffects.push({
+    x: px,
+    y: py,
+    radiusPx: 3.8 * TILE_SIZE,
+    born: now,
+    duration: 420
+  });
+
+  setTimeout(() => {
+    const impactTime = Date.now();
+    hitEffects.push({
+      x: px,
+      y: py,
+      radius: 3.8 * TILE_SIZE,
+      color: '#f97316',
+      born: impactTime,
+      duration: 340
+    });
+    SoundFX.tone(95, 'sawtooth', 0.22, 0.13, 40);
+
+    if (!isMine || !socket) return;
+    screenShakeMag = Math.max(screenShakeMag, 5.5);
+
+    for (const mid in monsters) {
+      const m = monsters[mid];
+      if (!m.alive) continue;
+      const mSize = m.size || 1;
+      const mCx = m.x + (mSize - 1) * 0.5;
+      const mCy = m.y + (mSize - 1) * 0.5;
+      const dist = Math.hypot(mCx - meteorX, mCy - meteorY);
+      if (dist <= 3.8 + (mSize === 2 ? 0.75 : 0.45)) {
+        socket.emit('hitMonster', {
+          monsterId: m.id,
+          skillHit: true,
+          skillTier: 100
+        });
+      }
+    }
+  }, 150);
+}
+
+function spawnShadowCloneStrike(cloneX, cloneY, slashAngle, targetM, isMine = false) {
+  const px = cloneX * TILE_SIZE + 20;
+  const py = cloneY * TILE_SIZE + 20;
+  const now = Date.now();
+  shadowClones.push({
+    x: px,
+    y: py,
+    angle: slashAngle,
+    born: now,
+    duration: 280
+  });
+  meleeEffects.push({
+    x: px,
+    y: py,
+    angle: slashAngle,
+    rangePx: 1.9 * TILE_SIZE,
+    arcRad: 1.15,
+    weaponType: 'daggers',
+    skillTier: 100,
+    swingSide: -1,
+    born: now,
+    duration: 180
+  });
+
+  if (isMine && socket && targetM && targetM.alive) {
+    setTimeout(() => {
+      if (!targetM.alive || !socket) return;
+      socket.emit('hitMonster', {
+        monsterId: targetM.id,
+        skillHit: true,
+        skillTier: 100
+      });
+    }, 45);
+  }
+}
+
 function performWeaponAttack() {
   const me = players[myId];
   if (!me || !socket || isAnyBlockingModalOpen()) return;
@@ -1012,7 +1088,8 @@ function performWeaponAttack() {
   const has50 = hasWeaponSkill50Client(c, wType);
   const has100 = hasWeaponSkill100Client(c, wType);
 
-  const targetM = findNearestAliveMonster(me.x, me.y, wType === 'bow' ? 12.5 : (wType === 'wand' ? 8.5 : 5.5));
+  const aimRange = wType === 'bow' ? 12.5 : (wType === 'wand' ? 8.5 : (wType === 'daggers' ? 3.2 : 5.8));
+  const targetM = findNearestAliveMonster(me.x, me.y, aimRange);
   let angle = typeof me.angle === 'number' ? me.angle : Math.PI / 2;
   if (targetM) {
     const mSize = targetM.size || 1;
@@ -1028,27 +1105,37 @@ function performWeaponAttack() {
   }
 
   swingSideToggle *= -1;
-  me.attackAnimUntil = now + 220;
-  me.lungeOffsetX = Math.cos(angle) * 7;
-  me.lungeOffsetY = Math.sin(angle) * 7;
+  me.attackAnimUntil = now + 200;
+  me.lungeOffsetX = Math.cos(angle) * 6;
+  me.lungeOffsetY = Math.sin(angle) * 6;
 
   let skillType = null;
   let skillTier = 0;
+  let skill50Triggered = false;
+  let skill100Triggered = false;
   let wandElement = null;
   let triggerWandKnockback = false;
+  let triggerBlackhole = false;
+  let meteorX = null;
+  let meteorY = null;
+  let cloneX = null;
+  let cloneY = null;
 
   if (wType === 'wand') {
     // 1발째 랜덤 속성 발사 (화염 / 빙결 / 뇌전)
     wandElement = pickRandomWandElement();
     spawnLocalProjectile(me, angle, 'wand', wLv, has100 ? 100 : 0, null, 1, false, wandElement);
 
-    // 50강 스킬 (IQ 150+): 100강 여부와 무관하게 20% 확률로 반경 4타일 밀쳐내기 (데미지 없음)
+    // 50강(IQ 150+): 100강에도 유지 · 20% 확률 반경 4타일 밀쳐내기
     if (has50 && Math.random() < 0.20) {
       triggerWandKnockback = true;
+      skill50Triggered = true;
     }
 
-    // 100강 평타 강화 (IQ 200+): 순간이동 없음, 3속성 중 랜덤 2발째 연속 발사 (공속 0.5초 유지)
+    // 100강(IQ 200+): 3속성 랜덤 2발째 연속 발사
     if (has100) {
+      skill100Triggered = true;
+      skillTier = 100;
       setTimeout(() => {
         const curMe = players[myId];
         if (!curMe || !socket) return;
@@ -1067,110 +1154,149 @@ function performWeaponAttack() {
           dir: curMe.dir,
           angle: ang2,
           element: elem2,
-          isExtraWandShot: true
+          isExtraWandShot: true,
+          skill100Triggered: true
         });
       }, 115);
     }
   } else if (wType === 'greatsword') {
     greatswordHitCounter++;
-    if (has100) {
-      skillType = 'overlord_dash';
-      skillTier = 100;
-      for (let s = 0; s < 3; s++) {
-        me.afterimages.push({ x: me.renderX, y: me.renderY, born: now + s * 25, color: '#ef4444' });
-        const nx = me.x + Math.cos(angle) * 0.7;
-        const ny = me.y + Math.sin(angle) * 0.7;
-        if (!isClientPosBlocked(nx, ny)) { me.x = nx; me.y = ny; }
-      }
-      me.renderX = me.x * TILE_SIZE;
-      me.renderY = me.y * TILE_SIZE;
-      executeMeleeConeAttack(me, angle, 3.6, Math.PI * 1.4, 'greatsword', wLv, 100, skillType);
-    } else if (has50 && greatswordHitCounter % 3 === 0) {
+
+    // 50강 [회전 참격(GG)] (100강에도 3타마다 정상 유지!)
+    if (has50 && greatswordHitCounter % 3 === 0) {
+      skill50Triggered = true;
       skillType = 'spin_slash';
       skillTier = 50;
-      executeMeleeConeAttack(me, angle, 3.1, Math.PI * 2, 'greatsword', wLv, 50, skillType);
-      setTimeout(() => executeMeleeConeAttack(me, angle + Math.PI, 3.1, Math.PI * 2, 'greatsword', wLv, 50, skillType), 180);
+      executeMeleeConeAttack(me, angle, 3.6, Math.PI * 2, 'greatsword', wLv, 50, 'spin_slash');
+      setTimeout(() => {
+        if (!players[myId]) return;
+        executeMeleeConeAttack(players[myId], angle + Math.PI, 3.6, Math.PI * 2, 'greatsword', wLv, 50, 'spin_slash');
+      }, 180);
     } else {
-      executeMeleeConeAttack(me, angle, 2.8, (150 * Math.PI) / 180, 'greatsword', wLv, 0, null);
+      // 기본 평타: 전방 160° 3.2타일 광역 베기 (320%)
+      executeMeleeConeAttack(me, angle, 3.2, (160 * Math.PI) / 180, 'greatsword', wLv, 0, null);
+    }
+
+    // 100강 [패왕의 검기] (강제 돌진 삭제 → 5.5타일 거대 관통 검기 파동 280% 추가 발사!)
+    if (has100) {
+      skill100Triggered = true;
+      if (!skillType) skillType = 'sword_wave';
+      skillTier = 100;
+      spawnLocalProjectile(me, angle, 'greatsword_wave', wLv, 100, 'sword_wave', 1, false, null);
     }
   } else if (wType === 'hammer') {
-    if (has100) {
-      skillType = 'meteor_slam';
-      skillTier = 100;
-      if (targetM) {
-        const mSize = targetM.size || 1;
-        const tx = targetM.x + (mSize - 1) * 0.5 - Math.cos(angle) * 0.9;
-        const ty = targetM.y + (mSize - 1) * 0.5 - Math.sin(angle) * 0.9;
-        if (!isClientPosBlocked(tx, ty)) {
-          me.afterimages.push({ x: me.renderX, y: me.renderY, born: now, color: '#f59e0b' });
-          me.x = tx; me.y = ty;
-          me.renderX = tx * TILE_SIZE; me.renderY = ty * TILE_SIZE;
-        }
-      }
-      executeMeleeConeAttack(me, angle, 3.8, Math.PI * 2, 'hammer', wLv, 100, skillType);
-    } else if (has50 && Math.random() < 0.35) {
+    // 50강 [중력 붕괴(블랙홀)] (100강에도 30% 확률 정상 유지 · 4.5타일 흡입 + 360° 360%)
+    if (has50 && Math.random() < 0.30) {
+      triggerBlackhole = true;
+      skill50Triggered = true;
       skillType = 'blackhole';
       skillTier = 50;
-      executeMeleeConeAttack(me, angle, 3.4, Math.PI * 2, 'hammer', wLv, 50, skillType);
+      executeMeleeConeAttack(me, angle, 4.5, Math.PI * 2, 'hammer', wLv, 50, 'blackhole');
     } else {
-      executeMeleeConeAttack(me, angle, 2.5, (118 * Math.PI) / 180, 'hammer', wLv, 0, null);
+      // 기본 평타: 전방 130° 2.8타일 내려찍기 (250%)
+      executeMeleeConeAttack(me, angle, 2.8, (130 * Math.PI) / 180, 'hammer', wLv, 0, null);
+    }
+
+    // 100강 [운석 강하] (강제 점프 삭제 → 5.5타일 내 적 머리 위 원격 운석 강하 3.8타일 240%)
+    if (has100) {
+      skill100Triggered = true;
+      if (!skillType) skillType = 'meteor_slam';
+      skillTier = 100;
+      const mTarget = findNearestAliveMonster(me.x, me.y, 5.5);
+      if (mTarget) {
+        const ms = mTarget.size || 1;
+        meteorX = Number((mTarget.x + (ms - 1) * 0.5).toFixed(2));
+        meteorY = Number((mTarget.y + (ms - 1) * 0.5).toFixed(2));
+      } else {
+        meteorX = Number(Math.max(1, Math.min(mapW - 2, me.x + Math.cos(angle) * 3.0)).toFixed(2));
+        meteorY = Number(Math.max(1, Math.min(mapH - 2, me.y + Math.sin(angle) * 3.0)).toFixed(2));
+      }
+      spawnMeteorImpact(meteorX, meteorY, true);
     }
   } else if (wType === 'bow') {
     bowHitCounter++;
-    if (has100) {
-      skillType = 'acrobatic_shot';
-      skillTier = 100;
-      const sideAng = angle + (swingSideToggle > 0 ? Math.PI / 2 : -Math.PI / 2);
-      const nx = me.x + Math.cos(sideAng) * 0.9;
-      const ny = me.y + Math.sin(sideAng) * 0.9;
-      if (!isClientPosBlocked(nx, ny)) {
-        me.afterimages.push({ x: me.renderX, y: me.renderY, born: now, color: '#38bdf8' });
-        me.x = nx; me.y = ny;
-        me.renderX = nx * TILE_SIZE; me.renderY = ny * TILE_SIZE;
-      }
-      [-0.12, 0, 0.12].forEach(off => spawnLocalProjectile(me, angle + off, 'bow', wLv, 100, skillType, 1));
-    } else if (has50 && bowHitCounter % 4 === 0) {
+
+    // 50강 [삼삼구샷] (100강에도 4타마다 유지 · 100강 시 화살당 140%로 상승)
+    if (has50 && bowHitCounter % 4 === 0) {
+      skill50Triggered = true;
       skillType = 'samsamgu';
       skillTier = 50;
       [0, 110, 220].forEach(delay => {
         setTimeout(() => {
-          [-0.22, 0, 0.22].forEach(off => spawnLocalProjectile(me, angle + off, 'bow', wLv, 50, skillType, 1));
+          const curMe = players[myId];
+          if (!curMe) return;
+          [-0.22, 0, 0.22].forEach(off => spawnLocalProjectile(curMe, angle + off, 'bow', wLv, 50, 'samsamgu', 1));
         }, delay);
       });
+    } else if (has100) {
+      // 100강 [이중 관통 사격] (강제 스텝 삭제 → 기본 사격 2연발 관통 195% × 2)
+      skill100Triggered = true;
+      skillType = 'double_pierce';
+      skillTier = 100;
+      spawnLocalProjectile(me, angle, 'bow', wLv, 100, 'double_pierce', 1);
+      setTimeout(() => {
+        const curMe = players[myId];
+        if (!curMe || !socket) return;
+        const t2 = findNearestAliveMonster(curMe.x, curMe.y, 12.5);
+        let ang2 = angle;
+        if (t2) {
+          const ms = t2.size || 1;
+          ang2 = Math.atan2(t2.y + (ms - 1) * 0.5 - curMe.y, t2.x + (ms - 1) * 0.5 - curMe.x);
+        }
+        spawnLocalProjectile(curMe, ang2, 'bow', wLv, 100, 'double_pierce', 1, true);
+        SoundFX.weaponAttack('bow', wLv, false, false);
+        socket.emit('fireProjectile', {
+          x: curMe.x,
+          y: curMe.y,
+          dir: curMe.dir,
+          angle: ang2,
+          isExtraShot: true,
+          skillType: 'double_pierce',
+          skillTier: 100,
+          skill100Triggered: true
+        });
+      }, 100);
     } else {
+      // 기본 평타: 12타일 무제한 관통 화살 (195%)
       spawnLocalProjectile(me, angle, 'bow', wLv, 0, null, 1);
     }
   } else if (wType === 'daggers') {
-    if (has100) {
-      skillType = 'phantom_blink';
-      skillTier = 100;
-      if (targetM) {
-        const mSize = targetM.size || 1;
-        const tcx = targetM.x + (mSize - 1) * 0.5;
-        const tcy = targetM.y + (mSize - 1) * 0.5;
-        const randAng = Math.random() * Math.PI * 2;
-        const nx = tcx + Math.cos(randAng) * (mSize === 2 ? 1.35 : 0.95);
-        const ny = tcy + Math.sin(randAng) * (mSize === 2 ? 1.35 : 0.95);
-        if (!isClientPosBlocked(nx, ny)) {
-          me.afterimages.push({ x: me.renderX, y: me.renderY, born: now, color: '#22d3ee' });
-          me.x = nx; me.y = ny;
-          me.renderX = nx * TILE_SIZE; me.renderY = ny * TILE_SIZE;
-          angle = Math.atan2(tcy - me.y, tcx - me.x);
-          me.angle = angle;
-        }
-      }
-      executeDaggerStrike(me, angle, targetM, wLv, 100, skillType, 3);
-    } else if (has50 && Math.random() < 0.24) {
+    const daggerTarget = findNearestAliveMonster(me.x, me.y, 3.0);
+
+    // 50강 [새비지 블로우] (100강에도 20% 확률 유지 · 초고속 50% × 6연타!)
+    if (has50 && Math.random() < 0.20) {
+      skill50Triggered = true;
       skillType = 'savage_blow';
       skillTier = 50;
-      executeDaggerStrike(me, angle, targetM, wLv, 50, skillType, 6);
+      executeDaggerStrike(me, angle, daggerTarget, wLv, 50, 'savage_blow', 6);
     } else {
-      executeDaggerStrike(me, angle, targetM, wLv, 0, null, 1);
+      // 기본 평타: 단일 2.6타일 초고속 찌르기 (100%)
+      executeDaggerStrike(me, angle, daggerTarget, wLv, 0, null, 1);
+    }
+
+    // 100강 [환영 분신] (무작위 텔포 삭제 → 그림자 분신이 타겟 뒤편에 나타나 95% 추가 찌르기!)
+    if (has100) {
+      skill100Triggered = true;
+      if (!skillType) skillType = 'shadow_clone';
+      skillTier = 100;
+      if (daggerTarget && daggerTarget.alive) {
+        const ms = daggerTarget.size || 1;
+        const tcx = daggerTarget.x + (ms - 1) * 0.5;
+        const tcy = daggerTarget.y + (ms - 1) * 0.5;
+        const behindDist = ms === 2 ? 1.25 : 0.85;
+        cloneX = Number((tcx + Math.cos(angle) * behindDist).toFixed(2));
+        cloneY = Number((tcy + Math.sin(angle) * behindDist).toFixed(2));
+        spawnShadowCloneStrike(cloneX, cloneY, angle + Math.PI, daggerTarget, true);
+      } else {
+        cloneX = Number((me.x + Math.cos(angle) * 1.4).toFixed(2));
+        cloneY = Number((me.y + Math.sin(angle) * 1.4).toFixed(2));
+        spawnShadowCloneStrike(cloneX, cloneY, angle, null, false);
+      }
     }
   }
 
-  SoundFX.weaponAttack(wType, wLv, isMale, Boolean(skillType || triggerWandKnockback));
-  screenShakeMag = Math.max(screenShakeMag, (skillTier >= 100 && wType !== 'wand') ? 4.5 : (triggerWandKnockback ? 3.0 : 1.5));
+  SoundFX.weaponAttack(wType, wLv, isMale, Boolean(skill50Triggered || skill100Triggered || triggerWandKnockback));
+  screenShakeMag = Math.max(screenShakeMag, skill100Triggered && wType !== 'wand' ? 3.5 : (skill50Triggered || triggerWandKnockback ? 2.5 : 1.2));
 
   socket.emit('fireProjectile', {
     x: me.x,
@@ -1179,15 +1305,34 @@ function performWeaponAttack() {
     angle: angle,
     element: wandElement,
     triggerKnockback: triggerWandKnockback,
+    triggerBlackhole: triggerBlackhole,
     swingSide: swingSideToggle,
     skillType: skillType,
-    skillTier: skillTier
+    skillTier: skillTier,
+    skill50Triggered: skill50Triggered,
+    skill100Triggered: skill100Triggered,
+    meteorX: meteorX,
+    meteorY: meteorY,
+    cloneX: cloneX,
+    cloneY: cloneY
   });
 }
 
 function spawnLocalProjectile(owner, angle, weaponType, weaponLv, skillTier, skillType, isMine = 1, isExtra = false, element = null) {
-  const speed = weaponType === 'bow' ? 14.5 : 8.5;
-  const maxRangePx = (weaponType === 'bow' ? 12.2 : 7.8) * TILE_SIZE;
+  let speed = 8.5;
+  let maxRangePx = 7.8 * TILE_SIZE;
+  let pierce = false;
+
+  if (weaponType === 'bow') {
+    speed = 14.5;
+    maxRangePx = 12.2 * TILE_SIZE;
+    pierce = true;
+  } else if (weaponType === 'greatsword_wave') {
+    speed = 11.5;
+    maxRangePx = 5.5 * TILE_SIZE;
+    pierce = true;
+  }
+
   projectiles.push({
     ownerId: owner.id,
     isMine: Boolean(isMine),
@@ -1203,7 +1348,7 @@ function spawnLocalProjectile(owner, angle, weaponType, weaponLv, skillTier, ski
     angle,
     traveled: 0,
     maxRangePx,
-    pierce: weaponType === 'bow',
+    pierce,
     hitSet: new Set(),
     born: Date.now()
   });
@@ -1220,7 +1365,7 @@ function executeMeleeConeAttack(owner, angle, rangeTiles, arcRad, weaponType, we
     skillTier,
     swingSide: swingSideToggle,
     born: Date.now(),
-    duration: skillTier >= 100 ? 300 : 220
+    duration: skillTier >= 50 ? 270 : 210
   });
 
   if (owner.id !== myId) return;
@@ -1251,30 +1396,31 @@ function executeMeleeConeAttack(owner, angle, rangeTiles, arcRad, weaponType, we
 }
 
 function executeDaggerStrike(owner, angle, targetM, weaponLv, skillTier, skillType, hitCount = 1) {
+  const intervalMs = hitCount >= 6 ? 32 : 50;
   for (let i = 0; i < hitCount; i++) {
     setTimeout(() => {
       if (!players[owner.id]) return;
       const curOwner = players[owner.id];
-      const offAng = angle + (i % 2 === 0 ? 0.25 : -0.25);
+      const offAng = angle + (i % 2 === 0 ? 0.28 : -0.28);
       meleeEffects.push({
         x: curOwner.renderX + 20,
         y: curOwner.renderY + 20,
         angle: offAng,
-        rangePx: (skillTier >= 100 ? 2.4 : 1.9) * TILE_SIZE,
-        arcRad: 1.0,
+        rangePx: (skillTier >= 50 ? 2.15 : 1.9) * TILE_SIZE,
+        arcRad: 1.05,
         weaponType: 'daggers',
         skillTier,
         swingSide: i % 2 === 0 ? 1 : -1,
         born: Date.now(),
-        duration: 140
+        duration: 130
       });
 
       if (owner.id !== myId) return;
-      const target = (targetM && targetM.alive) ? targetM : findNearestAliveMonster(curOwner.x, curOwner.y, 2.6);
+      const target = (targetM && targetM.alive) ? targetM : findNearestAliveMonster(curOwner.x, curOwner.y, 2.8);
       if (target && target.alive) {
         const mSize = target.size || 1;
         const dist = Math.hypot(target.x + (mSize - 1) * 0.5 - curOwner.x, target.y + (mSize - 1) * 0.5 - curOwner.y);
-        if (dist <= 2.6 + (mSize === 2 ? 0.7 : 0)) {
+        if (dist <= 2.6 + (mSize === 2 ? 0.75 : 0.2)) {
           socket.emit('hitMonster', {
             monsterId: target.id,
             skillHit: skillTier >= 50,
@@ -1282,11 +1428,11 @@ function executeDaggerStrike(owner, angle, targetM, weaponLv, skillTier, skillTy
           });
         }
       }
-    }, i * 55);
+    }, i * intervalMs);
   }
 }
 
-// ================= [태극구: A 홀드 360° 회전 타격 (스킬 외침 제거)] =================
+// ================= [태극구: A 홀드 360° 회전 타격 (50강 내부 적 중첩 버그 수정)] =================
 function updateTaijiOrbLogic(now, dtSec) {
   const me = players[myId];
   if (!me || !socket) return;
@@ -1317,7 +1463,7 @@ function updateTaijiOrbLogic(now, dtSec) {
     SoundFX.weaponAttack('taijiorb', getEquippedWeaponLevel(c), true, true);
     socket.emit('fireProjectile', {
       x: me.x, y: me.y, dir: me.dir, angle: taijiOrbitAngle,
-      skillType: 'yinyang_outer', skillTier: 50
+      skillType: 'yinyang_outer', skillTier: 50, skill50Triggered: true
     });
   }
 
@@ -1335,6 +1481,7 @@ function updateTaijiOrbLogic(now, dtSec) {
     const mCy = m.y + (mSize - 1) * 0.5;
     const dist = Math.hypot(mCx - me.x, mCy - me.y);
 
+    // 내부 구슬 타격 (반경 3.35타일 · 기본 150% / 100강 150% × 2연타)
     if (dist <= 3.35 + (mSize === 2 ? 0.65 : 0)) {
       const hits = has100 ? 2 : 1;
       for (let h = 0; h < hits; h++) {
@@ -1345,7 +1492,10 @@ function updateTaijiOrbLogic(now, dtSec) {
         });
       }
       hitAny.push(m.id);
-    } else if (outerActive && dist <= 4.95 + (mSize === 2 ? 0.65 : 0)) {
+    }
+
+    // 50강 [음양양의] 외곽 구슬 추가 타격 (반경 4.8타일 내 모든 적 · 내부 적에게도 중첩 적용!)
+    if (outerActive && dist <= 4.8 + (mSize === 2 ? 0.65 : 0)) {
       socket.emit('hitMonster', {
         monsterId: m.id,
         skillHit: true,
@@ -1361,11 +1511,12 @@ function updateTaijiOrbLogic(now, dtSec) {
   socket.emit('fireProjectile', {
     x: me.x, y: me.y, dir: me.dir, angle: taijiOrbitAngle,
     skillType: has100 ? 'wuwei_step' : null,
-    skillTier: has100 ? 100 : 0
+    skillTier: has100 ? 100 : 0,
+    skill100Triggered: has100
   });
 }
 
-// ================= [원격 플레이어 공격 & 이펙트 동기화 (스킬 외침 제거 · 지팡이 3속성 색상 동기화)] =================
+// ================= [원격 플레이어 공격 & 이펙트 동기화 (6종 리워크 이펙트 포함)] =================
 function handleRemoteProjectileEvent(data) {
   if (!data || data.ownerId === myId) return;
   const owner = players[data.ownerId];
@@ -1373,54 +1524,82 @@ function handleRemoteProjectileEvent(data) {
   const wType = data.weaponType || 'wand';
   const angle = typeof data.angle === 'number' ? data.angle : Math.PI / 2;
   const skillTier = data.skillTier || 0;
+  const has50Trig = Boolean(data.skill50Triggered);
+  const has100Trig = Boolean(data.skill100Triggered);
 
-  if (owner) {
-    owner.x = typeof data.x === 'number' ? data.x : owner.x;
-    owner.y = typeof data.y === 'number' ? data.y : owner.y;
-    owner.dir = data.dir || owner.dir;
-    owner.angle = angle;
-    owner.attackAnimUntil = now + 220;
-    owner.lungeOffsetX = Math.cos(angle) * 6;
-    owner.lungeOffsetY = Math.sin(angle) * 6;
+  if (!owner) return;
 
-    if (wType === 'taijiorb') {
-      owner.taijiActiveUntil = now + 620;
-      if (data.skillType === 'yinyang_outer') {
-        owner.taijiOuterUntil = now + 2000;
-      }
-      return;
+  owner.x = typeof data.x === 'number' ? data.x : owner.x;
+  owner.y = typeof data.y === 'number' ? data.y : owner.y;
+  owner.dir = data.dir || owner.dir;
+  owner.angle = angle;
+  owner.attackAnimUntil = now + 200;
+  owner.lungeOffsetX = Math.cos(angle) * 6;
+  owner.lungeOffsetY = Math.sin(angle) * 6;
+
+  if (wType === 'taijiorb') {
+    owner.taijiActiveUntil = now + 620;
+    if (data.skillType === 'yinyang_outer' || has50Trig) {
+      owner.taijiOuterUntil = now + 2000;
     }
+    return;
+  }
 
-    if (wType === 'wand' || wType === 'bow') {
-      spawnLocalProjectile(owner, angle, wType, data.weaponLv || 0, skillTier, data.skillType, 0, false, data.element || null);
-    } else if (wType === 'greatsword' || wType === 'hammer') {
-      const range = wType === 'greatsword' ? (skillTier >= 100 ? 3.6 : 2.9) : (skillTier >= 100 ? 3.8 : 2.6);
-      const arc = (skillTier >= 50) ? Math.PI * 2 : (wType === 'greatsword' ? 2.6 : 2.06);
-      meleeEffects.push({
-        x: owner.renderX + 20,
-        y: owner.renderY + 20,
-        angle,
-        rangePx: range * TILE_SIZE,
-        arcRad: arc,
-        weaponType: wType,
-        skillTier,
-        swingSide: data.swingSide || 1,
-        born: now,
-        duration: 220
+  if (wType === 'wand') {
+    spawnLocalProjectile(owner, angle, 'wand', data.weaponLv || 0, skillTier, data.skillType, 0, false, data.element || null);
+  } else if (wType === 'bow') {
+    if (data.skillType === 'samsamgu' && has50Trig) {
+      [0, 110, 220].forEach(delay => {
+        setTimeout(() => {
+          if (!players[owner.id]) return;
+          [-0.22, 0, 0.22].forEach(off => spawnLocalProjectile(players[owner.id], angle + off, 'bow', data.weaponLv || 0, 50, 'samsamgu', 0));
+        }, delay);
       });
-    } else if (wType === 'daggers') {
+    } else {
+      spawnLocalProjectile(owner, angle, 'bow', data.weaponLv || 0, skillTier, data.skillType, 0);
+    }
+  } else if (wType === 'greatsword') {
+    if (has50Trig && data.skillType === 'spin_slash') {
       meleeEffects.push({
-        x: owner.renderX + 20,
-        y: owner.renderY + 20,
-        angle,
-        rangePx: 2.0 * TILE_SIZE,
-        arcRad: 1.0,
-        weaponType: 'daggers',
-        skillTier,
-        swingSide: data.swingSide || 1,
-        born: now,
-        duration: 150
+        x: owner.renderX + 20, y: owner.renderY + 20, angle,
+        rangePx: 3.6 * TILE_SIZE, arcRad: Math.PI * 2, weaponType: 'greatsword',
+        skillTier: 50, swingSide: data.swingSide || 1, born: now, duration: 240
       });
+      setTimeout(() => {
+        if (!players[owner.id]) return;
+        meleeEffects.push({
+          x: players[owner.id].renderX + 20, y: players[owner.id].renderY + 20, angle: angle + Math.PI,
+          rangePx: 3.6 * TILE_SIZE, arcRad: Math.PI * 2, weaponType: 'greatsword',
+          skillTier: 50, swingSide: -(data.swingSide || 1), born: Date.now(), duration: 240
+        });
+      }, 180);
+    } else {
+      meleeEffects.push({
+        x: owner.renderX + 20, y: owner.renderY + 20, angle,
+        rangePx: 3.2 * TILE_SIZE, arcRad: (160 * Math.PI) / 180, weaponType: 'greatsword',
+        skillTier: 0, swingSide: data.swingSide || 1, born: now, duration: 210
+      });
+    }
+    if (has100Trig) {
+      spawnLocalProjectile(owner, angle, 'greatsword_wave', data.weaponLv || 0, 100, 'sword_wave', 0);
+    }
+  } else if (wType === 'hammer') {
+    const isBh = has50Trig && data.skillType === 'blackhole';
+    meleeEffects.push({
+      x: owner.renderX + 20, y: owner.renderY + 20, angle,
+      rangePx: (isBh ? 4.5 : 2.8) * TILE_SIZE,
+      arcRad: isBh ? Math.PI * 2 : (130 * Math.PI) / 180,
+      weaponType: 'hammer', skillTier: isBh ? 50 : 0,
+      swingSide: data.swingSide || 1, born: now, duration: 220
+    });
+    if (has100Trig && typeof data.meteorX === 'number' && typeof data.meteorY === 'number') {
+      spawnMeteorImpact(data.meteorX, data.meteorY, false);
+    }
+  } else if (wType === 'daggers') {
+    const count = (has50Trig && data.skillType === 'savage_blow') ? 6 : 1;
+    executeDaggerStrike(owner, angle, null, data.weaponLv || 0, has50Trig ? 50 : 0, data.skillType, count);
+    if (has100Trig && typeof data.cloneX === 'number' && typeof data.cloneY === 'number') {
+      spawnShadowCloneStrike(data.cloneX, data.cloneY, angle + Math.PI, null, false);
     }
   }
 }
@@ -1573,12 +1752,11 @@ function stepGameSimulation(dtSec, now) {
     }
   }
 
-  // 4) 투사체 물리 이동 & 몬스터 충돌 판정 (지팡이 3속성 유도 / 활 관통)
+  // 4) 투사체 물리 이동 & 몬스터 충돌 판정 (지팡이 3속성 유도 / 활·대검검기 관통)
   const stepScale = dtSec * 60;
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const pr = projectiles[i];
 
-    // 지팡이(wand) 기존 유도 메커니즘 유지
     if (pr.weaponType === 'wand' && pr.traveled < pr.maxRangePx * 0.85) {
       const nearest = findNearestAliveMonster(pr.x / TILE_SIZE, pr.y / TILE_SIZE, 5.5);
       if (nearest) {
@@ -1611,7 +1789,10 @@ function stepGameSimulation(dtSec, now) {
       const mSize = m.size || 1;
       const mCx = (m.renderX || m.x * TILE_SIZE) + (mSize * TILE_SIZE) / 2;
       const mCy = (m.renderY || m.y * TILE_SIZE) + (mSize * TILE_SIZE) / 2;
-      const hitRad = (mSize === 2 ? 38 : 22) + (pr.weaponType === 'bow' && pr.skillTier >= 100 ? 10 : 0);
+      const extraRad = pr.weaponType === 'greatsword_wave'
+        ? 30
+        : (pr.weaponType === 'bow' && pr.skillTier >= 100 ? 8 : 0);
+      const hitRad = (mSize === 2 ? 38 : 22) + extraRad;
 
       if (Math.hypot(pr.x - mCx, pr.y - mCy) <= hitRad) {
         pr.hitSet.add(mid);
@@ -1625,7 +1806,6 @@ function stepGameSimulation(dtSec, now) {
             skillTier: pr.skillTier
           });
 
-          // 지팡이 화염구(스플래시 60%) & 빙결구(스플래시 10%+빙결)만 스플래시 적용 (뇌전구는 단일+번개)
           if (pr.weaponType === 'wand' && (elem === 'fire' || elem === 'ice')) {
             const splashR = 2.1 * TILE_SIZE;
             for (const smid in monsters) {
@@ -1642,10 +1822,12 @@ function stepGameSimulation(dtSec, now) {
           }
         }
 
-        const hitColor = pr.weaponType === 'bow'
-          ? '#38bdf8'
-          : (elem === 'fire' ? '#f97316' : (elem === 'ice' ? '#38bdf8' : '#facc15'));
-        const hitRadius = pr.weaponType === 'wand' ? (elem === 'lightning' ? 32 : 56) : 24;
+        const hitColor = pr.weaponType === 'greatsword_wave'
+          ? '#fb7185'
+          : (pr.weaponType === 'bow'
+            ? '#38bdf8'
+            : (elem === 'fire' ? '#f97316' : (elem === 'ice' ? '#38bdf8' : '#facc15')));
+        const hitRadius = pr.weaponType === 'wand' ? (elem === 'lightning' ? 32 : 56) : (pr.weaponType === 'greatsword_wave' ? 36 : 24);
 
         hitEffects.push({
           x: pr.x,
@@ -1673,6 +1855,8 @@ function stepGameSimulation(dtSec, now) {
   meleeEffects = meleeEffects.filter(m => now - m.born < m.duration);
   hitEffects = hitEffects.filter(h => now - h.born < h.duration);
   lightningEffects = lightningEffects.filter(l => now - l.born < l.duration);
+  meteorEffects = meteorEffects.filter(mt => now - mt.born < mt.duration);
+  shadowClones = shadowClones.filter(sc => now - sc.born < sc.duration);
   floatingDamages = floatingDamages.filter(f => now - f.born < f.duration);
   skillPopups = skillPopups.filter(s => now - s.born < s.duration);
   bossTelegraphs = bossTelegraphs.filter(t => now - t.born < t.duration + 180);
@@ -1897,17 +2081,14 @@ function drawDormNpcs(now) {
     const interactDist = sz === 2 ? 2.4 : 1.9;
 
     if (npc.id === 'npc_blacksmith') {
-      // [2x2 대형 NPC: 덩치 큰 힘센 대장장이 남자 + 모루/화덕 불꽃]
       const cx = px + wPx / 2;
       const dy = py + bob * 0.8;
 
-      // 바닥 그림자
       ctx.fillStyle = 'rgba(0,0,0,0.45)';
       ctx.beginPath();
       ctx.ellipse(cx, py + hPx - 6, 34, 11, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 화덕 열기 링
       const heatPulse = 32 + Math.sin(now * 0.007) * 3;
       ctx.strokeStyle = 'rgba(249, 115, 22, 0.45)';
       ctx.lineWidth = 2.5;
@@ -1915,18 +2096,15 @@ function drawDormNpcs(now) {
       ctx.ellipse(cx, py + hPx - 8, heatPulse, heatPulse * 0.36, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 단단한 다리 & 부츠
       ctx.fillStyle = '#292524';
       ctx.fillRect(px + 20, dy + 56, 14, 16);
       ctx.fillRect(px + 46, dy + 56, 14, 16);
 
-      // 넓은 근육질 상체 (민소매/가죽 앞치마)
-      ctx.fillStyle = '#d99b6c'; // 근육 팔·어깨
+      ctx.fillStyle = '#d99b6c';
       ctx.fillRect(px + 8, dy + 24, 64, 24);
       ctx.fillRect(px + 10, dy + 42, 14, 14);
       ctx.fillRect(px + 56, dy + 42, 14, 14);
 
-      // 가죽 대장간 앞치마 & 붉은 허리띠
       ctx.fillStyle = '#5c2b16';
       ctx.fillRect(px + 20, dy + 24, 40, 36);
       ctx.fillStyle = '#9a3412';
@@ -1934,20 +2112,17 @@ function drawDormNpcs(now) {
       ctx.fillStyle = '#f59e0b';
       ctx.fillRect(px + 20, dy + 46, 40, 5);
 
-      // 듬직한 머리와 풍성한 수염 & 붉은 머리띠
       ctx.fillStyle = '#e5a97c';
       ctx.fillRect(px + 26, dy + 6, 28, 22);
-      ctx.fillStyle = '#1c1917'; // 머리칼 + 수염
+      ctx.fillStyle = '#1c1917';
       ctx.fillRect(px + 24, dy + 2, 32, 8);
       ctx.fillRect(px + 24, dy + 20, 32, 10);
-      ctx.fillStyle = '#dc2626'; // 붉은 머리띠
+      ctx.fillStyle = '#dc2626';
       ctx.fillRect(px + 25, dy + 8, 30, 4);
-      // 눈
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(px + 32, dy + 14, 4, 4);
       ctx.fillRect(px + 44, dy + 14, 4, 4);
 
-      // 오른손 대형 대장장이 망치 (살짝 들썩이는 모션)
       const hammerLift = Math.sin(now * 0.008) * 3;
       ctx.fillStyle = '#78350f';
       ctx.fillRect(px + 63, dy + 16 + hammerLift, 5, 34);
@@ -1956,13 +2131,11 @@ function drawDormNpcs(now) {
       ctx.fillStyle = '#e2e8f0';
       ctx.fillRect(px + 58, dy + 11 + hammerLift, 15, 4);
 
-      // 앞쪽 작은 모루
       ctx.fillStyle = '#334155';
       ctx.fillRect(px + 6, dy + 60, 22, 10);
       ctx.fillStyle = '#64748b';
       ctx.fillRect(px + 3, dy + 56, 28, 6);
 
-      // 이름표 & 역할 뱃지
       ctx.font = 'bold 12px "DungGeunMo"';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#000';
@@ -1985,7 +2158,6 @@ function drawDormNpcs(now) {
       return;
     }
 
-    // 일반 1x1 NPC 렌더링
     ctx.fillStyle = 'rgba(0,0,0,0.38)';
     ctx.beginPath();
     ctx.ellipse(px + 20, py + 36, 13, 5, 0, 0, Math.PI * 2);
@@ -2147,7 +2319,6 @@ function drawMonsters(now) {
       ctx.fillRect(cx - 12, cy + 8, 5, 7); ctx.fillRect(cx + 7, cy + 8, 5, 7);
     }
 
-    // 빙결 상태 시각화 (모든 [BOSS] 몬스터는 면역이므로 미표시)
     if (!m.isBoss && m.frozenUntil && m.frozenUntil > now) {
       ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
       ctx.fillRect(px + 2, py + 2, wPx - 4, hPx - 4);
@@ -2156,7 +2327,6 @@ function drawMonsters(now) {
       ctx.strokeRect(px + 2, py + 2, wPx - 4, hPx - 4);
     }
 
-    // 체력바 & 이름표
     const barW = mSize === 2 ? 72 : 38;
     const barX = cx - barW / 2;
     const barY = py - (m.isBoss ? 18 : 10);
@@ -2177,7 +2347,7 @@ function drawMonsters(now) {
   }
 }
 
-// ================= [플레이어 · 커스텀 아바타 · 1~3×1~3 크기 스케일링 · 무기 · 태극구 궤도] =================
+// ================= [플레이어 · 커스텀 아바타 · 1~3×1~3 크기 · 무기 보이기/숨기기 · 태극구 궤도] =================
 function drawEquippedWeaponSimple(cx, cy, angle, weaponType, weaponLv, isAttacking) {
   ctx.save();
   ctx.translate(cx, cy);
@@ -2249,7 +2419,7 @@ function drawTaijiActiveOrbs(p, cx, cy, now) {
   }
 
   if (p.taijiOuterUntil > now) {
-    const outerR = 4.5 * TILE_SIZE;
+    const outerR = 4.6 * TILE_SIZE;
     ctx.strokeStyle = 'rgba(250, 204, 21, 0.38)';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -2294,7 +2464,6 @@ function drawPlayers(now) {
     const bodyCy = feetY - hPx * 0.5;
     const bounce = Math.abs(Math.sin(p.walkPhase || 0)) * 3.5;
 
-    // 100강 스킬 잔상 렌더링
     for (let ai = 0; ai < p.afterimages.length; ai++) {
       const aft = p.afterimages[ai];
       const alpha = Math.max(0, 1 - (now - aft.born) / 260) * 0.45;
@@ -2306,16 +2475,13 @@ function drawPlayers(now) {
       ctx.globalAlpha = 1;
     }
 
-    // 태극구 회전 궤도 (발밑 기준)
     drawTaijiActiveOrbs(p, cx, ry + 20, now);
 
-    // 발밑 2.5D 그림자 (캐릭터 가로 크기에 맞춰 확장)
     ctx.fillStyle = 'rgba(0,0,0,0.42)';
     ctx.beginPath();
     ctx.ellipse(cx, feetY, Math.max(13, wPx * 0.38), 5 + (aw - 1) * 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // [해린이언니 커스텀 캐릭터 아바타] vs [기본 외형] — 발끝 고정(feetY)으로 1~3×1~3 블록 스케일링
     const customImg = c.customAvatar ? getCachedAvatarImage(c.customAvatar) : null;
     if (customImg) {
       ctx.save();
@@ -2330,34 +2496,30 @@ function drawPlayers(now) {
       ctx.save();
       ctx.translate(cx, feetY - bounce);
       ctx.scale(aw, ah);
-      // 1x1 기준 (rx+20, ry+36)을 원점 (0, 0)으로 변환한 도트 좌표
-      // 다리
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(-7, -8, 5, 8);
       ctx.fillRect(2, -8, 5, 8);
-      // 몸통
       ctx.fillStyle = isMale ? '#dc2626' : '#ec4899';
       ctx.fillRect(-9, -20, 18, 13);
       ctx.fillStyle = '#fef08a';
       ctx.fillRect(-3, -19, 6, 11);
-      // 머리
       ctx.fillStyle = '#fde68a';
       ctx.fillRect(-8, -32, 16, 13);
       ctx.fillStyle = isMale ? '#991b1b' : '#16a34a';
       ctx.fillRect(-10, -34, 20, 5);
-      // 눈
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(-5 + eyeShift, -27, 2, 3);
       ctx.fillRect(3 + eyeShift, -27, 2, 3);
       ctx.restore();
     }
 
-    // 장착 무기 렌더링
-    const eqWep = c.equippedWeapon || 'wand';
-    const eqLv = getEquippedWeaponLevel(c);
-    drawEquippedWeaponSimple(cx, bodyCy - bounce + 2, p.angle || 0, eqWep, eqLv, p.attackAnimUntil > now);
+    // 장착 무기 외형 표시 (설정에서 숨김 시 미표시 · 전투 이펙트는 유지)
+    if (c.showWeapon !== false) {
+      const eqWep = c.equippedWeapon || 'wand';
+      const eqLv = getEquippedWeaponLevel(c);
+      drawEquippedWeaponSimple(cx, bodyCy - bounce + 2, p.angle || 0, eqWep, eqLv, p.attackAnimUntil > now);
+    }
 
-    // 본인 보스 디버프 표시 (확대된 캐릭터 몸집에 맞춘 피격 저주 테두리)
     if (p.id === myId && myDebuffUntil > now) {
       ctx.strokeStyle = 'rgba(239, 68, 68, 0.85)';
       ctx.lineWidth = 2;
@@ -2366,7 +2528,6 @@ function drawPlayers(now) {
       ctx.stroke();
     }
 
-    // 머리 위 칭호 & 닉네임 (캐릭터 세로 높이 topY 기준으로 자동 상승)
     const labelBaseY = topY + 2;
     const titleStr = getSelectedOverheadTitle(c);
     ctx.font = '10px "DungGeunMo"';
@@ -2382,7 +2543,6 @@ function drawPlayers(now) {
     ctx.fillStyle = p.id === myId ? '#fef08a' : '#ffffff';
     ctx.fillText(p.name, cx, labelBaseY - 3);
 
-    // 일반 대화 말풍선
     if (p.chatText && p.chatText.length > 0) {
       ctx.font = '11px "DungGeunMo"';
       const tw = ctx.measureText(p.chatText).width;
@@ -2401,7 +2561,7 @@ function drawPlayers(now) {
   }
 }
 
-// ================= [장판 전조 · 투사체(3속성) · 번개 · 근접 검기 · 기운 폭발 렌더링] =================
+// ================= [장판 전조 · 투사체(3속성/검기파동) · 운석 · 그림자 분신 · 번개 · 기운 폭발 렌더링] =================
 function drawBossTelegraphs(now) {
   for (let i = 0; i < bossTelegraphs.length; i++) {
     const t = bossTelegraphs[i];
@@ -2443,6 +2603,25 @@ function drawCombatAndVisualEffects(now) {
   }
   ctx.globalAlpha = 1;
 
+  // 쌍수 100강 [환영 분신] 그림자 실루엣
+  for (let i = 0; i < shadowClones.length; i++) {
+    const sc = shadowClones[i];
+    const p = (now - sc.born) / sc.duration;
+    const alpha = Math.max(0, 1 - p) * 0.8;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(sc.x, sc.y);
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.fillRect(-10, -18, 20, 26);
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-10, -18, 20, 26);
+    ctx.fillStyle = '#67e8f9';
+    ctx.fillRect(-5, -13, 3, 3);
+    ctx.fillRect(2, -13, 3, 3);
+    ctx.restore();
+  }
+
   // 근접 부채꼴 베기/충격파 이펙트
   for (let i = 0; i < meleeEffects.length; i++) {
     const me = meleeEffects[i];
@@ -2450,7 +2629,9 @@ function drawCombatAndVisualEffects(now) {
     const alpha = Math.max(0, 1 - p);
     ctx.save();
     ctx.globalAlpha = alpha;
-    const col = me.skillTier >= 100 ? '#f43f5e' : (me.weaponType === 'hammer' ? '#f59e0b' : (me.weaponType === 'daggers' ? '#22d3ee' : '#fb923c'));
+    const col = me.skillTier >= 100
+      ? (me.weaponType === 'daggers' ? '#22d3ee' : '#f43f5e')
+      : (me.weaponType === 'hammer' ? (me.skillTier >= 50 ? '#a855f7' : '#f59e0b') : (me.weaponType === 'daggers' ? '#fde047' : '#fb923c'));
     ctx.strokeStyle = col;
     ctx.lineWidth = me.skillTier >= 50 ? 10 : 6;
     ctx.beginPath();
@@ -2459,14 +2640,36 @@ function drawCombatAndVisualEffects(now) {
     ctx.restore();
   }
 
-  // 투사체 (지팡이 3속성 색상 분리 / 활 관통 화살)
+  // 투사체 (지팡이 3속성 / 활 관통 화살 / 대검 100강 거대 관통 검기 파동)
   for (let i = 0; i < projectiles.length; i++) {
     const pr = projectiles[i];
-    if (pr.weaponType === 'bow') {
+    if (pr.weaponType === 'greatsword_wave') {
       ctx.save();
       ctx.translate(pr.x, pr.y);
       ctx.rotate(pr.angle);
-      ctx.fillStyle = pr.skillTier >= 100 ? '#f43f5e' : '#38bdf8';
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.45)';
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.arc(-8, 0, 34, -Math.PI * 0.42, Math.PI * 0.42);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#fb7185';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(-6, 0, 34, -Math.PI * 0.4, Math.PI * 0.4);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(-4, 0, 34, -Math.PI * 0.34, Math.PI * 0.34);
+      ctx.stroke();
+      ctx.restore();
+    } else if (pr.weaponType === 'bow') {
+      ctx.save();
+      ctx.translate(pr.x, pr.y);
+      ctx.rotate(pr.angle);
+      ctx.fillStyle = pr.skillTier >= 100 ? '#f43f5e' : (pr.skillTier >= 50 ? '#facc15' : '#38bdf8');
       ctx.fillRect(-14, -2, 28, 4);
       ctx.fillStyle = '#fff';
       ctx.fillRect(8, -3, 6, 6);
@@ -2487,6 +2690,51 @@ function drawCombatAndVisualEffects(now) {
       ctx.fillStyle = coreCol;
       ctx.beginPath(); ctx.arc(pr.x, pr.y, r * 0.45, 0, Math.PI * 2); ctx.fill();
     }
+  }
+
+  // 망치 100강 [운석 강하] 하늘에서 낙하 & 폭발 연출
+  for (let i = 0; i < meteorEffects.length; i++) {
+    const mt = meteorEffects[i];
+    const elapsed = now - mt.born;
+    const fallRatio = Math.min(1, elapsed / 150);
+
+    ctx.save();
+    if (fallRatio < 1) {
+      // 낙하 지점 붉은 타겟 링
+      ctx.strokeStyle = 'rgba(249, 115, 22, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(mt.x, mt.y, mt.radiusPx * (0.4 + fallRatio * 0.6), 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 사선으로 떨어지는 운석 본체
+      const mx = mt.x + (1 - fallRatio) * 90;
+      const my = mt.y - (1 - fallRatio) * 190;
+      ctx.strokeStyle = 'rgba(251, 146, 60, 0.65)';
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(mx + 26, my - 56);
+      ctx.lineTo(mx, my);
+      ctx.stroke();
+
+      ctx.fillStyle = '#7c2d12';
+      ctx.beginPath(); ctx.arc(mx, my, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f97316';
+      ctx.beginPath(); ctx.arc(mx, my, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath(); ctx.arc(mx - 2, my - 2, 5, 0, Math.PI * 2); ctx.fill();
+    } else {
+      const blastP = Math.min(1, (elapsed - 150) / (mt.duration - 150));
+      ctx.globalAlpha = Math.max(0, 1 - blastP);
+      ctx.fillStyle = 'rgba(234, 88, 12, 0.28)';
+      ctx.beginPath();
+      ctx.arc(mt.x, mt.y, mt.radiusPx * (0.35 + blastP * 0.65), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   // 뇌전구 2타: 하늘에서 내리꽂히는 번개 이펙트
@@ -2521,7 +2769,7 @@ function drawCombatAndVisualEffects(now) {
     ctx.restore();
   }
 
-  // 피격/폭발/밀쳐내기 링
+  // 피격/폭발/밀쳐내기/블랙홀 링
   for (let i = 0; i < hitEffects.length; i++) {
     const h = hitEffects[i];
     const p = (now - h.born) / h.duration;
@@ -2601,7 +2849,6 @@ function drawGame(now) {
   const shakeY = screenShakeMag > 0.2 ? (Math.random() - 0.5) * screenShakeMag : 0;
   ctx.translate(-Math.round(cameraX + shakeX), -Math.round(cameraY + shakeY));
 
-  // 1) 오프스크린 월드 배경 뷰포트 슬라이스 출력
   if (worldBgCanvas) {
     const sx = Math.max(0, Math.floor(cameraX));
     const sy = Math.max(0, Math.floor(cameraY));
@@ -2612,10 +2859,8 @@ function drawGame(now) {
     }
   }
 
-  // 2) 보스 장판 전조
   drawBossTelegraphs(now);
 
-  // 3) 장애물
   for (let i = 0; i < obstacles.length; i++) {
     const obs = obstacles[i];
     const ox = obs.x * TILE_SIZE;
@@ -2623,20 +2868,16 @@ function drawGame(now) {
     drawObstacleItem(obs);
   }
 
-  // 4) 로비 중앙 전광판 & 4인 NPC (2x2 대장간 포함)
   drawLobbyCentralBillboard();
   drawDormNpcs(now);
 
-  // 5) 몬스터 & 플레이어
   drawMonsters(now);
   drawPlayers(now);
 
-  // 6) 전투 이펙트 & 번개/피격/디버프 알림
   drawCombatAndVisualEffects(now);
 
   ctx.restore();
 
-  // 7) 좌측 상단 현재 구역 표기
   const me = players[myId];
   if (me) {
     const zName = getZoneNameByX(me.x);
