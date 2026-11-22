@@ -208,7 +208,7 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.85);
   }
 
-  /* 인게임 상단 채팅 입력 오버레이 (전체화면 & 모바일 공용) */
+  /* 인게임 상단 채팅 입력 오버레이 */
   .mobile-chat-overlay {
     position: absolute;
     top: 8px;
@@ -296,7 +296,7 @@
     color: #ffffff;
   }
 
-  /* ================= [PC 전용 하단 바 (단축키 명시 · 조이스틱 절대 미노출)] ================= */
+  /* ================= [PC 전용 하단 바 (단축키 명시 · 8버튼)] ================= */
   .desktop-bottom-bar {
     width: 100%;
     background: #0d080b;
@@ -314,7 +314,7 @@
     justify-content: center;
   }
   .desktop-btn-row button {
-    padding: 6px 10px;
+    padding: 6px 9px;
     border-radius: 4px;
     font-size: 12px;
     font-weight: bold;
@@ -329,7 +329,7 @@
   }
   .desktop-chat-row input { flex: 1; min-width: 0; }
 
-  /* PC 전체화면 모드 (조이스틱 없이 깔끔한 데스크톱 전체화면) */
+  /* PC 전체화면 모드 */
   body.pc-fullscreen {
     padding: 0 !important;
     width: 100vw !important;
@@ -359,7 +359,7 @@
   body.pc-fullscreen .guide { display: none !important; }
   body.pc-fullscreen .mobile-controller-panel { display: none !important; }
 
-  /* ================= [모바일 전용 컨트롤 패널 (터치 기기 전용)] ================= */
+  /* ================= [모바일 전용 컨트롤 패널 (터치 기기 전용 · 8버튼)] ================= */
   .mobile-controller-panel {
     display: none;
     width: 100%;
@@ -426,7 +426,7 @@
     flex-direction: column;
     gap: 5px;
     flex: 1;
-    max-width: 240px;
+    max-width: 256px;
   }
   .mobile-top-actions { display: flex; gap: 5px; }
   .btn-aura-mobile,
@@ -454,10 +454,10 @@
     color: #f3e8ff;
   }
 
-  /* 모바일 세로 5버튼 균형 배치 (상단 3개: 정보/스펙업/순위, 하단 2개: 채팅/설정) */
+  /* 모바일 세로 6버튼 균형 3×2 그리드 (정보/스펙업/순위 + 무기변경/채팅/설정) */
   .action-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 32px);
     gap: 5px;
     width: 100%;
@@ -465,24 +465,25 @@
   .btn-neo {
     border-radius: 5px;
     font-family: 'DungGeunMo', monospace;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-    padding: 0 4px;
+    padding: 0 3px;
     white-space: nowrap;
   }
   .btn-neo:active { transform: translateY(1px) scale(0.95); }
-  .btn-info     { grid-column: span 2; background: linear-gradient(135deg, #0e7490, #155e75); border: 1px solid #22d3ee; color: #ecfeff; }
-  .btn-enhance  { grid-column: span 2; background: linear-gradient(135deg, #047857, #065f46); border: 1px solid #34d399; color: #ecfdf5; }
-  .btn-rank     { grid-column: span 2; background: linear-gradient(135deg, #b45309, #92400e); border: 1px solid #fbbf24; color: #fffbeb; }
-  .btn-chat     { grid-column: span 3; background: linear-gradient(135deg, #6d28d9, #5b21b6); border: 1px solid #c084fc; color: #faf5ff; }
-  .btn-settings { grid-column: span 3; background: linear-gradient(135deg, #334155, #1e293b); border: 1px solid #94a3b8; color: #f8fafc; }
+  .btn-info     { background: linear-gradient(135deg, #0e7490, #155e75); border: 1px solid #22d3ee; color: #ecfeff; }
+  .btn-enhance  { background: linear-gradient(135deg, #047857, #065f46); border: 1px solid #34d399; color: #ecfdf5; }
+  .btn-rank     { background: linear-gradient(135deg, #b45309, #92400e); border: 1px solid #fbbf24; color: #fffbeb; }
+  .btn-swap     { background: linear-gradient(135deg, #be123c, #881337); border: 1px solid #fb7185; color: #fff1f2; }
+  .btn-chat     { background: linear-gradient(135deg, #6d28d9, #5b21b6); border: 1px solid #c084fc; color: #faf5ff; }
+  .btn-settings { background: linear-gradient(135deg, #334155, #1e293b); border: 1px solid #94a3b8; color: #f8fafc; }
 
-  /* 모바일 터치 기기 활성화 시 풀스크린 확장 */
+  /* 모바일 터치 기기 풀스크린 확장 */
   body.is-touch-device {
     padding: 0 !important;
     width: 100vw !important;
@@ -517,7 +518,7 @@
   body.is-touch-device .hud-online { font-size: 11px; padding: 2px 5px; }
   body.is-touch-device .hud-chances { font-size: 11px; }
 
-  /* ================= [모바일 가로 와일드 게임패드 오버레이 모드 (7버튼)] ================= */
+  /* ================= [모바일 가로 와일드 게임패드 오버레이 모드 (8버튼)] ================= */
   body.is-touch-device.force-landscape-pad .hud-bar,
   body.is-touch-device.auto-landscape-pad .hud-bar {
     padding: 4px 12px;
@@ -563,8 +564,8 @@
     position: absolute;
     right: max(14px, env(safe-area-inset-right, 14px));
     bottom: max(12px, env(safe-area-inset-bottom, 12px));
-    width: 240px;
-    height: 220px;
+    width: 260px;
+    height: 230px;
     max-width: none;
     display: block;
     pointer-events: none;
@@ -577,6 +578,7 @@
   }
   body.is-touch-device.force-landscape-pad #mBtnAttack,
   body.is-touch-device.force-landscape-pad #mBtnAura,
+  body.is-touch-device.force-landscape-pad #mBtnSwapWeapon,
   body.is-touch-device.force-landscape-pad #mBtnEnhance,
   body.is-touch-device.force-landscape-pad #mBtnInfo,
   body.is-touch-device.force-landscape-pad #mBtnRank,
@@ -584,6 +586,7 @@
   body.is-touch-device.force-landscape-pad #mBtnSettings,
   body.is-touch-device.auto-landscape-pad #mBtnAttack,
   body.is-touch-device.auto-landscape-pad #mBtnAura,
+  body.is-touch-device.auto-landscape-pad #mBtnSwapWeapon,
   body.is-touch-device.auto-landscape-pad #mBtnEnhance,
   body.is-touch-device.auto-landscape-pad #mBtnInfo,
   body.is-touch-device.auto-landscape-pad #mBtnRank,
@@ -603,45 +606,51 @@
   }
   body.is-touch-device.force-landscape-pad #mBtnAttack,
   body.is-touch-device.auto-landscape-pad #mBtnAttack {
-    right: 6px; bottom: 6px; width: 82px; height: 82px;
+    right: 6px; bottom: 6px; width: 80px; height: 80px;
     background: radial-gradient(circle, rgba(56, 189, 248, 0.36) 0%, rgba(15, 23, 42, 0.75) 100%);
     border: 3px solid rgba(56, 189, 248, 0.88); color: #f0f9ff; font-size: 13px;
   }
   body.is-touch-device.force-landscape-pad #mBtnAura,
   body.is-touch-device.auto-landscape-pad #mBtnAura {
-    right: 102px; bottom: 8px; width: 58px; height: 58px;
+    right: 98px; bottom: 8px; width: 56px; height: 56px;
     background: radial-gradient(circle, rgba(245, 158, 11, 0.38) 0%, rgba(28, 16, 21, 0.75) 100%);
     border: 2.5px solid rgba(251, 191, 36, 0.85); color: #fef08a; font-size: 10px;
   }
+  body.is-touch-device.force-landscape-pad #mBtnSwapWeapon,
+  body.is-touch-device.auto-landscape-pad #mBtnSwapWeapon {
+    right: 84px; bottom: 72px; width: 54px; height: 54px;
+    background: radial-gradient(circle, rgba(225, 29, 72, 0.45) 0%, rgba(28, 16, 21, 0.78) 100%);
+    border: 2px solid rgba(251, 113, 133, 0.9); color: #fff1f2; font-size: 10px;
+  }
   body.is-touch-device.force-landscape-pad #mBtnEnhance,
   body.is-touch-device.auto-landscape-pad #mBtnEnhance {
-    right: 84px; bottom: 76px; width: 52px; height: 52px;
+    right: 162px; bottom: 12px; width: 48px; height: 48px;
     background: radial-gradient(circle, rgba(16, 185, 129, 0.38) 0%, rgba(15, 23, 42, 0.75) 100%);
-    border: 2px solid rgba(52, 211, 153, 0.85); color: #ecfdf5; font-size: 11px;
+    border: 2px solid rgba(52, 211, 153, 0.85); color: #ecfdf5; font-size: 10px;
   }
   body.is-touch-device.force-landscape-pad #mBtnInfo,
   body.is-touch-device.auto-landscape-pad #mBtnInfo {
-    right: 12px; bottom: 102px; width: 52px; height: 52px;
+    right: 10px; bottom: 98px; width: 50px; height: 50px;
     background: radial-gradient(circle, rgba(14, 116, 144, 0.42) 0%, rgba(15, 23, 42, 0.75) 100%);
-    border: 2px solid rgba(34, 211, 238, 0.85); color: #ecfeff; font-size: 11px;
+    border: 2px solid rgba(34, 211, 238, 0.85); color: #ecfeff; font-size: 10px;
   }
   body.is-touch-device.force-landscape-pad #mBtnRank,
   body.is-touch-device.auto-landscape-pad #mBtnRank {
-    right: 154px; bottom: 60px; width: 46px; height: 46px;
+    right: 148px; bottom: 72px; width: 46px; height: 46px;
     background: radial-gradient(circle, rgba(180, 83, 9, 0.42) 0%, rgba(15, 23, 42, 0.75) 100%);
-    border: 2px solid rgba(251, 191, 36, 0.8); color: #fffbeb; font-size: 11px;
+    border: 2px solid rgba(251, 191, 36, 0.8); color: #fffbeb; font-size: 10px;
   }
   body.is-touch-device.force-landscape-pad #mBtnChat,
   body.is-touch-device.auto-landscape-pad #mBtnChat {
-    right: 78px; bottom: 140px; width: 46px; height: 46px;
+    right: 76px; bottom: 138px; width: 46px; height: 46px;
     background: radial-gradient(circle, rgba(109, 40, 217, 0.42) 0%, rgba(15, 23, 42, 0.75) 100%);
-    border: 2px solid rgba(192, 132, 252, 0.82); color: #faf5ff; font-size: 11px;
+    border: 2px solid rgba(192, 132, 252, 0.82); color: #faf5ff; font-size: 10px;
   }
   body.is-touch-device.force-landscape-pad #mBtnSettings,
   body.is-touch-device.auto-landscape-pad #mBtnSettings {
-    right: 16px; bottom: 164px; width: 44px; height: 44px;
+    right: 14px; bottom: 160px; width: 44px; height: 44px;
     background: radial-gradient(circle, rgba(71, 85, 105, 0.55) 0%, rgba(15, 23, 42, 0.8) 100%);
-    border: 2px solid rgba(148, 163, 184, 0.85); color: #f8fafc; font-size: 11px;
+    border: 2px solid rgba(148, 163, 184, 0.85); color: #f8fafc; font-size: 10px;
   }
   body.is-touch-device.force-landscape-pad #chatLog,
   body.is-touch-device.auto-landscape-pad #chatLog {
@@ -724,7 +733,7 @@
   }
   .fs-mode-btn span { font-size: 10px; font-weight: normal; opacity: 0.85; }
 
-  /* 슬림화된 정육각형 스탯 정보 창 (S) */
+  /* 정육각형 스탯 정보 창 (S) */
   .info-modal-card {
     width: 100%; max-width: 450px; max-height: 94vh; overflow-y: auto;
     padding: 14px; display: flex; flex-direction: column; align-items: center;
@@ -743,14 +752,12 @@
   .info-stat-item.wand-full-row { grid-column: span 2; border-color: #7e22ce; background: #1a0f24; }
   .info-stat-name { color: #fca5a5; font-size: 11px; display: flex; justify-content: space-between; gap: 4px; }
   .info-stat-val { color: #fef08a; font-size: 12px; font-weight: bold; }
-  .weapon-equip-bar {
+  .info-loadout-summary {
     width: 100%; background: #140b0f; border: 1px solid #451a1c; border-radius: 4px;
-    padding: 8px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px;
+    padding: 7px 9px; margin-bottom: 8px; font-size: 11px; color: #cbd5e1; line-height: 1.5;
   }
-  .pref-label { font-size: 11px; color: #cbd5e1; }
-  .weapon-equip-bar select { width: 100%; padding: 6px 8px; font-size: 12px; }
 
-  /* 신규 통합 설정 창 (ESC) */
+  /* 통합 설정 창 (ESC) */
   .settings-modal-card {
     width: 100%; max-width: 500px; max-height: 92vh; overflow-y: auto;
     padding: 14px; display: flex; flex-direction: column; gap: 10px;
@@ -763,8 +770,9 @@
   .settings-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .pref-col { display: flex; flex-direction: column; gap: 4px; }
   .pref-col select { width: 100%; padding: 5px 6px; font-size: 12px; }
+  .pref-label { font-size: 11px; color: #cbd5e1; }
   .patch-history-box {
-    max-height: 175px; overflow-y: auto; background: #090507; border: 1px solid #2e1217;
+    max-height: 185px; overflow-y: auto; background: #090507; border: 1px solid #2e1217;
     border-radius: 4px; padding: 8px 10px; font-size: 11px; color: #cbd5e1; line-height: 1.5;
   }
   .patch-ver-tag { display: block; color: #facc15; font-weight: bold; margin: 6px 0 3px; }
@@ -772,40 +780,85 @@
   .patch-history-box ul { margin: 0 0 6px; padding-left: 16px; }
   .patch-history-box li { margin-bottom: 3px; }
 
-  /* 로비 중앙 전광판 모달 (하이잭 디스 변형) */
+  /* 로비 중앙 전광판 모달 (하이잭 디스 + 넘버패드) */
   .billboard-modal-card {
-    width: 100%; max-width: 470px; max-height: 92vh; overflow-y: auto;
-    padding: 14px; display: flex; flex-direction: column; gap: 10px;
+    width: 100%; max-width: 460px; max-height: 94vh; overflow-y: auto;
+    padding: 14px; display: flex; flex-direction: column; gap: 9px;
   }
   .billboard-screen {
-    background: #06090e; border: 2px solid #f59e0b; border-radius: 6px; padding: 12px;
+    background: #06090e; border: 2px solid #f59e0b; border-radius: 6px; padding: 10px 12px;
     text-align: center;
   }
   .billboard-screen-text {
-    font-size: 14px; color: #fef08a; line-height: 1.55; white-space: pre-wrap;
-    word-break: break-word; min-height: 46px; margin-bottom: 8px;
+    font-size: 13px; color: #fef08a; line-height: 1.5; white-space: pre-wrap;
+    word-break: break-word; min-height: 42px; margin-bottom: 6px;
   }
   .billboard-meta {
     display: flex; justify-content: space-between; font-size: 11px; color: #38bdf8;
-    border-top: 1px solid #1e293b; padding-top: 6px;
+    border-top: 1px solid #1e293b; padding-top: 5px;
+  }
+  .bb-keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 6px 0 8px;
+  }
+  .bb-key-btn {
+    background: linear-gradient(180deg, #25141c 0%, #140a0e 100%);
+    border: 1.5px solid #6b212c;
+    color: #fef08a;
+    font-size: 17px;
+    font-weight: bold;
+    padding: 10px 0;
+    border-radius: 5px;
+    box-shadow: 0 3px 0 #090406;
+  }
+  .bb-key-btn:active {
+    transform: translateY(2px);
+    background: #7f1d1d;
+    border-color: #facc15;
+    box-shadow: none;
+  }
+  .bb-key-btn.key-fn {
+    font-size: 13px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-color: #475569;
+    color: #cbd5e1;
   }
   .billboard-failed-box {
-    max-height: 76px; overflow-y: auto; background: #090507; border: 1px solid #3b161c;
+    max-height: 68px; overflow-y: auto; background: #090507; border: 1px solid #3b161c;
     border-radius: 4px; padding: 6px 8px; font-size: 11px; color: #94a3b8; line-height: 1.45;
     word-break: break-all;
   }
 
-  /* 해린이언니 커스텀 캐릭터 외형 패널 */
+  /* 해린이언니 커스텀 캐릭터 외형 · 크기 · 수동 크롭 패널 */
   .avatar-custom-panel {
-    margin-top: 12px; border-top: 1px solid #451a1c; padding-top: 10px;
+    margin-top: 10px; border-top: 1px solid #451a1c; padding-top: 10px;
     display: flex; flex-direction: column; gap: 8px;
   }
+  .avatar-size-box {
+    background: #140b0f; border: 1px solid #5c1d24; border-radius: 5px;
+    padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .avatar-size-row {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: #fef08a;
+  }
+  .avatar-size-row select { padding: 4px 8px; font-size: 12px; }
+  .avatar-crop-section {
+    background: #12090e; border: 1px solid #3b161c; border-radius: 5px;
+    padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  #avatarCropCanvas {
+    width: 192px; height: 192px; max-width: 100%;
+    background: repeating-conic-gradient(#1f2937 0% 25%, #111827 0% 50%) 50% / 14px 14px;
+    border: 2px solid #38bdf8; border-radius: 5px; cursor: crosshair; touch-action: none;
+  }
   .avatar-preview-row {
-    display: flex; align-items: center; gap: 12px; background: #140b0f;
+    display: flex; align-items: center; gap: 10px; background: #140b0f;
     border: 1px solid #3b161c; border-radius: 5px; padding: 8px;
   }
   #avatarPreviewCanvas {
-    width: 64px; height: 64px; background: repeating-conic-gradient(#1f2937 0% 25%, #111827 0% 50%) 50% / 12px 12px;
+    width: 68px; height: 68px; background: repeating-conic-gradient(#1f2937 0% 25%, #111827 0% 50%) 50% / 12px 12px;
     border: 2px solid #f59e0b; border-radius: 5px; image-rendering: pixelated; flex-shrink: 0;
   }
   .avatar-options {
@@ -814,9 +867,9 @@
   }
   .avatar-options label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
 
-  /* 강화 모달 */
+  /* 6대 스탯 강화 모달 (무기 탭 제거됨 -> 대장간 NPC 이관) */
   .enhance-modal {
-    padding: 14px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
+    padding: 14px; width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto;
     display: flex; flex-direction: column;
   }
   @keyframes anvilShakeAnim {
@@ -825,10 +878,11 @@
     55% { transform: translate(4px, -3px) scale(1.01); }
     100% { transform: translate(0, 0) scale(1); }
   }
-  .enhance-modal.anvil-shake { animation: anvilShakeAnim 0.11s ease-out; border-color: #fef08a; }
+  .enhance-modal.anvil-shake,
+  .npc-dialog-box.anvil-shake { animation: anvilShakeAnim 0.11s ease-out; border-color: #fef08a; }
   .enhance-title { color: var(--eva-orange); font-size: 17px; margin: 0 0 10px; text-align: center; }
-  .stat-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 8px; }
-  .weapon-select-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 10px; }
+  .stat-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 10px; }
+  .weapon-select-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 8px; }
   @media (max-width: 520px) {
     .stat-select-grid { grid-template-columns: repeat(2, 1fr); }
     .weapon-select-grid { grid-template-columns: repeat(3, 1fr); }
@@ -842,11 +896,11 @@
     padding: 12px; text-align: center; margin-bottom: 8px; position: relative; overflow: hidden;
   }
   .enhance-detail-box.anvil-flash { background: radial-gradient(circle, rgba(254, 240, 138, 0.25) 0%, #140b0f 75%); border-color: #facc15; }
-  .cur-stat-val { font-size: 22px; color: var(--eva-orange); font-weight: bold; margin: 4px 0; transition: transform 0.1s ease-out; }
+  .cur-stat-val { font-size: 20px; color: var(--eva-orange); font-weight: bold; margin: 4px 0; transition: transform 0.1s ease-out; }
   .cur-stat-val.val-pop { transform: scale(1.16); color: #fef08a; }
   .cur-stat-desc { font-size: 13px; color: #38bdf8; margin-bottom: 6px; }
   .cur-stat-rule { font-size: 11px; color: #e2e8f0; line-height: 1.45; background: #090507; padding: 7px; border-radius: 4px; }
-  #enhanceSparkLayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+  .spark-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
   .anvil-spark {
     position: absolute; left: 50%; top: 38%; width: 5px; height: 5px; border-radius: 50%;
     pointer-events: none; transform: translate(-50%, -50%);
@@ -856,13 +910,30 @@
     0% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
     100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.2); opacity: 0; }
   }
-  #enhanceExecuteBtn.btn-anvil-hit { transform: translateY(2px) scale(0.96); background: #dc2626 !important; border-color: #fef08a !important; }
+  .btn-anvil-hit { transform: translateY(2px) scale(0.96); background: #dc2626 !important; border-color: #fef08a !important; }
   .enhance-result-box {
-    min-height: 26px; font-size: 13px; font-weight: bold;
+    min-height: 24px; font-size: 12px; font-weight: bold;
     display: flex; align-items: center; justify-content: center; text-align: center; margin-bottom: 8px;
   }
   .enhance-result-box.success { color: #4ade80; }
   .enhance-result-box.fail { color: #f87171; }
+
+  /* 대장간 NPC 전용 패널 (출정 2슬롯 세팅 + 무기 전수/단조 강화) */
+  .blacksmith-panel {
+    margin-top: 10px; border-top: 1px solid #5c1d24; padding-top: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .bs-loadout-box {
+    background: #140b0f; border: 1.5px solid #b45309; border-radius: 5px;
+    padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .bs-loadout-grid {
+    display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: end;
+  }
+  @media (max-width: 480px) {
+    .bs-loadout-grid { grid-template-columns: 1fr; }
+  }
+  .bs-loadout-grid select { width: 100%; padding: 6px; font-size: 12px; }
 
   /* 랭킹 & 동접자 모달 */
   .rank-modal { padding: 14px; width: 100%; max-width: 580px; max-height: 88vh; display: flex; flex-direction: column; }
@@ -886,24 +957,15 @@
   .rank-pill b { color: #38bdf8; margin-left: 2px; }
 
   /* NPC 대화창 */
-  .npc-dialog-box { padding: 16px; width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; }
-  .npc-dialog-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #5c1d24; padding-bottom: 8px; margin-bottom: 12px; }
+  .npc-dialog-box { padding: 15px; width: 100%; max-width: 560px; max-height: 94vh; overflow-y: auto; }
+  .npc-dialog-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #5c1d24; padding-bottom: 8px; margin-bottom: 10px; }
   .npc-name-tag { color: var(--eva-orange); font-size: 15px; font-weight: bold; }
-  .npc-dialog-body { display: flex; gap: 14px; align-items: center; min-height: 76px; }
+  .npc-dialog-body { display: flex; gap: 12px; align-items: center; min-height: 64px; }
   .npc-portrait {
-    width: 60px; height: 60px; background: #1a0d12; border: 2px solid var(--eva-orange);
-    display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 28px; flex-shrink: 0;
+    width: 56px; height: 56px; background: #1a0d12; border: 2px solid var(--eva-orange);
+    display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 26px; flex-shrink: 0;
   }
-  .npc-text-content { flex: 1; font-size: 13px; line-height: 1.6; color: #f8fafc; white-space: pre-line; }
-  .npc-weapon-panel { margin-top: 12px; border-top: 1px solid #451a1c; padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-  .npc-weapon-row {
-    background: #140b10; border: 1px solid #3b161c; border-radius: 5px; padding: 7px 9px;
-    display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  }
-  .npc-weapon-info { display: flex; flex-direction: column; gap: 2px; font-size: 11px; }
-  .npc-weapon-title { color: #fef08a; font-size: 12px; font-weight: bold; }
-  .npc-weapon-cond { color: #94a3b8; font-size: 11px; }
-  .btn-weapon-action { padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; white-space: nowrap; }
+  .npc-text-content { flex: 1; font-size: 13px; line-height: 1.55; color: #f8fafc; white-space: pre-line; }
 
   .hidden { display: none !important; }
   .guide { margin-top: 6px; font-size: 12px; color: #94a3b8; text-align: center; }
@@ -969,7 +1031,7 @@
   </div>
 </div>
 
-<!-- 화면 & 시야(줌) 설정 모달 (PC/모바일 자동 분기) -->
+<!-- 화면 & 시야(줌) 설정 모달 -->
 <div id="fullscreenModal" class="modal-overlay hidden">
   <div class="fs-select-card">
     <h3 style="color:var(--eva-orange); margin:0 0 4px; font-size:16px;">⛶ 화면 & 시야(줌) 설정</h3>
@@ -1007,7 +1069,7 @@
   </div>
 </div>
 
-<!-- 슬림화된 정육각형 스탯 정보 창 (S) -->
+<!-- 정육각형 스탯 정보 창 (S) — 무기 교체는 대장간 출정 2슬롯 + X키 스왑으로 일원화 -->
 <div id="infoModal" class="modal-overlay hidden">
   <div class="info-modal-card">
     <div class="info-header-bar">
@@ -1021,20 +1083,17 @@
 
     <div class="info-stat-grid" id="infoStatCardList"></div>
 
-    <div class="weapon-equip-bar" id="myWeaponEquipBox">
-      <span class="pref-label">⚔️ 현재 장착 무기 (실시간 +10강 이상 충족 시 장착 가능)</span>
-      <select id="selectEquippedWeapon"></select>
-    </div>
+    <div class="info-loadout-summary" id="infoLoadoutSummary"></div>
 
     <div style="width:100%; font-size:10px; color:#94a3b8; text-align:center; margin-bottom:8px;">
-      🌙 6대 스탯 총합 100 초과 시 매일 00:00(KST) 랜덤 1스탯 -1강 · 칭호/사운드/계정 메뉴는 [설정]으로 이동했습니다.
+      ⚒️ 무기 강화·출정 2슬롯 세팅은 로비의 [대장간] NPC에서 가능합니다 · 필드 교체: [무기 변경(X)]
     </div>
 
     <button id="infoCloseBtn" style="width:100%; padding:8px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:12px;">닫기</button>
   </div>
 </div>
 
-<!-- 신규 통합 설정 창 (ESC) -->
+<!-- 통합 설정 창 (ESC) -->
 <div id="settingsModal" class="modal-overlay hidden">
   <div class="settings-modal-card">
     <div class="info-header-bar" style="margin-bottom:0;">
@@ -1072,24 +1131,18 @@
     <div class="settings-section">
       <div class="settings-section-title">📜 최근 업데이트 내역 & 패치 히스토리</div>
       <div class="patch-history-box" id="patchHistoryBox">
+        <span class="patch-ver-tag">🔥 [v3.1 대장간 · 2무기 스왑 · 지팡이 3속성 · 캐릭터 크기 업데이트]</span>
+        <ul>
+          <li><b>🪄 지팡이 전면 리워크:</b> 공속 0.5초 · <b>화염구</b>(100%/스플60%), <b>빙결구</b>(100%/스플10%·3초 이속 50%), <b>뇌전구</b>(100%+하늘번개 100~300% 2타) 랜덤 발사 / 50강(IQ150) 20% 반경 4타일 밀쳐내기 / 100강(IQ200) 2연속 발사</li>
+          <li><b>모든 [BOSS] CC기 완전 면역 & 스킬 외침 제거:</b> 모든 보스 몬스터에 빙결·넉백·흡입 등 군중제어기 면역 적용, 전투 중 스킬 텍스트 외침 삭제</li>
+          <li><b>2×2 대형 NPC [대장간] 신설:</b> 무기 제작·강화·출정 2슬롯 세팅을 대장간 전담으로 이관 (스펙업 창은 6대 신체 스탯 전용)</li>
+          <li><b>[무기 변경(X)] 버튼 신설:</b> 대장간에서 세팅한 2종 무기를 필드에서 X 키 또는 버튼으로 즉시 스왑</li>
+          <li><b>로비 전광판 넘버패드 추가:</b> 하이잭 디스 감성의 0~9 버튼 키패드 입력 지원</li>
+          <li><b>해린이언니 커스텀 개편:</b> 캐릭터 크기 1~3×1~3블록 자유 설정(크기만큼 피격 판정 연동), 유저 직접 드래그 수동 크롭 추가, 도트 감성 보정 삭제</li>
+        </ul>
         <span class="patch-ver-tag">✨ [v3.0 대규모 확장 & Zero-Lag 업데이트]</span>
         <ul>
-          <li><b>100×15 월드 대확장:</b> 기숙사 로비 ↔ 동쪽 숲 오솔길(안전 완충 지대) ↔ 동쪽숲 1 ↔ 동쪽숲 2 ↔ <b>동쪽숲 3(심연의 고대 숲)</b> 개방 및 숲 도트 타일셋 적용</li>
-          <li><b>[BOSS] 심연의 마수왕 (동쪽숲 3):</b> 체력 50,000 / 1마리 고정 / 5분 리스폰 / 100% 기회 +5개 / 바닥 붉은 장판 전조 공격 (적중 시 10초간 데미지 95% 감소 디버프)</li>
-          <li><b>로비 중앙 전광판 신설:</b> 1 기회 소모해 3자리 비밀번호(000~999) 해킹 성공 시 전광판 문구 작성 가능 (등록 즉시 새 PIN 무작위 자동 재설정)</li>
-          <li><b>해린이언니 외형 커스터마이징:</b> 사진·그림 파일 업로드 시 48×48 도트 자동 변환, 배경 투명화, 무기·모션 자동 결합 및 기본 외형 복구 지원</li>
-          <li><b>신규 무기 [태극구] & 전 무기 50/100강 진화:</b> 성격 연동 태극구 도입, 역대 최고치가 아닌 <b>실시간 스탯(10/50/100)</b> 기준 해금·즉시 봉인 적용</li>
-          <li><b>밸런스 & UX 개편:</b> 전 몬스터 기회 드랍률 재조정, 독감 거수 [BOSS] 표기 제거, 스킬 외침 이펙트 분리(채팅 보호), 타인 사냥 시 화면 흔들림 제거, PC·모바일 UI 완전 분리 및 설정(ESC) 창 신설</li>
-          <li><b>무렉(Zero-Lag) 최적화:</b> shadowBlur 제거, 60FPS 고정 틱, 비동기 DB 저장 큐, 구역별 패킷 필터링 적용</li>
-        </ul>
-        <span class="patch-ver-tag">📌 [v2.5 무기 6종 & 50강 스킬 업데이트]</span>
-        <ul>
-          <li>대사부 NPC 추가 및 6종 무기 자동 타게팅·50강 전용 스킬 도입</li>
-          <li>+15강 이상 고강 무기 2차 확인 보호 창 및 한국 시각 00:00 스탯 자연 하락 시스템 적용</li>
-        </ul>
-        <span class="patch-ver-tag">📌 [v2.0 동쪽숲 2 & 와일드 패드 업데이트]</span>
-        <ul>
-          <li>동쪽숲 2(역병의 숲) 개방, 구역별 BGM 시스템, 시야 줌인/줌아웃 기능 추가</li>
+          <li>100×15 월드 대확장(오솔길 + 동쪽숲 3 심연의 고대 숲), [BOSS] 심연의 마수왕, 로비 중앙 전광판, 신규 무기 태극구, 무렉 최적화 적용</li>
         </ul>
       </div>
     </div>
@@ -1106,7 +1159,7 @@
   </div>
 </div>
 
-<!-- 로비 중앙 전광판 모달 (〈하이잭 디스〉 변형) -->
+<!-- 로비 중앙 전광판 모달 (〈하이잭 디스〉 넘버패드 포함) -->
 <div id="billboardModal" class="modal-overlay hidden">
   <div class="billboard-modal-card">
     <div class="info-header-bar" style="margin-bottom:0;">
@@ -1123,16 +1176,32 @@
     </div>
 
     <div id="bbStageGuess">
-      <div style="font-size:11px; color:#cbd5e1; margin-bottom:6px; line-height:1.45;">
-        3자리 비밀번호(<b>000~999</b>)를 맞히면 전광판 문구를 새로 쓸 수 있습니다.<br>
-        · 신규 번호 도전 시 <b>기회 1개</b> 소모 (이미 실패한 번호는 차감 없음)<br>
-        · 점유 보상 없음 / 문구 등록 시 새 비밀번호는 서버가 <b>완전 무작위</b>로 재설정합니다.
+      <div style="font-size:11px; color:#cbd5e1; margin-bottom:6px; line-height:1.4;">
+        3자리 비밀번호(<b>000~999</b>)를 아래 키패드로 입력해 맞히세요! (신규 번호 도전 시 <b>기회 1</b> 소모)
       </div>
-      <div style="display:flex; gap:6px; margin-bottom:6px;">
-        <input type="text" id="bbPinInput" placeholder="000 ~ 999" maxlength="3" inputmode="numeric" style="flex:1; text-align:center; font-size:16px; letter-spacing:4px;">
+
+      <div style="display:flex; gap:6px; margin-bottom:4px;">
+        <input type="text" id="bbPinInput" placeholder="---" maxlength="3" inputmode="numeric" style="flex:1; text-align:center; font-size:20px; letter-spacing:8px; font-weight:bold; color:#fef08a;">
         <button id="bbGuessBtn" style="padding:8px 14px; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; font-weight:bold;">추리 (-1 기회)</button>
       </div>
-      <div id="bbStatusMsg" style="font-size:12px; min-height:18px; color:#facc15; text-align:center; margin-bottom:6px;"></div>
+
+      <!-- 하이잭 디스 감성 0~9 넘버패드 -->
+      <div class="bb-keypad-grid" id="bbKeypadGrid">
+        <button type="button" class="bb-key-btn" data-key="1">1</button>
+        <button type="button" class="bb-key-btn" data-key="2">2</button>
+        <button type="button" class="bb-key-btn" data-key="3">3</button>
+        <button type="button" class="bb-key-btn" data-key="4">4</button>
+        <button type="button" class="bb-key-btn" data-key="5">5</button>
+        <button type="button" class="bb-key-btn" data-key="6">6</button>
+        <button type="button" class="bb-key-btn" data-key="7">7</button>
+        <button type="button" class="bb-key-btn" data-key="8">8</button>
+        <button type="button" class="bb-key-btn" data-key="9">9</button>
+        <button type="button" class="bb-key-btn key-fn" data-key="clear">C 초기화</button>
+        <button type="button" class="bb-key-btn" data-key="0">0</button>
+        <button type="button" class="bb-key-btn key-fn" data-key="back">⌫ 지움</button>
+      </div>
+
+      <div id="bbStatusMsg" style="font-size:12px; min-height:18px; color:#facc15; text-align:center; margin-bottom:5px;"></div>
       <div style="font-size:11px; color:#94a3b8; margin-bottom:3px;">소거된 오답 번호 목록:</div>
       <div class="billboard-failed-box" id="bbFailedList">아직 소거된 번호가 없습니다.</div>
     </div>
@@ -1157,10 +1226,10 @@
   </div>
 </div>
 
-<!-- 6대 스펙 + 무기 6종 강화 모달 -->
+<!-- 6대 신체 스펙 강화 모달 (C) — 무기 강화는 로비 [대장간] NPC로 이관 -->
 <div id="enhanceModal" class="modal-overlay hidden">
   <div class="enhance-modal" id="enhanceModalCard">
-    <h3 class="enhance-title">⚡ 육체·6대 무기 연성소 ⚡</h3>
+    <h3 class="enhance-title">⚡ 6대 신체 스펙 연성소 ⚡</h3>
     <div class="stat-select-grid">
       <button class="stat-tab-btn active" data-stat="education">🎓 학력 (오른팔)</button>
       <button class="stat-tab-btn" data-stat="appearance">✨ 외모 (오른다리)</button>
@@ -1169,31 +1238,26 @@
       <button class="stat-tab-btn" data-stat="stamina">💪 체력 (몸통)</button>
       <button class="stat-tab-btn" data-stat="personality">🍀 성격 (왼다리)</button>
     </div>
-    <div class="weapon-select-grid">
-      <button class="stat-tab-btn weapon-tab" data-stat="wand">🪄 지팡이</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="greatsword">🗡️ 대검</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="hammer">🔨 망치</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="bow">🏹 활</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="daggers">🔪 쌍수</button>
-      <button class="stat-tab-btn weapon-tab" data-stat="taijiorb">☯️ 태극구</button>
-    </div>
 
     <div class="enhance-detail-box" id="enhanceDetailBox">
-      <div id="enhanceSparkLayer"></div>
+      <div id="enhanceSparkLayer" class="spark-layer"></div>
       <div id="curStatName" style="font-size:12px; color:#fca5a5;">학력 스탯 현황</div>
       <div id="curStatLevel" class="cur-stat-val">+0강</div>
       <div id="curStatTitle" class="cur-stat-desc">문맹</div>
-      <div id="curStatRule" class="cur-stat-rule">성공 1% (+1강) | 유지 99% | 실패 0% (하락 없음)</div>
+      <div id="curStatRule" class="cur-stat-rule">성공 1% (+1강) | 유지 99% | 실패 0%</div>
       <div style="margin-top:8px; font-size:13px; color:#38bdf8;">
         소모 기회: 1회 (남은 기회: <span id="modalChanceCount">120</span>/120)
       </div>
     </div>
 
-    <div id="enhanceResultMsg" class="enhance-result-box">강화 버튼을 0.5초 이상 누르고 있으면 고속 연속 연성이 진행됩니다! (+15강 이상 무기는 2차 확인 보호)</div>
+    <div id="enhanceResultMsg" class="enhance-result-box">강화 버튼을 0.5초 이상 누르고 있으면 고속 연속 연성이 진행됩니다!</div>
+    <div style="font-size:11px; color:#94a3b8; text-align:center; margin-bottom:8px;">
+      ⚒️ 무기 강화 및 출정 무기 2종 세팅은 로비의 <b>[대장간]</b> NPC에게 말을 걸어 진행하세요!
+    </div>
 
     <div style="display:flex; gap:8px;">
       <button id="enhanceCloseBtn" style="flex:1; background:#1c1015; border:1px solid #5c1d24; color:#fff; border-radius:4px; padding:8px;">닫기</button>
-      <button id="enhanceExecuteBtn" style="flex:2; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:8px; font-weight:bold; touch-action:none;">강화 시도 (홀드 연타)</button>
+      <button id="enhanceExecuteBtn" style="flex:2; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:8px; font-weight:bold; touch-action:none;">스펙 연성 (홀드 연타)</button>
     </div>
   </div>
 </div>
@@ -1201,19 +1265,19 @@
 <!-- +15강 이상 고강 무기 강화 2차 확인 모달 (클릭/터치 전용) -->
 <div id="enhanceConfirmModal" class="modal-overlay hidden">
   <div class="enhance-confirm-card">
-    <h3 class="enhance-confirm-title" id="enhanceConfirmTitle">⚠️ 고강 무기 강화 확인</h3>
+    <h3 class="enhance-confirm-title" id="enhanceConfirmTitle">⚠️ 고강 무기 단조 확인</h3>
     <div class="enhance-confirm-desc" id="enhanceConfirmDesc">정말 강화를 진행하시겠습니까?</div>
     <div class="enhance-confirm-warn">실수 방지를 위해 키보드(C/Enter/Space)로는 수락되지 않습니다.<br>직접 클릭하거나 터치하여 진행하세요.</div>
     <div style="display:flex; gap:8px;">
       <button id="btnEnhanceConfirmCancel" tabindex="-1" style="flex:1; background:#1e293b; border:1px solid #475569; color:#cbd5e1; border-radius:4px; padding:8px; font-size:12px;">취소</button>
-      <button id="btnEnhanceConfirmOk" tabindex="-1" style="flex:1.4; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:8px; font-size:12px; font-weight:bold;">강화 진행 (클릭)</button>
+      <button id="btnEnhanceConfirmOk" tabindex="-1" style="flex:1.4; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:8px; font-size:12px; font-weight:bold;">단조 진행 (클릭)</button>
     </div>
   </div>
 </div>
 
-<!-- NPC 대화창 (대사부 무기 패널 + 해린이언니 외형 커스터마이징 패널 포함) -->
+<!-- NPC 대화창 (대장간 전용 패널 + 해린이언니 외형/크기/수동크롭 패널 포함) -->
 <div id="npcDialogModal" class="modal-overlay hidden">
-  <div class="npc-dialog-box">
+  <div class="npc-dialog-box" id="npcDialogBox">
     <div class="npc-dialog-header">
       <span class="npc-name-tag" id="npcNameTag">[NPC]</span>
       <button id="npcCloseTopBtn" style="background:#1c1015; border:1px solid #5c1d24; color:#cbd5e1; padding:2px 8px; border-radius:4px; font-size:11px;">닫기</button>
@@ -1223,20 +1287,95 @@
       <div class="npc-text-content" id="npcSpeechText"></div>
     </div>
 
-    <div id="npcWeaponPanel" class="npc-weapon-panel hidden"></div>
+    <!-- 2x2 대형 NPC [대장간] 전용 패널: 출정 2슬롯 세팅 + 무기 제작/강화 -->
+    <div id="npcBlacksmithPanel" class="blacksmith-panel hidden">
+      <div class="bs-loadout-box">
+        <div style="font-size:12px; color:#fef08a; font-weight:bold;">🎒 출정 무기 2종 세팅 (사냥터에서 X키로 1번 ↔ 2번 교체)</div>
+        <div class="bs-loadout-grid">
+          <div class="pref-col">
+            <span class="pref-label">1번 무기 (주무기)</span>
+            <select id="bsSlot0Select"></select>
+          </div>
+          <div class="pref-col">
+            <span class="pref-label">2번 무기 (보조무기)</span>
+            <select id="bsSlot1Select"></select>
+          </div>
+          <button id="btnSaveLoadout" style="padding:7px 12px; background:#065f46; border:1px solid #34d399; color:#fff; border-radius:4px; font-size:12px; font-weight:bold;">세팅 저장</button>
+        </div>
+        <div id="bsLoadoutMsg" style="font-size:11px; color:#4ade80; min-height:14px;"></div>
+      </div>
 
+      <div style="font-size:12px; color:#e9d5ff; font-weight:bold;">⚒️ 무기 제작 · 단조 강화 (대장간 전용 · +15강 이상 2차 확인 보호)</div>
+      <div class="weapon-select-grid" id="bsWeaponTabs">
+        <button class="stat-tab-btn weapon-tab active" data-bs-weapon="wand">🪄 지팡이</button>
+        <button class="stat-tab-btn weapon-tab" data-bs-weapon="greatsword">🗡️ 대검</button>
+        <button class="stat-tab-btn weapon-tab" data-bs-weapon="hammer">🔨 망치</button>
+        <button class="stat-tab-btn weapon-tab" data-bs-weapon="bow">🏹 활</button>
+        <button class="stat-tab-btn weapon-tab" data-bs-weapon="daggers">🔪 쌍수</button>
+        <button class="stat-tab-btn weapon-tab" data-bs-weapon="taijiorb">☯️ 태극구</button>
+      </div>
+
+      <div class="enhance-detail-box" id="bsDetailBox">
+        <div id="bsSparkLayer" class="spark-layer"></div>
+        <div id="bsWeaponName" style="font-size:12px; color:#fca5a5;">🪄 지팡이</div>
+        <div id="bsWeaponLevel" class="cur-stat-val">+0강</div>
+        <div id="bsWeaponTitle" class="cur-stat-desc">나뭇가지 지팡이</div>
+        <div id="bsWeaponRule" class="cur-stat-rule"></div>
+        <div style="margin-top:6px; font-size:12px; color:#38bdf8;">
+          소모 기회: 1회 (남은 기회: <span id="bsChanceCount">120</span>/120)
+        </div>
+      </div>
+
+      <div id="bsActionMsg" class="enhance-result-box">강화할 무기를 선택해 단조를 시작하세요! (0.5초 홀드 연타 지원)</div>
+
+      <div style="display:flex; gap:8px;">
+        <button id="btnBsUnlock" class="hidden" style="flex:1; background:#b45309; border:1px solid #facc15; color:#fef08a; border-radius:4px; padding:9px; font-weight:bold;">✨ 무기 제작·전수받기</button>
+        <button id="btnBsEnhance" style="flex:1; background:#991b1b; border:1px solid #f59e0b; color:#fef08a; border-radius:4px; padding:9px; font-weight:bold; touch-action:none;">⚒️ 무기 강화 시도 (홀드 연타)</button>
+      </div>
+    </div>
+
+    <!-- 해린이언니 커스텀 외형 + 캐릭터 크기(1~3x1~3) + 수동 크롭 패널 (도트 보정 삭제됨) -->
     <div id="npcCustomAvatarPanel" class="avatar-custom-panel hidden">
+      <div class="avatar-size-box">
+        <div style="font-size:12px; color:#fef08a; font-weight:bold;">📏 캐릭터 크기 설정 (가로 1~3 × 세로 1~3블록)</div>
+        <div class="avatar-size-row">
+          <label>가로:
+            <select id="avatarSizeW">
+              <option value="1">1블록</option>
+              <option value="2">2블록</option>
+              <option value="3">3블록</option>
+            </select>
+          </label>
+          <label>세로:
+            <select id="avatarSizeH">
+              <option value="1">1블록</option>
+              <option value="2">2블록</option>
+              <option value="3">3블록</option>
+            </select>
+          </label>
+          <button id="btnApplyAvatarSize" style="margin-left:auto; padding:5px 10px; background:#0e7490; border:1px solid #22d3ee; color:#fff; border-radius:4px; font-size:11px; font-weight:bold;">크기만 바로 적용</button>
+        </div>
+        <div style="font-size:10px; color:#fca5a5;">⚠️ 몸집을 키우면 보스 장판 등 피격 판정도 커진 크기만큼 넓어집니다.</div>
+      </div>
+
+      <div id="avatarCropWrap" class="avatar-crop-section hidden">
+        <div style="width:100%; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#7dd3fc;">
+          <span>✂️ 마우스/터치로 드래그해 원하는 영역만 직접 자르세요</span>
+          <button id="btnResetCropBox" style="background:#1e293b; border:1px solid #475569; color:#e2e8f0; padding:2px 7px; border-radius:3px; font-size:10px;">전체 영역</button>
+        </div>
+        <canvas id="avatarCropCanvas" width="192" height="192"></canvas>
+      </div>
+
       <div class="avatar-preview-row">
         <canvas id="avatarPreviewCanvas" width="48" height="48"></canvas>
         <div class="avatar-options">
           <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp" style="font-size:11px; color:#fef08a; max-width:100%;">
-          <label><input type="checkbox" id="chkRemoveBg" checked> 단색/흰 배경 자동 투명화</label>
-          <label><input type="checkbox" id="chkPixelize" checked> 도트 픽셀 감성 보정</label>
-          <span id="avatarSizeInfo" style="color:#94a3b8; font-size:10px;">사진·그림 선택 시 48×48 도트로 자동 최적화됩니다 (원본 10MB 이하)</span>
+          <label><input type="checkbox" id="chkRemoveBg" checked> 단색/흰 배경 자동 투명화 (크롭 후 잔여 배경 제거)</label>
+          <span id="avatarSizeInfo" style="color:#94a3b8; font-size:10px;">이미지를 올리면 수동 크롭 후 설정한 크기에 맞춰 최적화됩니다 (원본 10MB 이하)</span>
         </div>
       </div>
       <div style="display:flex; gap:6px;">
-        <button id="btnApplyCustomAvatar" style="flex:1.4; padding:8px; background:#065f46; border:1px solid #34d399; color:#fff; border-radius:4px; font-weight:bold; font-size:12px;">✨ 이 외형으로 적용</button>
+        <button id="btnApplyCustomAvatar" style="flex:1.4; padding:8px; background:#065f46; border:1px solid #34d399; color:#fff; border-radius:4px; font-weight:bold; font-size:12px;">✨ 이 외형·크기로 적용</button>
         <button id="btnResetDefaultAvatar" style="flex:1; padding:8px; background:#1e293b; border:1px solid #64748b; color:#e2e8f0; border-radius:4px; font-size:12px;">🔄 기본 외형 복구</button>
       </div>
     </div>
@@ -1303,10 +1442,11 @@
     <button id="btnToggleChatHistory" class="btn-chat-history-toggle" title="이전 채팅 내역 고정/열기">💬 기록</button>
   </div>
 
-  <!-- PC 전용 하단 바 (단축키 명시 · 조이스틱 미노출) -->
+  <!-- PC 전용 하단 바 (단축키 명시 · 무기 변경(X) 포함 8버튼) -->
   <div class="desktop-bottom-bar">
     <div class="desktop-btn-row">
       <button id="dBtnAttack" style="background:#5b21b6; border:1px solid #c084fc; color:#f3e8ff;">🪄 공격(A)</button>
+      <button id="dBtnSwapWeapon" style="background:#be123c; border:1px solid #fb7185; color:#fff1f2;">🔄 무기 변경(X)</button>
       <button id="dBtnAura" style="background:#991b1b; border:1px solid #f59e0b; color:#fef08a;">⚡ 기운·달리기(SPACE)</button>
       <button id="dBtnInfo" style="background:#0e7490; border:1px solid #22d3ee; color:#fff;">정보(S)</button>
       <button id="dBtnEnhance" style="background:#047857; border:1px solid #34d399; color:#fff;">스펙업(C)</button>
@@ -1320,7 +1460,7 @@
     </div>
   </div>
 
-  <!-- 모바일 전용 컨트롤 패널 (단축키 텍스트 미표기 · 설정 포함 7버튼) -->
+  <!-- 모바일 전용 컨트롤 패널 (단축키 미표기 · 무기 변경 포함 8버튼) -->
   <div class="mobile-controller-panel">
     <div class="joystick-zone" id="joystickZone">
       <div class="joystick-base" id="joystickBase">
@@ -1337,6 +1477,7 @@
         <button class="btn-neo btn-info" id="mBtnInfo">정보</button>
         <button class="btn-neo btn-enhance" id="mBtnEnhance">스펙업</button>
         <button class="btn-neo btn-rank" id="mBtnRank">순위</button>
+        <button class="btn-neo btn-swap" id="mBtnSwapWeapon">무기 변경</button>
         <button class="btn-neo btn-chat" id="mBtnChat">채팅</button>
         <button class="btn-neo btn-settings" id="mBtnSettings">설정</button>
       </div>
@@ -1345,8 +1486,9 @@
 </div>
 
 <div class="guide">
-  이동: [방향키] | 공격: [A] | 기운·달리기·NPC대화: [SPACE] | 정보: [S] | 스펙업: [C] | 순위: [R] | 채팅: [ENTER 또는 /] | 설정: [ESC]
+  이동: [방향키] | 공격: [A] | 무기 변경: [X] | 기운·달리기·NPC대화: [SPACE] | 정보: [S] | 스펙업: [C] | 순위: [R] | 채팅: [ENTER 또는 /] | 설정: [ESC]
 </div>
+
 <script>
 // ================= [PC vs 모바일(터치 기기) 환경 완전 분리 감지기] =================
 function detectTouchMobileDevice() {
@@ -1442,9 +1584,9 @@ const SoundFX = {
       this.tone(isSkill ? 520 : 390 + weaponLv * 8, 'sine', 0.14, 0.09, 640);
     } else {
       const baseFreq = 380 + weaponLv * 18;
-      this.tone(baseFreq, 'sine', 0.13, 0.11, baseFreq * 1.65);
+      this.tone(baseFreq, 'sine', 0.11, 0.1, baseFreq * 1.55);
     }
-    if (isMale) this.tone(isSkill ? 350 : 290, 'sawtooth', 0.06, 0.05, isSkill ? 500 : 410);
+    if (isMale) this.tone(isSkill ? 350 : 290, 'sawtooth', 0.055, 0.045, isSkill ? 500 : 410);
   },
   magicHit(wandLv = 0) {
     const pitch = Math.max(90, 260 - wandLv * 3);
@@ -1454,6 +1596,7 @@ const SoundFX = {
     this.tone(110, 'sawtooth', 0.35, 0.18, 45);
   },
   aura() { this.tone(190, 'sine', 0.2, 0.07, 460); },
+  swapWeapon() { this.tone(520, 'triangle', 0.07, 0.08, 780); },
   enhanceSuccess(isGreat = false) {
     this.tone(523.25, 'triangle', 0.09, 0.11);
     setTimeout(() => this.tone(659.25, 'triangle', 0.09, 0.11), 70);
@@ -1716,7 +1859,6 @@ btnToggleChatHistory?.addEventListener('click', (e) => {
   inp.addEventListener('blur', () => wakeUpChatLog());
 });
 
-// 통합 채팅 입력 오픈 (PC 일반 창에서는 하단 chatInput, 전체화면·모바일에서는 상단 오버레이 즉시 오픈)
 function openChatInputSmart() {
   SoundFX.uiClick();
   wakeUpChatLog();
@@ -1794,8 +1936,7 @@ const infoModal = document.getElementById('infoModal');
 const infoModalTitle = document.getElementById('infoModalTitle');
 const infoTotalScoreBadge = document.getElementById('infoTotalScoreBadge');
 const infoStatCardList = document.getElementById('infoStatCardList');
-const myWeaponEquipBox = document.getElementById('myWeaponEquipBox');
-const selectEquippedWeapon = document.getElementById('selectEquippedWeapon');
+const infoLoadoutSummary = document.getElementById('infoLoadoutSummary');
 const infoCloseBtn = document.getElementById('infoCloseBtn');
 
 const settingsModal = document.getElementById('settingsModal');
@@ -1845,12 +1986,29 @@ const onlineListBody = document.getElementById('onlineListBody');
 const onlineCloseBtn = document.getElementById('onlineCloseBtn');
 
 const npcDialogModal = document.getElementById('npcDialogModal');
+const npcDialogBox = document.getElementById('npcDialogBox');
 const npcNameTag = document.getElementById('npcNameTag');
 const npcPortraitIcon = document.getElementById('npcPortraitIcon');
 const npcSpeechText = document.getElementById('npcSpeechText');
-const npcWeaponPanel = document.getElementById('npcWeaponPanel');
+const npcBlacksmithPanel = document.getElementById('npcBlacksmithPanel');
 const npcCustomAvatarPanel = document.getElementById('npcCustomAvatarPanel');
 const npcNextBtn = document.getElementById('npcNextBtn');
+
+// 대장간 DOM 참조
+const bsSlot0Select = document.getElementById('bsSlot0Select');
+const bsSlot1Select = document.getElementById('bsSlot1Select');
+const btnSaveLoadout = document.getElementById('btnSaveLoadout');
+const bsLoadoutMsg = document.getElementById('bsLoadoutMsg');
+const bsDetailBox = document.getElementById('bsDetailBox');
+const bsSparkLayer = document.getElementById('bsSparkLayer');
+const bsWeaponName = document.getElementById('bsWeaponName');
+const bsWeaponLevel = document.getElementById('bsWeaponLevel');
+const bsWeaponTitle = document.getElementById('bsWeaponTitle');
+const bsWeaponRule = document.getElementById('bsWeaponRule');
+const bsChanceCount = document.getElementById('bsChanceCount');
+const bsActionMsg = document.getElementById('bsActionMsg');
+const btnBsUnlock = document.getElementById('btnBsUnlock');
+const btnBsEnhance = document.getElementById('btnBsEnhance');
 
 const TILE_SIZE = 40;
 let myId = null;
@@ -1863,13 +2021,15 @@ let burstEffects = [];
 let projectiles = [];
 let meleeEffects = [];
 let hitEffects = [];
+let lightningEffects = [];
 let floatingDamages = [];
-let skillPopups = [];      // 채팅 말풍선과 완전 분리된 전용 스킬 외침 이펙트 레이어
-let bossTelegraphs = [];   // [BOSS] 심연의 마수왕 장판 전조 레이어
+let skillPopups = [];
+let bossTelegraphs = [];
 let footstepDusts = [];
 let screenShakeMag = 0;
 let myDebuffUntil = 0;
 let currentSelectedStat = 'education';
+let currentSelectedBsWeapon = 'wand';
 let lastRenderFrameTime = Date.now();
 
 // 로비 전광판 상태
@@ -1891,22 +2051,22 @@ const ENHANCE_RATES = {
   25: 0.05, 26: 0.04, 27: 0.03, 28: 0.02, 29: 0.01
 };
 
-// 6종 무기 클라이언트 스펙 (태극구 + 10/50/100 실시간 스탯 봉인 & 2차 각성)
+// 6종 무기 클라이언트 스펙 (지팡이 3속성 리워크 반영)
 const WEAPON_SPECS = {
   wand: {
     key: 'wand',
     name: '지팡이',
     icon: '🪄',
-    cooldownMs: 1000,
+    cooldownMs: 500,
     unlockStat: null,
     unlockReq: 0,
     unlockDesc: '기본 보유 무기',
     skillStat: 'iq',
     skill50Req: 150,
     skill100Req: 200,
-    skill50Name: '이중 영창(1+1)',
-    skill100Name: '차원 도약 포격',
-    combatDesc: '7.5타일 유도 폭발(100%) | 50강(IQ150): [1+1] 추가타 | 100강(IQ200): [차원 도약 포격] 공중 순간이동 유성 포격'
+    skill50Name: '마력 충격파(넉백)',
+    skill100Name: '이중 원소 연사',
+    combatDesc: '공속 0.5초 · 화염(100%/스플60%)·빙결(100%/스플10%·3초둔화)·뇌전(100%+하늘번개100~300% 2타) | 50강(IQ150): 20% 4타일 밀쳐내기 | 100강(IQ200): 2연속 발사'
   },
   greatsword: {
     key: 'greatsword',
@@ -2002,45 +2162,44 @@ const DAD_JOKES = [
   "어부들이 제일 싫어하는 가수는? ... 배철수!! 배가 철수하면 안 되거든!"
 ];
 
-// 로비 4인 NPC 개편 (헬리콥터: 패치내역 / 농 잊을리: 아재개그 / 해린이언니: 외형 커스터마이징 / 대사부: 무기 전수)
+// 로비 4인 NPC (2x2 대형 NPC '대장간' 도입)
 const DORM_NPCS = [
   {
-    x: 4, y: 3,
+    x: 4, y: 3, size: 1,
     id: 'npc_helicopter',
     name: '헬리콥터',
     portrait: '👓⚡',
     dialogs: [
-      "[v3.0 대규모 패치 브리핑] 기숙사 로비와 동쪽숲 1 사이에 평화로운 완충 지대 '동쪽 숲 오솔길'이 생겼고, 최동단에는 최상위 사냥터 '동쪽숲 3 : 심연의 고대 숲'이 열렸다!",
-      "로비 12시 방향에 '중앙 전광판'이 설치되었다! 기회 1개를 써서 3자리 비밀번호를 뚫으면 네 문구를 걸 수 있고, 등록 즉시 비밀번호는 무작위로 재봉인된다.",
-      "동쪽숲 3의 유일한 보스 [심연의 마수왕](HP 50,000, 5분 리스폰)은 바닥에 붉은 장판 공격을 시전한다! 맞으면 10초 동안 데미지가 95% 줄어들어 5%밖에 안 들어가니 꼭 보고 피해라! 자세한 기록은 설정 창에서도 볼 수 있다!"
+      "[v3.1 패치 브리핑] 지팡이가 공속 0.5초의 화염·빙결·뇌전 3속성으로 전면 개편되었고, 모든 [BOSS] 몬스터에게 CC기 면역이 적용되었다!",
+      "이제 무기 제작·강화와 사냥터 출정 무기 2종 세팅은 오른쪽 2×2 대형 NPC [대장간]에서만 가능하다! 필드에서는 X 키(또는 무기 변경 버튼)로 2종 무기를 즉시 바꿔 써라!",
+      "해린이언니에게 가면 캐릭터 크기를 1×1부터 3×3까지 정하고, 사진도 직접 드래그해 크롭할 수 있다. (단, 덩치가 커지면 피격 판정도 그만큼 커지니 주의해라!)"
     ]
   },
   {
-    x: 15, y: 3,
+    x: 15, y: 3, size: 1,
     id: 'npc_nong',
     name: '농 잊을리',
     portrait: '🦊🔥',
     dialogs: []
   },
   {
-    x: 10, y: 11,
+    x: 10, y: 11, size: 1,
     id: 'npc_haerin',
     name: '해린이언니',
     portrait: '✨🎨',
     dialogs: [
-      "안녕! 이제 내가 너만의 개성 넘치는 캐릭터 외형을 꾸며줄게! 아래에서 사진이나 그림 파일을 올리면 자동으로 48×48 도트 캐릭터로 변환해 준단다.",
-      "단색 배경 자동 투명화도 껐다 켤 수 있고, 언제든 기본 외형(김치워리어 / 고추걸)으로 되돌릴 수도 있으니 마음껏 시도해 봐!"
+      "안녕! 이제 내가 너만의 캐릭터 외형뿐만 아니라 크기(가로 1~3 × 세로 1~3블록)까지 자유롭게 맞춰줄게!",
+      "사진을 올리면 미리보기에서 마우스나 손가락으로 직접 영역을 드래그해 잘라낼 수 있고, 크롭 후 남은 단색 배경도 깔끔하게 지워줄게!"
     ]
   },
   {
-    x: 17, y: 7,
-    id: 'npc_master',
-    name: '대사부',
-    portrait: '🥬🧙‍♂️',
+    x: 17, y: 6, size: 2,
+    id: 'npc_blacksmith',
+    name: '대장간',
+    portrait: '⚒️💪',
     dialogs: [
-      "허허허! 기존 차크람 대신 성격 스탯과 공명하는 신비의 무기 [☯️ 태극구]를 새롭게 전수하노라!",
-      "명심하거라! 이제 모든 무기와 50강·100강 각성 스킬은 '현재 실시간 스탯'을 기준으로 작동한다. 스탯이 기준치 미만으로 떨어지면 즉시 봉인되니 수련을 게을리하지 말거라!",
-      "각 스탯 100강(지능 IQ 200)에 도달하면 무기의 평타 자체가 진화하는 궁극의 2차 각성이 깨어나느니라!"
+      "으하하! 어서 오게! 무기 제작, 단조 강화, 그리고 사냥터에 들고 나갈 출정 무기 2종 세팅까지 전부 이 몸이 맡고 있지!",
+      "로비 밖으로는 딱 2자루의 무기만 들고 나갈 수 있다네. 아래에서 1번·2번 무기를 세팅해 두고, 사냥터에서 X 키로 번갈아 써 보게나!"
     ]
   }
 ];
@@ -2056,6 +2215,7 @@ let myCharacter = {
   gender: 'male',
   education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0,
   equippedWeapon: 'wand',
+  loadoutWeapons: ['wand', ''],
   weapons: { wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, taijiorb: 0 },
   unlockedWeapons: { wand: true, greatsword: false, hammer: false, bow: false, daggers: false, taijiorb: false },
   maxStats: {
@@ -2065,7 +2225,9 @@ let myCharacter = {
   customTitle: '',
   titleStat: 'education',
   auraColor: 'red',
-  customAvatar: ''
+  customAvatar: '',
+  avatarWidth: 1,
+  avatarHeight: 1
 };
 
 // 칭호 테이블
@@ -2120,7 +2282,7 @@ function getWeaponTitle(weaponKey, lv) {
     "수련용", "견습생의", "강철", "청동", "백은", "자수정", "홍옥의", "창공의", "취옥의", "황금빛",
     "룬 각인", "마력 응축", "성운의", "원소 지배", "비전", "심연의", "뇌전 부름", "홍련의", "빙결의", "천공의",
     "고대 영웅의", "차원의", "성좌의", "초월자의", "신화적", "태초의", "우주 공명", "절대 지배", "아카식", "창조신의",
-    "대사부의 절대"
+    "대장간의 절대"
   ];
   return `${prefixes[safeLv]} ${baseName}`;
 }
@@ -2152,7 +2314,6 @@ function getEquippedWeaponLevel(c) {
   return getWeaponLevelFromChar(c, eq);
 }
 
-// 실시간 스탯 기준 무기 해금 / 50강 / 100강 판정 (하락 시 즉시 봉인)
 function meetsWeaponStatReqClient(c, weaponKey) {
   const spec = WEAPON_SPECS[weaponKey];
   if (!spec) return false;
@@ -2258,15 +2419,68 @@ function getPartTierText(lv) {
   return `🔥 ${(tier - 1) * 100}강 각성(T${tier})`;
 }
 
-// 버튼 라벨 갱신 (PC: 단축키 표시 / 모바일: 단축키 미표시)
+// 공격 및 무기 변경 버튼 라벨 갱신 (PC: 단축키 표시 / 모바일: 단축키 미표시)
 function updateAttackButtonLabel() {
   const eq = myCharacter?.equippedWeapon || 'wand';
   const spec = WEAPON_SPECS[eq] || WEAPON_SPECS.wand;
+  const loadout = Array.isArray(myCharacter?.loadoutWeapons) ? myCharacter.loadoutWeapons : ['wand', ''];
+  const otherKey = (loadout[0] === eq) ? loadout[1] : loadout[0];
+  const otherSpec = otherKey && WEAPON_SPECS[otherKey] ? WEAPON_SPECS[otherKey] : null;
+
   const dBtn = document.getElementById('dBtnAttack');
   const mBtn = document.getElementById('mBtnAttack');
   if (dBtn) dBtn.textContent = `${spec.icon} 공격(A)`;
   if (mBtn) mBtn.textContent = `${spec.icon} 공격`;
+
+  const dSwap = document.getElementById('dBtnSwapWeapon');
+  const mSwap = document.getElementById('mBtnSwapWeapon');
+  if (dSwap) {
+    dSwap.textContent = otherSpec ? `🔄 ${otherSpec.icon} 변경(X)` : `🔄 무기 변경(X)`;
+    dSwap.title = otherSpec ? `X 키로 [${otherSpec.name}](으)로 즉시 교체` : '대장간 NPC에서 2번 보조 무기를 세팅하세요';
+  }
+  if (mSwap) {
+    mSwap.textContent = otherSpec ? `${otherSpec.icon} 변경` : '무기 변경';
+  }
 }
+
+// ================= [필드 2무기 즉시 스왑 (X 키 / 무기 변경 버튼)] =================
+let lastSwapTime = 0;
+function swapMyWeapon() {
+  if (!socket) return;
+  const now = Date.now();
+  if (now - lastSwapTime < 180) return;
+  lastSwapTime = now;
+
+  socket.emit('swapWeapon', (res) => {
+    if (!res) return;
+    if (res.success) {
+      SoundFX.swapWeapon();
+      myCharacter = res.character;
+      if (players[myId]) {
+        players[myId].character = res.character;
+        const spec = WEAPON_SPECS[res.equippedWeapon] || WEAPON_SPECS.wand;
+        floatingDamages.push({
+          x: (players[myId].renderX || players[myId].x * TILE_SIZE) + 20,
+          y: (players[myId].renderY || players[myId].y * TILE_SIZE) - 10,
+          text: `${spec.icon} ${spec.name}`,
+          color: '#fb7185',
+          born: Date.now(),
+          duration: 850
+        });
+      }
+      updateAttackButtonLabel();
+    } else {
+      SoundFX.enhanceFail();
+      if (typeof appendChatMessage === 'function') {
+        appendChatMessage('', res.message || '무기 변경 불가', true);
+      }
+    }
+  });
+}
+window.swapMyWeapon = swapMyWeapon;
+
+document.getElementById('dBtnSwapWeapon')?.addEventListener('click', swapMyWeapon);
+document.getElementById('mBtnSwapWeapon')?.addEventListener('click', swapMyWeapon);
 
 // ================= [인증 탭 및 로그인/회원가입 처리] =================
 function showAuthTab(tab) {
@@ -2376,7 +2590,7 @@ resetPwBtn.addEventListener('click', async () => {
   } catch (err) { authMsg.textContent = err.message; }
 });
 
-// ================= [슬림화된 정육각형 스탯 정보 창 (S)] =================
+// ================= [정육각형 스탯 정보 창 (S)] =================
 function drawHexagonRadar(c) {
   hexCtx.clearRect(0, 0, hexCanvas.width, hexCanvas.height);
   const cx = hexCanvas.width / 2;
@@ -2443,33 +2657,6 @@ function drawHexagonRadar(c) {
   hexCtx.stroke();
 }
 
-function populateEquippedWeaponSelect(c) {
-  selectEquippedWeapon.innerHTML = '';
-  const eq = c?.equippedWeapon || 'wand';
-  WEAPON_KEYS.forEach(wKey => {
-    const spec = WEAPON_SPECS[wKey];
-    const isTransmitted = wKey === 'wand' || (c?.unlockedWeapons && c.unlockedWeapons[wKey]);
-    const meetsNow = meetsWeaponStatReqClient(c, wKey);
-    const wLv = getWeaponLevelFromChar(c, wKey);
-    const s50 = hasWeaponSkill50Client(c, wKey);
-    const s100 = hasWeaponSkill100Client(c, wKey);
-    const opt = document.createElement('option');
-    opt.value = wKey;
-    if (isTransmitted && meetsNow) {
-      const skillBadge = s100 ? ` · ★★[${spec.skill100Name}]` : (s50 ? ` · ★[${spec.skill50Name}]` : '');
-      opt.textContent = `${spec.icon} ${spec.name} (+${wLv}강 · 전투력 +${wLv * 10}${skillBadge})`;
-    } else if (isTransmitted && !meetsNow) {
-      opt.textContent = `🔒 ${spec.name} (스탯 하락 봉인 - ${spec.unlockDesc})`;
-      opt.disabled = true;
-    } else {
-      opt.textContent = `🔒 ${spec.name} (미전수 - 대사부 NPC 방문 필요)`;
-      opt.disabled = true;
-    }
-    if (wKey === eq) opt.selected = true;
-    selectEquippedWeapon.appendChild(opt);
-  });
-}
-
 function openInfoModal(targetUser = null) {
   SoundFX.uiClick();
   const isMe = !targetUser || targetUser.id === myId || targetUser.nickname === myNickname;
@@ -2485,16 +2672,10 @@ function openInfoModal(targetUser = null) {
   const s50 = hasWeaponSkill50Client(c, eqWeapon);
   const s100 = hasWeaponSkill100Client(c, eqWeapon);
   const combatPower = getTotalCombatPower(c);
+  const aw = c.avatarWidth || 1, ah = c.avatarHeight || 1;
 
   infoModalTitle.textContent = isMe ? `📊 [${name}] 내 스펙` : `🔍 [${name}] 님의 스펙`;
   infoTotalScoreBadge.textContent = `전투력 ${combatPower}`;
-
-  if (isMe) {
-    myWeaponEquipBox.classList.remove('hidden');
-    populateEquippedWeaponSelect(c);
-  } else {
-    myWeaponEquipBox.classList.add('hidden');
-  }
 
   drawHexagonRadar(c);
 
@@ -2504,7 +2685,7 @@ function openInfoModal(targetUser = null) {
 
   infoStatCardList.innerHTML = `
     <div class="info-stat-item wand-full-row">
-      <div class="info-stat-name"><span>${eqSpec.icon} 장착: ${eqSpec.name} (전투력 +${eqLv * 10})</span><span style="color:#facc15;">${skillText}</span></div>
+      <div class="info-stat-name"><span>${eqSpec.icon} 현재 손에 든 무기: ${eqSpec.name} (전투력 +${eqLv * 10})</span><span style="color:#facc15;">${skillText}</span></div>
       <div class="info-stat-val">+${eqLv}강 · ${getWeaponTitle(eqWeapon, eqLv)}</div>
     </div>
     <div class="info-stat-item">
@@ -2532,31 +2713,28 @@ function openInfoModal(targetUser = null) {
       <div class="info-stat-val">+${per}강 · ${getStatTitle('personality', per, g)}</div>
     </div>
   `;
+
+  const loadout = Array.isArray(c.loadoutWeapons) ? c.loadoutWeapons : [eqWeapon, ''];
+  const slot0Str = loadout[0] && WEAPON_SPECS[loadout[0]]
+    ? `${WEAPON_SPECS[loadout[0]].icon} ${WEAPON_SPECS[loadout[0]].name} (+${getWeaponLevelFromChar(c, loadout[0])})`
+    : '없음';
+  const slot1Str = loadout[1] && WEAPON_SPECS[loadout[1]]
+    ? `${WEAPON_SPECS[loadout[1]].icon} ${WEAPON_SPECS[loadout[1]].name} (+${getWeaponLevelFromChar(c, loadout[1])})`
+    : '비어 있음';
+
+  infoLoadoutSummary.innerHTML =
+    `🎒 <b>출정 무기 2슬롯:</b> 1번 [${slot0Str}] / 2번 [${slot1Str}]<br>` +
+    `📏 <b>캐릭터 크기:</b> ${aw}×${ah} 블록 (피격 범위 연동)`;
+
   infoModal.classList.remove('hidden');
 }
-
-selectEquippedWeapon.addEventListener('change', () => {
-  SoundFX.uiClick();
-  if (!socket) return;
-  socket.emit('equipWeapon', selectEquippedWeapon.value, (res) => {
-    if (res && res.success) {
-      myCharacter = res.character;
-      if (players[myId]) players[myId].character = res.character;
-      updateAttackButtonLabel();
-      openInfoModal(null);
-    } else if (res && res.message) {
-      alert(res.message);
-      populateEquippedWeaponSelect(myCharacter);
-    }
-  });
-});
 
 function closeInfoModal() { infoModal.classList.add('hidden'); }
 infoCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeInfoModal(); });
 document.getElementById('dBtnInfo')?.addEventListener('click', () => openInfoModal(null));
 document.getElementById('mBtnInfo')?.addEventListener('click', () => openInfoModal(null));
 
-// ================= [신규 통합 설정 모달 (ESC)] =================
+// ================= [통합 설정 모달 (ESC)] =================
 function populateUnlockedTitleSelect(c) {
   selectTitleStat.innerHTML = '';
   const groups = getUnlockedTitlesByCategory(c);
@@ -2636,7 +2814,7 @@ deleteAccountBtn.addEventListener('click', async () => {
   } catch (err) { alert('삭제 요청 오류'); }
 });
 
-// ================= [로비 중앙 전광판 모달 (〈하이잭 디스〉 변형)] =================
+// ================= [로비 중앙 전광판 모달 (〈하이잭 디스〉 넘버패드 포함)] =================
 function formatBillboardDuration(sinceMs) {
   const sec = Math.max(0, Math.floor((Date.now() - (sinceMs || Date.now())) / 1000));
   const d = Math.floor(sec / 86400);
@@ -2677,6 +2855,35 @@ window.closeBillboardModal = closeBillboardModal;
 
 document.getElementById('billboardCloseTopBtn')?.addEventListener('click', () => { SoundFX.uiClick(); closeBillboardModal(); });
 
+// 하이잭 디스 0~9 넘버패드 입력 처리
+document.getElementById('bbKeypadGrid')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-key]');
+  if (!btn) return;
+  const key = btn.getAttribute('data-key');
+  SoundFX.tone(key === 'clear' || key === 'back' ? 420 : 660 + Number(key) * 28, 'sine', 0.04, 0.06);
+
+  if (key === 'clear') {
+    bbPinInput.value = '';
+  } else if (key === 'back') {
+    bbPinInput.value = bbPinInput.value.slice(0, -1);
+  } else if (/^\d$/.test(key)) {
+    const digits = bbPinInput.value.replace(/\D/g, '');
+    if (digits.length < 3) {
+      bbPinInput.value = digits + key;
+    }
+  }
+});
+
+bbPinInput?.addEventListener('input', () => {
+  bbPinInput.value = bbPinInput.value.replace(/\D/g, '').slice(0, 3);
+});
+bbPinInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    bbGuessBtn.click();
+  }
+});
+
 bbGuessBtn.addEventListener('click', () => {
   if (!socket) return;
   const pin = bbPinInput.value.trim();
@@ -2707,6 +2914,7 @@ bbGuessBtn.addEventListener('click', () => {
       SoundFX.enhanceFail();
       bbStatusMsg.style.color = res.alreadyFailed ? '#38bdf8' : '#f87171';
       bbStatusMsg.textContent = res.message || '실패';
+      bbPinInput.value = '';
     }
   });
 });
@@ -2738,64 +2946,194 @@ document.getElementById('bbSubmitTextBtn')?.addEventListener('click', () => {
   });
 });
 
-// ================= [해린이언니 유저 이미지 업로드 -> 48x48 도트 자동 변환 엔진] =================
+// ================= [해린이언니: 캐릭터 크기(1~3x1~3) + 수동 크롭 + 잔여 배경 제거 (도트 보정 삭제)] =================
+const avatarSizeW = document.getElementById('avatarSizeW');
+const avatarSizeH = document.getElementById('avatarSizeH');
+const btnApplyAvatarSize = document.getElementById('btnApplyAvatarSize');
+const avatarCropWrap = document.getElementById('avatarCropWrap');
+const avatarCropCanvas = document.getElementById('avatarCropCanvas');
+const avatarCropCtx = avatarCropCanvas ? avatarCropCanvas.getContext('2d') : null;
+const btnResetCropBox = document.getElementById('btnResetCropBox');
 const avatarFileInput = document.getElementById('avatarFileInput');
 const avatarPreviewCanvas = document.getElementById('avatarPreviewCanvas');
 const avatarPreviewCtx = avatarPreviewCanvas ? avatarPreviewCanvas.getContext('2d') : null;
 const chkRemoveBg = document.getElementById('chkRemoveBg');
-const chkPixelize = document.getElementById('chkPixelize');
 const avatarSizeInfo = document.getElementById('avatarSizeInfo');
 
 let loadedRawAvatarImg = null;
 let preparedAvatarDataUrl = '';
+let cropDisplayRect = { x: 0, y: 0, w: 192, h: 192 }; // 192x192 캔버스 내 원본 표시 영역
+let manualCropNorm = { x: 0, y: 0, w: 1, h: 1 };      // 원본 이미지 기준 0~1 정규화 크롭 박스
+let isDraggingCrop = false;
+let cropDragStart = { x: 0, y: 0 };
+
+function renderCropEditorCanvas() {
+  if (!avatarCropCtx || !loadedRawAvatarImg) return;
+  const cw = avatarCropCanvas.width;
+  const ch = avatarCropCanvas.height;
+  avatarCropCtx.clearRect(0, 0, cw, ch);
+
+  const iw = loadedRawAvatarImg.naturalWidth || loadedRawAvatarImg.width;
+  const ih = loadedRawAvatarImg.naturalHeight || loadedRawAvatarImg.height;
+  const scale = Math.min(cw / iw, ch / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (cw - dw) / 2;
+  const dy = (ch - dh) / 2;
+  cropDisplayRect = { x: dx, y: dy, w: dw, h: dh };
+
+  avatarCropCtx.imageSmoothingEnabled = true;
+  avatarCropCtx.drawImage(loadedRawAvatarImg, dx, dy, dw, dh);
+
+  // 선택 영역 바깥 어둡게 처리
+  const rx = dx + manualCropNorm.x * dw;
+  const ry = dy + manualCropNorm.y * dh;
+  const rw = manualCropNorm.w * dw;
+  const rh = manualCropNorm.h * dh;
+
+  avatarCropCtx.fillStyle = 'rgba(0, 0, 0, 0.58)';
+  avatarCropCtx.fillRect(0, 0, cw, ry);
+  avatarCropCtx.fillRect(0, ry + rh, cw, ch - (ry + rh));
+  avatarCropCtx.fillRect(0, ry, rx, rh);
+  avatarCropCtx.fillRect(rx + rw, ry, cw - (rx + rw), rh);
+
+  // 크롭 테두리 및 가이드라인
+  avatarCropCtx.strokeStyle = '#38bdf8';
+  avatarCropCtx.lineWidth = 2;
+  avatarCropCtx.strokeRect(rx + 0.5, ry + 0.5, Math.max(2, rw - 1), Math.max(2, rh - 1));
+  avatarCropCtx.fillStyle = '#fef08a';
+  [[rx, ry], [rx + rw, ry], [rx, ry + rh], [rx + rw, ry + rh]].forEach(([hx, hy]) => {
+    avatarCropCtx.fillRect(hx - 3, hy - 3, 6, 6);
+  });
+}
+
+function getCanvasPointerPos(ev) {
+  const rect = avatarCropCanvas.getBoundingClientRect();
+  const touch = ev.touches && ev.touches[0] ? ev.touches[0] : (ev.changedTouches && ev.changedTouches[0] ? ev.changedTouches[0] : ev);
+  return {
+    x: ((touch.clientX - rect.left) / rect.width) * avatarCropCanvas.width,
+    y: ((touch.clientY - rect.top) / rect.height) * avatarCropCanvas.height
+  };
+}
+
+function updateManualCropFromDrag(curPos) {
+  const d = cropDisplayRect;
+  const x0 = Math.max(d.x, Math.min(d.x + d.w, Math.min(cropDragStart.x, curPos.x)));
+  const y0 = Math.max(d.y, Math.min(d.y + d.h, Math.min(cropDragStart.y, curPos.y)));
+  const x1 = Math.max(d.x, Math.min(d.x + d.w, Math.max(cropDragStart.x, curPos.x)));
+  const y1 = Math.max(d.y, Math.min(d.y + d.h, Math.max(cropDragStart.y, curPos.y)));
+  if (x1 - x0 >= 8 && y1 - y0 >= 8) {
+    manualCropNorm = {
+      x: (x0 - d.x) / d.w,
+      y: (y0 - d.y) / d.h,
+      w: (x1 - x0) / d.w,
+      h: (y1 - y0) / d.h
+    };
+    renderCropEditorCanvas();
+  }
+}
+
+if (avatarCropCanvas) {
+  const onDown = (e) => {
+    if (!loadedRawAvatarImg) return;
+    if (e.cancelable) e.preventDefault();
+    isDraggingCrop = true;
+    cropDragStart = getCanvasPointerPos(e);
+  };
+  const onMove = (e) => {
+    if (!isDraggingCrop || !loadedRawAvatarImg) return;
+    if (e.cancelable) e.preventDefault();
+    updateManualCropFromDrag(getCanvasPointerPos(e));
+  };
+  const onUp = () => {
+    if (!isDraggingCrop) return;
+    isDraggingCrop = false;
+    processAndPreviewAvatar();
+  };
+  avatarCropCanvas.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  avatarCropCanvas.addEventListener('touchstart', onDown, { passive: false });
+  avatarCropCanvas.addEventListener('touchmove', onMove, { passive: false });
+  avatarCropCanvas.addEventListener('touchend', onUp);
+}
+
+btnResetCropBox?.addEventListener('click', () => {
+  SoundFX.uiClick();
+  manualCropNorm = { x: 0, y: 0, w: 1, h: 1 };
+  renderCropEditorCanvas();
+  processAndPreviewAvatar();
+});
 
 function processAndPreviewAvatar() {
   if (!avatarPreviewCtx) return;
-  avatarPreviewCtx.clearRect(0, 0, 48, 48);
+  const aw = Math.min(3, Math.max(1, parseInt(avatarSizeW?.value || myCharacter?.avatarWidth || 1, 10) || 1));
+  const ah = Math.min(3, Math.max(1, parseInt(avatarSizeH?.value || myCharacter?.avatarHeight || 1, 10) || 1));
+
+  // 크기에 비례한 내부 해상도 (1블록당 48px, 최대 144x144)
+  const targetW = aw * 48;
+  const targetH = ah * 48;
+  avatarPreviewCanvas.width = targetW;
+  avatarPreviewCanvas.height = targetH;
+  avatarPreviewCtx.clearRect(0, 0, targetW, targetH);
+
+  // 미리보기 박스 비율 표시
+  const maxBox = 76;
+  const boxScale = Math.min(maxBox / targetW, maxBox / targetH);
+  avatarPreviewCanvas.style.width = `${Math.max(36, Math.round(targetW * boxScale))}px`;
+  avatarPreviewCanvas.style.height = `${Math.max(36, Math.round(targetH * boxScale))}px`;
 
   if (!loadedRawAvatarImg) {
+    avatarCropWrap?.classList.add('hidden');
     if (myCharacter?.customAvatar) {
       const existing = new Image();
       existing.onload = () => {
-        avatarPreviewCtx.clearRect(0, 0, 48, 48);
+        avatarPreviewCtx.clearRect(0, 0, targetW, targetH);
         avatarPreviewCtx.imageSmoothingEnabled = false;
-        avatarPreviewCtx.drawImage(existing, 0, 0, 48, 48);
+        avatarPreviewCtx.drawImage(existing, 0, 0, targetW, targetH);
       };
       existing.src = myCharacter.customAvatar;
     }
     return;
   }
 
-  const BASE_SIZE = 48;
+  avatarCropWrap?.classList.remove('hidden');
+  renderCropEditorCanvas();
+
   const removeBg = chkRemoveBg.checked;
-  const pixelize = chkPixelize.checked;
-
-  // ================= [1~2단계: 파일 수신 → 48×48 이미지로 변환] =================
-  const step1 = document.createElement('canvas');
-  step1.width = BASE_SIZE;
-  step1.height = BASE_SIZE;
-  const s1ctx = step1.getContext('2d', { willReadFrequently: true });
-  s1ctx.imageSmoothingEnabled = !pixelize;
-
   const iw = loadedRawAvatarImg.naturalWidth || loadedRawAvatarImg.width;
   const ih = loadedRawAvatarImg.naturalHeight || loadedRawAvatarImg.height;
-  const fitScale = Math.min(BASE_SIZE / iw, BASE_SIZE / ih);
-  const dw = Math.max(1, Math.round(iw * fitScale));
-  const dh = Math.max(1, Math.round(ih * fitScale));
-  const dx = Math.floor((BASE_SIZE - dw) / 2);
-  const dy = Math.floor((BASE_SIZE - dh) / 2);
-  s1ctx.drawImage(loadedRawAvatarImg, dx, dy, dw, dh);
 
-  const s1Img = s1ctx.getImageData(0, 0, BASE_SIZE, BASE_SIZE);
+  // 유저가 지정한 수동 크롭 영역 계산
+  const srcX = Math.max(0, Math.floor(manualCropNorm.x * iw));
+  const srcY = Math.max(0, Math.floor(manualCropNorm.y * ih));
+  const srcW = Math.max(1, Math.min(iw - srcX, Math.round(manualCropNorm.w * iw)));
+  const srcH = Math.max(1, Math.min(ih - srcY, Math.round(manualCropNorm.h * ih)));
+
+  // 1단계: 수동 크롭 영역을 목표 해상도 캔버스에 비율 유지 배치
+  const step1 = document.createElement('canvas');
+  step1.width = targetW;
+  step1.height = targetH;
+  const s1ctx = step1.getContext('2d', { willReadFrequently: true });
+  s1ctx.imageSmoothingEnabled = true;
+
+  const fitScale = Math.min(targetW / srcW, targetH / srcH);
+  const dw = Math.max(1, Math.round(srcW * fitScale));
+  const dh = Math.max(1, Math.round(srcH * fitScale));
+  const dx = Math.floor((targetW - dw) / 2);
+  const dy = Math.floor((targetH - dh) / 2);
+  s1ctx.drawImage(loadedRawAvatarImg, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
+
+  const s1Img = s1ctx.getImageData(0, 0, targetW, targetH);
   const s1Data = s1Img.data;
 
-  // 실제 이미지가 그려진 외곽 4변에서 최빈 배경색 자동 추출 (JPEG 노이즈 흡수)
+  // 2단계: 실제 그림 영역 외곽 4변에서 최빈 배경색 추출
   let transparentBorderCount = 0;
   let totalBorderCount = 0;
   const colorBuckets = new Map();
 
   function sampleBorder(x, y) {
-    const idx = (y * BASE_SIZE + x) * 4;
+    const idx = (y * targetW + x) * 4;
     totalBorderCount++;
     if (s1Data[idx + 3] < 25) {
       transparentBorderCount++;
@@ -2855,12 +3193,12 @@ function processAndPreviewAvatar() {
     return false;
   }
 
-  // ================= [3단계: 상하좌우 여백 완전히 크롭] =================
-  let minX = BASE_SIZE, minY = BASE_SIZE, maxX = -1, maxY = -1;
-  for (let y = 0; y < BASE_SIZE; y++) {
-    for (let x = 0; x < BASE_SIZE; x++) {
-      const idx = (y * BASE_SIZE + x) * 4;
-      if (!isMarginPixel(s1Data, idx, 58)) {
+  // 3단계: 상하좌우 남은 여백 자동 크롭
+  let minX = targetW, minY = targetH, maxX = -1, maxY = -1;
+  for (let y = 0; y < targetH; y++) {
+    for (let x = 0; x < targetW; x++) {
+      const idx = (y * targetW + x) * 4;
+      if (!isMarginPixel(s1Data, idx, 56)) {
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
         if (y < minY) minY = y;
@@ -2868,8 +3206,6 @@ function processAndPreviewAvatar() {
       }
     }
   }
-
-  // 전부 여백으로 판정된 경우 원본 영역 유지
   if (maxX < minX || maxY < minY) {
     minX = bx0; maxX = bx1; minY = by0; maxY = by1;
   }
@@ -2882,7 +3218,7 @@ function processAndPreviewAvatar() {
   const cctx = croppedCanvas.getContext('2d', { willReadFrequently: true });
   cctx.drawImage(step1, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
 
-  // ================= [4단계: 크롭 후에도 남은 배경 부분 완전히 제거] =================
+  // 4단계: 크롭 후에도 남은 배경 완전 제거 (외곽 Flood-Fill + 안쪽 배경 구멍 + 프린지 정리)
   if (removeBg && hasOpaqueBg) {
     const cImg = cctx.getImageData(0, 0, cropW, cropH);
     const cd = cImg.data;
@@ -2901,27 +3237,26 @@ function processAndPreviewAvatar() {
       }
     }
 
-    // 4-1. 크롭된 외곽 4변 전체에서 Flood-Fill (모서리·머리 주변·다리 사이 배경 제거)
     for (let x = 0; x < cropW; x++) {
-      enqueueIfBg(x, 0, 65);
-      enqueueIfBg(x, cropH - 1, 65);
+      enqueueIfBg(x, 0, 64);
+      enqueueIfBg(x, cropH - 1, 64);
     }
     for (let y = 0; y < cropH; y++) {
-      enqueueIfBg(0, y, 65);
-      enqueueIfBg(cropW - 1, y, 65);
+      enqueueIfBg(0, y, 64);
+      enqueueIfBg(cropW - 1, y, 64);
     }
 
     while (queue.length > 0) {
       const pos = queue.pop();
       const x = pos % cropW;
       const y = (pos - x) / cropW;
-      if (x > 0) enqueueIfBg(x - 1, y, 65);
-      if (x < cropW - 1) enqueueIfBg(x + 1, y, 65);
-      if (y > 0) enqueueIfBg(x, y - 1, 65);
-      if (y < cropH - 1) enqueueIfBg(x, y + 1, 65);
+      if (x > 0) enqueueIfBg(x - 1, y, 64);
+      if (x < cropW - 1) enqueueIfBg(x + 1, y, 64);
+      if (y > 0) enqueueIfBg(x, y - 1, 64);
+      if (y < cropH - 1) enqueueIfBg(x, y + 1, 64);
     }
 
-    // 4-2. 팔과 몸통 사이 등 안쪽에 갇힌 배경 덩어리 제거 (5픽셀 이상만 지워 눈 흰자 보호)
+    const minHolePx = Math.max(5, Math.floor((cropW * cropH) * 0.002));
     const visitedHole = new Uint8Array(totalPx);
     for (let i = 0; i < totalPx; i++) {
       if (cleared[i] || visitedHole[i]) continue;
@@ -2952,7 +3287,7 @@ function processAndPreviewAvatar() {
           }
         }
       }
-      if (comp.length >= 5) {
+      if (comp.length >= minHolePx) {
         for (let k = 0; k < comp.length; k++) {
           cleared[comp[k]] = 1;
           cd[comp[k] * 4 + 3] = 0;
@@ -2960,7 +3295,6 @@ function processAndPreviewAvatar() {
       }
     }
 
-    // 4-3. 캐릭터 외곽선에 미세하게 남은 배경색 잔여 띠(프린지) 1차 정리
     const fringeList = [];
     for (let y = 0; y < cropH; y++) {
       for (let x = 0; x < cropW; x++) {
@@ -2973,7 +3307,7 @@ function processAndPreviewAvatar() {
           (x < cropW - 1 && cleared[pos + 1]) ||
           (y > 0 && cleared[pos - cropW]) ||
           (y < cropH - 1 && cleared[pos + cropW]);
-        if (touchesBg && colorDist(cd[idx], cd[idx + 1], cd[idx + 2]) <= 90) {
+        if (touchesBg && colorDist(cd[idx], cd[idx + 1], cd[idx + 2]) <= 88) {
           fringeList.push(pos);
         }
       }
@@ -2985,36 +3319,31 @@ function processAndPreviewAvatar() {
     cctx.putImageData(cImg, 0, 0);
   }
 
-  // ================= [최종 48×48 미리보기 캔버스에 꽉 차게 중앙·하단 정렬 출력] =================
-  const finalScale = Math.min(BASE_SIZE / cropW, BASE_SIZE / cropH);
+  // 최종 출력 (도트 픽셀 강제 보정 없음 · 하단 발끝 정렬)
+  const finalScale = Math.min(targetW / cropW, targetH / cropH);
   const fw = Math.max(1, Math.round(cropW * finalScale));
   const fh = Math.max(1, Math.round(cropH * finalScale));
-  const fx = Math.floor((BASE_SIZE - fw) / 2);
-  const fy = BASE_SIZE - fh; // 발이 2.5D 바닥 그림자에 딱 붙도록 하단 정렬
+  const fx = Math.floor((targetW - fw) / 2);
+  const fy = targetH - fh;
 
-  if (pixelize) {
-    const pxCanvas = document.createElement('canvas');
-    pxCanvas.width = 32;
-    pxCanvas.height = 32;
-    const pctx = pxCanvas.getContext('2d');
-    pctx.imageSmoothingEnabled = false;
-    const pScale = Math.min(32 / cropW, 32 / cropH);
-    const pw = Math.max(1, Math.round(cropW * pScale));
-    const ph = Math.max(1, Math.round(cropH * pScale));
-    pctx.drawImage(croppedCanvas, Math.floor((32 - pw) / 2), 32 - ph, pw, ph);
+  avatarPreviewCtx.imageSmoothingEnabled = false;
+  avatarPreviewCtx.drawImage(croppedCanvas, 0, 0, cropW, cropH, fx, fy, fw, fh);
 
-    avatarPreviewCtx.imageSmoothingEnabled = false;
-    avatarPreviewCtx.drawImage(pxCanvas, 0, 0, 32, 32, 0, 0, BASE_SIZE, BASE_SIZE);
-  } else {
-    avatarPreviewCtx.imageSmoothingEnabled = false;
-    avatarPreviewCtx.drawImage(croppedCanvas, 0, 0, cropW, cropH, fx, fy, fw, fh);
+  // 32KB 제한 내 안전 압축 (PNG -> WebP 0.85 -> WebP 0.65 -> 축소 WebP)
+  let outUrl = avatarPreviewCanvas.toDataURL('image/png');
+  if (outUrl.length > 30000) outUrl = avatarPreviewCanvas.toDataURL('image/webp', 0.85);
+  if (outUrl.length > 30000) outUrl = avatarPreviewCanvas.toDataURL('image/webp', 0.65);
+  if (outUrl.length > 30000) {
+    const small = document.createElement('canvas');
+    small.width = aw * 32;
+    small.height = ah * 32;
+    small.getContext('2d').drawImage(avatarPreviewCanvas, 0, 0, small.width, small.height);
+    outUrl = small.toDataURL('image/webp', 0.78);
   }
 
-  let outUrl = avatarPreviewCanvas.toDataURL('image/png');
-  if (outUrl.length > 18000) outUrl = avatarPreviewCanvas.toDataURL('image/webp', 0.85);
   preparedAvatarDataUrl = outUrl;
   const kb = (outUrl.length / 1024).toFixed(1);
-  avatarSizeInfo.textContent = `변환·크롭·배경제거 완료! (48×48 · 약 ${kb}KB)`;
+  avatarSizeInfo.textContent = `크롭·배경제거 완료! (${aw}×${ah}블록 · ${targetW}×${targetH}px · 약 ${kb}KB)`;
   avatarSizeInfo.style.color = '#4ade80';
 }
 
@@ -3029,20 +3358,49 @@ avatarFileInput?.addEventListener('change', (e) => {
   const reader = new FileReader();
   reader.onload = (ev) => {
     const img = new Image();
-    img.onload = () => { loadedRawAvatarImg = img; processAndPreviewAvatar(); };
+    img.onload = () => {
+      loadedRawAvatarImg = img;
+      manualCropNorm = { x: 0, y: 0, w: 1, h: 1 };
+      processAndPreviewAvatar();
+    };
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 });
 
 chkRemoveBg?.addEventListener('change', processAndPreviewAvatar);
-chkPixelize?.addEventListener('change', processAndPreviewAvatar);
+avatarSizeW?.addEventListener('change', processAndPreviewAvatar);
+avatarSizeH?.addEventListener('change', processAndPreviewAvatar);
+
+btnApplyAvatarSize?.addEventListener('click', () => {
+  if (!socket) return;
+  SoundFX.uiClick();
+  const width = parseInt(avatarSizeW.value, 10) || 1;
+  const height = parseInt(avatarSizeH.value, 10) || 1;
+  socket.emit('updateAvatarSize', { width, height }, (res) => {
+    if (res && res.success) {
+      SoundFX.enhanceSuccess(false);
+      myCharacter = res.character;
+      if (players[myId]) players[myId].character = res.character;
+      npcSpeechText.textContent = res.message;
+    } else {
+      SoundFX.enhanceFail();
+      alert(res?.message || '크기 적용 실패');
+    }
+  });
+});
 
 document.getElementById('btnApplyCustomAvatar')?.addEventListener('click', () => {
   if (!socket) return;
-  if (!preparedAvatarDataUrl) return alert('먼저 이미지 파일을 선택해주세요!');
+  const width = parseInt(avatarSizeW.value, 10) || 1;
+  const height = parseInt(avatarSizeH.value, 10) || 1;
+  if (!preparedAvatarDataUrl) return alert('먼저 이미지 파일을 선택해주세요! (크기만 바꾸려면 [크기만 바로 적용]을 누르세요)');
   SoundFX.uiClick();
-  socket.emit('updateCustomAvatar', preparedAvatarDataUrl, (res) => {
+  socket.emit('updateCustomAvatar', {
+    customAvatar: preparedAvatarDataUrl,
+    avatarWidth: width,
+    avatarHeight: height
+  }, (res) => {
     if (res && res.success) {
       SoundFX.enhanceSuccess(true);
       myCharacter = res.character;
@@ -3058,36 +3416,42 @@ document.getElementById('btnApplyCustomAvatar')?.addEventListener('click', () =>
 document.getElementById('btnResetDefaultAvatar')?.addEventListener('click', () => {
   if (!socket) return;
   SoundFX.uiClick();
-  socket.emit('updateCustomAvatar', '', (res) => {
+  const width = parseInt(avatarSizeW.value, 10) || 1;
+  const height = parseInt(avatarSizeH.value, 10) || 1;
+  socket.emit('updateCustomAvatar', {
+    customAvatar: '',
+    avatarWidth: width,
+    avatarHeight: height
+  }, (res) => {
     if (res && res.success) {
       myCharacter = res.character;
       if (players[myId]) players[myId].character = res.character;
       loadedRawAvatarImg = null;
       preparedAvatarDataUrl = '';
       if (avatarFileInput) avatarFileInput.value = '';
-      if (avatarPreviewCtx) avatarPreviewCtx.clearRect(0, 0, 48, 48);
+      avatarCropWrap?.classList.add('hidden');
+      processAndPreviewAvatar();
       npcSpeechText.textContent = res.message;
     }
   });
 });
 
-// ================= [스펙 & 6종 무기 강화 모달] =================
+// ================= [6대 신체 스펙 강화 모달 (C) — 무기 강화는 대장간 NPC 전담] =================
 const STAT_RULES = {
   education:   { name: "학력 (오른팔 · 망치)", rule: "성공 1% (+1) | 유지 99% | 실패 0% · 현재 10강 [망치] / 50강 [블랙홀] / 100강 [운석 강하]" },
   appearance:  { name: "외모 (오른다리 · 활)", rule: "성공 11% (+1) | 유지 79% | 실패 10% (-1) · 현재 10강 [활] / 50강 [삼삼구샷] / 100강 [비연 곡예사격]" },
   wealth:      { name: "재력 (왼팔 · 쌍수)",   rule: "성공 41% (+1) | 유지 19% | 실패 40% (-1) · 현재 10강 [쌍수] / 50강 [새비지 블로우] / 100강 [환영 순보]" },
-  iq:          { name: "지능 (머리 · 지팡이)", rule: "성공 2% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · IQ 150 [1+1] / IQ 200 [차원 도약 포격]" },
+  iq:          { name: "지능 (머리 · 지팡이)", rule: "성공 2% (+1 IQ) | 유지 97% | 실패 1% (-1 IQ) · IQ 150 [마력 충격파(넉백)] / IQ 200 [이중 원소 연사]" },
   stamina:     { name: "체력 (몸통 · 대검)",   rule: "성공 7% (+1) | 유지 87% | 실패 6% (-1) · 현재 10강 [대검] / 50강 [GG] / 100강 [패왕 돌진베기]" },
   personality: { name: "성격 (왼다리 · 태극구)", rule: "성공 5% (+1) | 유지 91% | 실패 4% (-1) · 현재 10강 [태극구] / 50강 [음양양의] / 100강 [무위 축지]" }
 };
 
-document.querySelectorAll('.stat-tab-btn').forEach(btn => {
+document.querySelectorAll('#enhanceModal .stat-tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     SoundFX.uiClick();
-    document.querySelectorAll('.stat-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#enhanceModal .stat-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentSelectedStat = btn.getAttribute('data-stat');
-    closeEnhanceConfirmModal();
     renderEnhanceUI();
   });
 });
@@ -3095,121 +3459,45 @@ document.querySelectorAll('.stat-tab-btn').forEach(btn => {
 function openEnhance() {
   if (!socket) return;
   SoundFX.uiClick();
+  if (!STAT_RULES[currentSelectedStat]) currentSelectedStat = 'education';
   enhanceModal.classList.remove('hidden');
   renderEnhanceUI();
 }
 function closeEnhance() {
   stopEnhanceHold();
-  closeEnhanceConfirmModal();
   enhanceModal.classList.add('hidden');
 }
-function isEnhanceConfirmOpen() { return Boolean(enhanceConfirmModal && !enhanceConfirmModal.classList.contains('hidden')); }
-
-function openEnhanceConfirmModal(weaponKey, curLv) {
-  stopEnhanceHold();
-  if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
-  const wSpec = WEAPON_SPECS[weaponKey];
-  const rate = ENHANCE_RATES[curLv];
-  const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : '0%';
-  enhanceConfirmTitle.textContent = `⚠️ ${wSpec.icon} ${wSpec.name} +${curLv}강 → +${curLv + 1}강`;
-  enhanceConfirmDesc.textContent =
-    `[${wSpec.name}]의 현재 단계가 +${curLv}강입니다.\n` +
-    `성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강)\n정말로 강화를 시도하시겠습니까?`;
-  enhanceConfirmModal.classList.remove('hidden');
-}
-function closeEnhanceConfirmModal() { enhanceConfirmModal?.classList.add('hidden'); }
-
-btnEnhanceConfirmCancel.addEventListener('click', () => { SoundFX.uiClick(); closeEnhanceConfirmModal(); });
-btnEnhanceConfirmOk.addEventListener('keydown', (e) => { e.preventDefault(); e.stopPropagation(); });
-btnEnhanceConfirmOk.addEventListener('click', (e) => {
-  if (e && e.detail === 0) { e.preventDefault(); return; }
-  closeEnhanceConfirmModal();
-  executeEnhance(true);
-});
 
 function renderEnhanceUI() {
-  document.querySelectorAll('.stat-tab-btn.weapon-tab').forEach(btn => {
-    const wk = btn.getAttribute('data-stat');
-    const usable = (wk === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wk])) && meetsWeaponStatReqClient(myCharacter, wk);
-    btn.classList.toggle('locked', !usable);
-  });
-
-  const statKey = currentSelectedStat;
-  const isWeapon = WEAPON_KEYS.includes(statKey);
-
-  if (isWeapon) {
-    const wSpec = WEAPON_SPECS[statKey];
-    const isTransmitted = statKey === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[statKey]);
-    const meetsNow = meetsWeaponStatReqClient(myCharacter, statKey);
-    const isEquipped = (myCharacter?.equippedWeapon || 'wand') === statKey;
-    const s50 = hasWeaponSkill50Client(myCharacter, statKey);
-    const s100 = hasWeaponSkill100Client(myCharacter, statKey);
-    const wLv = getWeaponLevelFromChar(myCharacter, statKey);
-    const rate = ENHANCE_RATES[wLv];
-    const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : 'MAX';
-
-    const badge = isEquipped
-      ? '<span style="color:#4ade80;">[장착 중]</span>'
-      : (isTransmitted && meetsNow
-        ? '<button id="btnQuickEquipInEnhance" style="margin-left:6px; background:#0e7490; border:1px solid #22d3ee; color:#fff; font-size:10px; padding:1px 6px; border-radius:3px;">지금 장착</button>'
-        : (isTransmitted ? '<span style="color:#f87171;">[🔒 스탯 부족 봉인]</span>' : '<span style="color:#f87171;">[미전수 - 대사부 방문]</span>'));
-
-    const skillBadge = s100
-      ? `<span style="color:#f43f5e; margin-left:4px;">★★[${wSpec.skill100Name}]</span>`
-      : (s50 ? `<span style="color:#facc15; margin-left:4px;">★[${wSpec.skill50Name}]</span>` : '');
-
-    curStatName.innerHTML = `${wSpec.icon} ${wSpec.name} 연성 ${badge} ${skillBadge}`;
-    curStatLevel.textContent = (isTransmitted && meetsNow)
-      ? `+${wLv}강 (장착 시 전투력 +${wLv * 10})`
-      : (isTransmitted ? `🔒 봉인됨 (${wSpec.unlockDesc})` : `🔒 미전수 (${wSpec.unlockDesc})`);
-    curStatTitle.textContent = getWeaponTitle(statKey, wLv);
-    curStatRule.textContent = (!isTransmitted || !meetsNow)
-      ? `${wSpec.unlockDesc} 조건을 현재 스탯으로 충족해야 장착 및 강화가 가능합니다.`
-      : (wLv >= 30
-        ? `최고 단계(+30강) 도달! (${wSpec.combatDesc})`
-        : `+${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락 | ${wSpec.combatDesc}`);
-
-    document.getElementById('btnQuickEquipInEnhance')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      socket.emit('equipWeapon', statKey, (res) => {
-        if (res && res.success) {
-          myCharacter = res.character;
-          if (players[myId]) players[myId].character = res.character;
-          updateAttackButtonLabel();
-          renderEnhanceUI();
-        }
-      });
-    });
-  } else {
-    const statVal = myCharacter[statKey] !== undefined ? myCharacter[statKey] : (statKey === 'iq' ? 100 : 0);
-    const info = STAT_RULES[statKey];
-    curStatName.textContent = info.name;
-    curStatLevel.textContent = statKey === 'iq' ? `IQ ${statVal} (+${getEffectiveLevel('iq', myCharacter)}강)` : `+${statVal}강`;
-    curStatRule.textContent = info.rule;
-    curStatTitle.textContent = getStatTitle(statKey, statVal, myCharacter.gender);
-  }
+  const statKey = STAT_RULES[currentSelectedStat] ? currentSelectedStat : 'education';
+  const statVal = myCharacter[statKey] !== undefined ? myCharacter[statKey] : (statKey === 'iq' ? 100 : 0);
+  const info = STAT_RULES[statKey];
+  curStatName.textContent = info.name;
+  curStatLevel.textContent = statKey === 'iq' ? `IQ ${statVal} (+${getEffectiveLevel('iq', myCharacter)}강)` : `+${statVal}강`;
+  curStatRule.textContent = info.rule;
+  curStatTitle.textContent = getStatTitle(statKey, statVal, myCharacter.gender);
   modalChanceCount.textContent = myChances;
 }
 
-function triggerEnhanceImpactVisual() {
+function playAnvilImpact(modalEl, detailBoxEl, levelEl, btnEl, sparkLayerEl) {
   if (navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
-  enhanceModalCard.classList.remove('anvil-shake');
-  enhanceDetailBox.classList.remove('anvil-flash');
-  curStatLevel.classList.remove('val-pop');
-  enhanceExecuteBtn.classList.remove('btn-anvil-hit');
-  void enhanceModalCard.offsetWidth;
-  enhanceModalCard.classList.add('anvil-shake');
-  enhanceDetailBox.classList.add('anvil-flash');
-  curStatLevel.classList.add('val-pop');
-  enhanceExecuteBtn.classList.add('btn-anvil-hit');
+  modalEl?.classList.remove('anvil-shake');
+  detailBoxEl?.classList.remove('anvil-flash');
+  levelEl?.classList.remove('val-pop');
+  btnEl?.classList.remove('btn-anvil-hit');
+  if (modalEl) void modalEl.offsetWidth;
+  modalEl?.classList.add('anvil-shake');
+  detailBoxEl?.classList.add('anvil-flash');
+  levelEl?.classList.add('val-pop');
+  btnEl?.classList.add('btn-anvil-hit');
 
   setTimeout(() => {
-    enhanceDetailBox.classList.remove('anvil-flash');
-    curStatLevel.classList.remove('val-pop');
-    enhanceExecuteBtn.classList.remove('btn-anvil-hit');
+    detailBoxEl?.classList.remove('anvil-flash');
+    levelEl?.classList.remove('val-pop');
+    btnEl?.classList.remove('btn-anvil-hit');
   }, 110);
 
-  if (enhanceSparkLayer) {
+  if (sparkLayerEl) {
     const colors = ['#fef08a', '#f59e0b', '#fb923c', '#ef4444'];
     for (let i = 0; i < 10; i++) {
       const sp = document.createElement('div');
@@ -3219,7 +3507,7 @@ function triggerEnhanceImpactVisual() {
       sp.style.setProperty('--tx', `${Math.cos(ang) * dist}px`);
       sp.style.setProperty('--ty', `${Math.sin(ang) * dist}px`);
       sp.style.background = colors[i % colors.length];
-      enhanceSparkLayer.appendChild(sp);
+      sparkLayerEl.appendChild(sp);
       setTimeout(() => sp.remove(), 340);
     }
   }
@@ -3229,10 +3517,8 @@ let isEnhancingRequest = false;
 let enhanceHoldDelayTimer = null;
 let enhanceAutoRepeatTimer = null;
 
-function executeEnhance(confirmed = false) {
+function executeEnhance() {
   if (!socket || isEnhancingRequest) return;
-  if (!confirmed && isEnhanceConfirmOpen()) return;
-
   if (myChances < 1) {
     SoundFX.enhanceFail();
     enhanceResultMsg.className = 'enhance-result-box fail';
@@ -3241,20 +3527,9 @@ function executeEnhance(confirmed = false) {
     return;
   }
 
-  const statKey = currentSelectedStat;
-  const isWeapon = WEAPON_KEYS.includes(statKey);
-  if (isWeapon && !confirmed) {
-    const usable = (statKey === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[statKey])) && meetsWeaponStatReqClient(myCharacter, statKey);
-    const wLv = getWeaponLevelFromChar(myCharacter, statKey);
-    if (usable && wLv >= 15 && wLv < 30) {
-      SoundFX.uiClick();
-      openEnhanceConfirmModal(statKey, wLv);
-      return;
-    }
-  }
-
+  const statKey = STAT_RULES[currentSelectedStat] ? currentSelectedStat : 'education';
   SoundFX.anvilClang();
-  triggerEnhanceImpactVisual();
+  playAnvilImpact(enhanceModalCard, enhanceDetailBox, curStatLevel, enhanceExecuteBtn, enhanceSparkLayer);
   isEnhancingRequest = true;
 
   socket.emit('tryEnhanceStat', statKey, (res) => {
@@ -3271,7 +3546,6 @@ function executeEnhance(confirmed = false) {
     myLastRefill = res.lastRefill;
     myCharacter = res.character;
     if (players[myId]) players[myId].character = res.character;
-    if (isWeapon && getWeaponLevelFromChar(myCharacter, statKey) >= 15) stopEnhanceHold();
 
     updateAttackButtonLabel();
     updateHUD();
@@ -3294,15 +3568,14 @@ function executeEnhance(confirmed = false) {
 
 function startEnhanceHold(e) {
   if (e && e.cancelable) e.preventDefault();
-  executeEnhance(false);
+  executeEnhance();
   stopEnhanceHold();
-  if (isEnhanceConfirmOpen()) return;
   enhanceHoldDelayTimer = setTimeout(() => {
     enhanceAutoRepeatTimer = setInterval(() => {
-      if (enhanceModal.classList.contains('hidden') || isEnhanceConfirmOpen() || myChances < 1) {
+      if (enhanceModal.classList.contains('hidden') || myChances < 1) {
         stopEnhanceHold(); return;
       }
-      executeEnhance(false);
+      executeEnhance();
     }, 105);
   }, 500);
 }
@@ -3315,7 +3588,7 @@ function stopEnhanceHold() {
 document.getElementById('dBtnEnhance')?.addEventListener('click', openEnhance);
 document.getElementById('mBtnEnhance')?.addEventListener('click', () => {
   if (enhanceModal.classList.contains('hidden')) openEnhance();
-  else executeEnhance(false);
+  else executeEnhance();
 });
 enhanceCloseBtn.addEventListener('click', () => { SoundFX.uiClick(); closeEnhance(); });
 enhanceExecuteBtn.addEventListener('mousedown', startEnhanceHold);
@@ -3324,6 +3597,278 @@ enhanceExecuteBtn.addEventListener('mouseleave', stopEnhanceHold);
 enhanceExecuteBtn.addEventListener('touchstart', startEnhanceHold, { passive: false });
 enhanceExecuteBtn.addEventListener('touchend', stopEnhanceHold);
 enhanceExecuteBtn.addEventListener('touchcancel', stopEnhanceHold);
+
+// ================= [+15강 이상 고강 무기 2차 확인 모달 (대장간 전용 보호)] =================
+function isEnhanceConfirmOpen() { return Boolean(enhanceConfirmModal && !enhanceConfirmModal.classList.contains('hidden')); }
+
+function openEnhanceConfirmModal(weaponKey, curLv) {
+  stopBsEnhanceHold();
+  if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+  const wSpec = WEAPON_SPECS[weaponKey];
+  const rate = ENHANCE_RATES[curLv];
+  const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : '0%';
+  enhanceConfirmTitle.textContent = `⚠️ ${wSpec.icon} ${wSpec.name} +${curLv}강 → +${curLv + 1}강`;
+  enhanceConfirmDesc.textContent =
+    `[${wSpec.name}]의 현재 단계가 +${curLv}강입니다.\n` +
+    `성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락(-1강)\n정말로 단조를 진행하시겠습니까?`;
+  enhanceConfirmModal.classList.remove('hidden');
+}
+function closeEnhanceConfirmModal() { enhanceConfirmModal?.classList.add('hidden'); }
+
+btnEnhanceConfirmCancel.addEventListener('click', () => { SoundFX.uiClick(); closeEnhanceConfirmModal(); });
+btnEnhanceConfirmOk.addEventListener('keydown', (e) => { e.preventDefault(); e.stopPropagation(); });
+btnEnhanceConfirmOk.addEventListener('click', (e) => {
+  if (e && e.detail === 0) { e.preventDefault(); return; }
+  closeEnhanceConfirmModal();
+  executeBlacksmithEnhance(true);
+});
+
+// ================= [2x2 대형 NPC [대장간] 패널: 출정 2슬롯 세팅 + 무기 제작/단조 강화] =================
+let isBsEnhancing = false;
+let bsHoldDelayTimer = null;
+let bsAutoRepeatTimer = null;
+
+function stopBsEnhanceHold() {
+  if (bsHoldDelayTimer) { clearTimeout(bsHoldDelayTimer); bsHoldDelayTimer = null; }
+  if (bsAutoRepeatTimer) { clearInterval(bsAutoRepeatTimer); bsAutoRepeatTimer = null; }
+}
+
+function populateBlacksmithLoadoutSelects() {
+  if (!bsSlot0Select || !bsSlot1Select) return;
+  const loadout = Array.isArray(myCharacter?.loadoutWeapons) ? myCharacter.loadoutWeapons : ['wand', ''];
+  const cur0 = loadout[0] || 'wand';
+  const cur1 = loadout[1] || '';
+
+  bsSlot0Select.innerHTML = '';
+  bsSlot1Select.innerHTML = '<option value="">(비워두기 - 1무기만 휴대)</option>';
+
+  WEAPON_KEYS.forEach(wk => {
+    const spec = WEAPON_SPECS[wk];
+    const unlocked = wk === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wk]);
+    const meetsNow = meetsWeaponStatReqClient(myCharacter, wk);
+    const wLv = getWeaponLevelFromChar(myCharacter, wk);
+
+    const opt0 = document.createElement('option');
+    opt0.value = wk;
+    if (unlocked && meetsNow) {
+      opt0.textContent = `${spec.icon} ${spec.name} (+${wLv}강)`;
+    } else if (unlocked) {
+      opt0.textContent = `🔒 ${spec.name} (스탯 부족 봉인)`;
+      opt0.disabled = true;
+    } else {
+      opt0.textContent = `🔒 ${spec.name} (미제작)`;
+      opt0.disabled = true;
+    }
+    if (wk === cur0) opt0.selected = true;
+    bsSlot0Select.appendChild(opt0);
+
+    const opt1 = opt0.cloneNode(true);
+    opt1.selected = (wk === cur1);
+    bsSlot1Select.appendChild(opt1);
+  });
+}
+
+function renderBlacksmithPanel() {
+  if (!npcBlacksmithPanel) return;
+  populateBlacksmithLoadoutSelects();
+
+  document.querySelectorAll('#bsWeaponTabs button[data-bs-weapon]').forEach(btn => {
+    const wk = btn.getAttribute('data-bs-weapon');
+    const usable = (wk === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wk])) && meetsWeaponStatReqClient(myCharacter, wk);
+    btn.classList.toggle('locked', !usable);
+    btn.classList.toggle('active', wk === currentSelectedBsWeapon);
+  });
+
+  const wk = WEAPON_SPECS[currentSelectedBsWeapon] ? currentSelectedBsWeapon : 'wand';
+  const spec = WEAPON_SPECS[wk];
+  const unlocked = wk === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wk]);
+  const meetsNow = meetsWeaponStatReqClient(myCharacter, wk);
+  const wLv = getWeaponLevelFromChar(myCharacter, wk);
+  const s50 = hasWeaponSkill50Client(myCharacter, wk);
+  const s100 = hasWeaponSkill100Client(myCharacter, wk);
+  const rate = ENHANCE_RATES[wLv];
+  const ratePct = rate !== undefined ? `${(rate * 100).toFixed(1).replace(/\.0$/, '')}%` : 'MAX';
+
+  const statusBadge = !unlocked
+    ? (meetsNow ? '<span style="color:#facc15;">[제작 가능!]</span>' : '<span style="color:#f87171;">[조건 미달]</span>')
+    : (!meetsNow ? '<span style="color:#f87171;">[🔒 스탯 하락 봉인]</span>' : '<span style="color:#4ade80;">[보유 중]</span>');
+  const skillBadge = s100
+    ? `<span style="color:#f43f5e; margin-left:4px;">★★[${spec.skill100Name}]</span>`
+    : (s50 ? `<span style="color:#facc15; margin-left:4px;">★[${spec.skill50Name}]</span>` : '');
+
+  bsWeaponName.innerHTML = `${spec.icon} ${spec.name} ${statusBadge} ${skillBadge}`;
+  bsWeaponLevel.textContent = unlocked
+    ? (meetsNow ? `+${wLv}강 (장착 시 전투력 +${wLv * 10})` : `🔒 봉인됨 (${spec.unlockDesc})`)
+    : `미제작 (${spec.unlockDesc})`;
+  bsWeaponTitle.textContent = getWeaponTitle(wk, wLv);
+  bsWeaponRule.textContent = !unlocked
+    ? `${spec.unlockDesc} 조건을 현재 스탯으로 충족하면 제작할 수 있습니다. | ${spec.combatDesc}`
+    : (!meetsNow
+      ? `현재 스탯이 기준치 미만이라 봉인되었습니다. (${spec.unlockDesc})`
+      : (wLv >= 30
+        ? `최고 단계(+30강) 도달! (${spec.combatDesc})`
+        : `+${wLv}강 → +${wLv + 1}강 성공 확률: ${ratePct} | 실패 시 50% 유지 · 50% 하락 | ${spec.combatDesc}`));
+
+  bsChanceCount.textContent = myChances;
+
+  if (!unlocked) {
+    btnBsUnlock.classList.remove('hidden');
+    btnBsEnhance.classList.add('hidden');
+    btnBsUnlock.disabled = !meetsNow;
+    btnBsUnlock.style.opacity = meetsNow ? '1' : '0.5';
+  } else {
+    btnBsUnlock.classList.add('hidden');
+    btnBsEnhance.classList.remove('hidden');
+    const canEnh = meetsNow && wLv < 30;
+    btnBsEnhance.disabled = !canEnh;
+    btnBsEnhance.style.opacity = canEnh ? '1' : '0.5';
+  }
+}
+
+document.querySelectorAll('#bsWeaponTabs button[data-bs-weapon]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    SoundFX.uiClick();
+    stopBsEnhanceHold();
+    closeEnhanceConfirmModal();
+    currentSelectedBsWeapon = btn.getAttribute('data-bs-weapon');
+    renderBlacksmithPanel();
+  });
+});
+
+btnSaveLoadout?.addEventListener('click', () => {
+  if (!socket) return;
+  SoundFX.uiClick();
+  socket.emit('setLoadoutWeapons', {
+    slot0: bsSlot0Select.value,
+    slot1: bsSlot1Select.value
+  }, (res) => {
+    if (!res) return;
+    if (res.success) {
+      SoundFX.enhanceSuccess(false);
+      myCharacter = res.character;
+      if (players[myId]) players[myId].character = res.character;
+      bsLoadoutMsg.style.color = '#4ade80';
+      bsLoadoutMsg.textContent = res.message;
+      updateAttackButtonLabel();
+      renderBlacksmithPanel();
+    } else {
+      SoundFX.enhanceFail();
+      bsLoadoutMsg.style.color = '#f87171';
+      bsLoadoutMsg.textContent = res.message || '세팅 실패';
+    }
+  });
+});
+
+btnBsUnlock?.addEventListener('click', () => {
+  if (!socket) return;
+  SoundFX.uiClick();
+  socket.emit('unlockWeapon', currentSelectedBsWeapon, (res) => {
+    if (res && res.success) {
+      SoundFX.enhanceSuccess(true);
+      myCharacter = res.character;
+      if (players[myId]) {
+        players[myId].character = res.character;
+        trigger360AuraBurst(players[myId], false);
+      }
+      bsActionMsg.className = 'enhance-result-box success';
+      bsActionMsg.textContent = res.message;
+      updateAttackButtonLabel();
+      renderBlacksmithPanel();
+    } else {
+      SoundFX.enhanceFail();
+      bsActionMsg.className = 'enhance-result-box fail';
+      bsActionMsg.textContent = res?.message || '제작 불가';
+    }
+  });
+});
+
+function executeBlacksmithEnhance(confirmed = false) {
+  if (!socket || isBsEnhancing) return;
+  if (!confirmed && isEnhanceConfirmOpen()) return;
+
+  if (myChances < 1) {
+    SoundFX.enhanceFail();
+    bsActionMsg.className = 'enhance-result-box fail';
+    bsActionMsg.textContent = '남은 기회가 없습니다. 동쪽 사냥터에서 몬스터를 처치해 기회를 얻으세요!';
+    stopBsEnhanceHold();
+    return;
+  }
+
+  const wk = currentSelectedBsWeapon;
+  const usable = (wk === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wk])) && meetsWeaponStatReqClient(myCharacter, wk);
+  const wLv = getWeaponLevelFromChar(myCharacter, wk);
+
+  if (!usable || wLv >= 30) {
+    stopBsEnhanceHold();
+    return;
+  }
+
+  if (!confirmed && wLv >= 15) {
+    SoundFX.uiClick();
+    openEnhanceConfirmModal(wk, wLv);
+    return;
+  }
+
+  SoundFX.anvilClang();
+  playAnvilImpact(npcDialogBox, bsDetailBox, bsWeaponLevel, btnBsEnhance, bsSparkLayer);
+  isBsEnhancing = true;
+
+  socket.emit('tryEnhanceStat', wk, (res) => {
+    isBsEnhancing = false;
+    if (!res.success) {
+      SoundFX.enhanceFail();
+      bsActionMsg.className = 'enhance-result-box fail';
+      bsActionMsg.textContent = res.message || '강화 불가';
+      stopBsEnhanceHold();
+      return;
+    }
+
+    myChances = res.tokens;
+    myLastRefill = res.lastRefill;
+    myCharacter = res.character;
+    if (players[myId]) players[myId].character = res.character;
+    if (getWeaponLevelFromChar(myCharacter, wk) >= 15) stopBsEnhanceHold();
+
+    updateAttackButtonLabel();
+    updateHUD();
+    renderBlacksmithPanel();
+
+    if (res.result.type.includes('success')) {
+      SoundFX.enhanceSuccess(res.result.type === 'great_success');
+      bsActionMsg.className = 'enhance-result-box success';
+      if (players[myId]) trigger360AuraBurst(players[myId]);
+      socket.emit('emitAura');
+    } else if (res.result.type === 'fail') {
+      SoundFX.enhanceFail();
+      bsActionMsg.className = 'enhance-result-box fail';
+    } else {
+      bsActionMsg.className = 'enhance-result-box';
+    }
+    bsActionMsg.textContent = res.result.message;
+  });
+}
+
+function startBsEnhanceHold(e) {
+  if (e && e.cancelable) e.preventDefault();
+  executeBlacksmithEnhance(false);
+  stopBsEnhanceHold();
+  if (isEnhanceConfirmOpen()) return;
+  bsHoldDelayTimer = setTimeout(() => {
+    bsAutoRepeatTimer = setInterval(() => {
+      if (npcDialogModal.classList.contains('hidden') || isEnhanceConfirmOpen() || myChances < 1) {
+        stopBsEnhanceHold(); return;
+      }
+      executeBlacksmithEnhance(false);
+    }, 105);
+  }, 500);
+}
+
+btnBsEnhance?.addEventListener('mousedown', startBsEnhanceHold);
+btnBsEnhance?.addEventListener('mouseup', stopBsEnhanceHold);
+btnBsEnhance?.addEventListener('mouseleave', stopBsEnhanceHold);
+btnBsEnhance?.addEventListener('touchstart', startBsEnhanceHold, { passive: false });
+btnBsEnhance?.addEventListener('touchend', stopBsEnhanceHold);
+btnBsEnhance?.addEventListener('touchcancel', stopBsEnhanceHold);
 
 // ================= [순위 & 실시간 동접자 모달] =================
 async function openRankModal() {
@@ -3468,76 +4013,6 @@ function trigger360AuraBurst(targetPlayer, playSound = false) {
   });
 }
 
-function renderMasterWeaponPanel() {
-  if (!npcWeaponPanel) return;
-  npcWeaponPanel.innerHTML = '';
-  const eq = myCharacter?.equippedWeapon || 'wand';
-
-  WEAPON_KEYS.forEach(wKey => {
-    const spec = WEAPON_SPECS[wKey];
-    const isTransmitted = wKey === 'wand' || (myCharacter?.unlockedWeapons && myCharacter.unlockedWeapons[wKey]);
-    const meetsNow = meetsWeaponStatReqClient(myCharacter, wKey);
-    const isEquipped = eq === wKey;
-    const s50 = hasWeaponSkill50Client(myCharacter, wKey);
-    const s100 = hasWeaponSkill100Client(myCharacter, wKey);
-    const wLv = getWeaponLevelFromChar(myCharacter, wKey);
-
-    const row = document.createElement('div');
-    row.className = 'npc-weapon-row';
-
-    let actionBtnHtml = '';
-    if (isEquipped) {
-      actionBtnHtml = `<button class="btn-weapon-action" style="background:#065f46; border:1px solid #34d399; color:#ecfdf5;" disabled>장착 중</button>`;
-    } else if (isTransmitted && meetsNow) {
-      actionBtnHtml = `<button class="btn-weapon-action" data-action="equip" data-weapon="${wKey}" style="background:#0e7490; border:1px solid #22d3ee; color:#fff;">장착하기</button>`;
-    } else if (isTransmitted && !meetsNow) {
-      actionBtnHtml = `<button class="btn-weapon-action" style="background:#450a0a; border:1px solid #ef4444; color:#fca5a5;" disabled>🔒 봉인됨</button>`;
-    } else if (meetsNow) {
-      actionBtnHtml = `<button class="btn-weapon-action" data-action="unlock" data-weapon="${wKey}" style="background:#b45309; border:1px solid #facc15; color:#fef08a;">✨ 전수받기</button>`;
-    } else {
-      actionBtnHtml = `<button class="btn-weapon-action" style="background:#1e293b; border:1px solid #475569; color:#94a3b8; opacity:0.65;" disabled>조건 미달</button>`;
-    }
-
-    const sTag = s100
-      ? `<span style="color:#f43f5e;">[★★${spec.skill100Name}]</span>`
-      : (s50 ? `<span style="color:#4ade80;">[★${spec.skill50Name}]</span>` : '');
-
-    row.innerHTML = `
-      <div class="npc-weapon-info">
-        <div class="npc-weapon-title">${spec.icon} ${spec.name} ${isTransmitted ? `(+${wLv}강)` : ''} ${sTag}</div>
-        <div class="npc-weapon-cond">${spec.unlockDesc}</div>
-        <div style="color:#38bdf8; font-size:10px;">${spec.combatDesc}</div>
-      </div>
-      <div>${actionBtnHtml}</div>
-    `;
-    npcWeaponPanel.appendChild(row);
-  });
-
-  npcWeaponPanel.querySelectorAll('button[data-action]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const act = btn.getAttribute('data-action');
-      const wk = btn.getAttribute('data-weapon');
-      if (!socket) return;
-      socket.emit(act === 'unlock' ? 'unlockWeapon' : 'equipWeapon', wk, (res) => {
-        if (res && res.success) {
-          if (act === 'unlock') SoundFX.enhanceSuccess(true); else SoundFX.uiClick();
-          myCharacter = res.character;
-          if (players[myId]) {
-            players[myId].character = res.character;
-            if (act === 'unlock') trigger360AuraBurst(players[myId], false);
-          }
-          npcSpeechText.textContent = res.message;
-          updateAttackButtonLabel();
-          renderMasterWeaponPanel();
-        } else if (res && res.message) {
-          SoundFX.enhanceFail();
-          npcSpeechText.textContent = res.message;
-        }
-      });
-    });
-  });
-}
-
 function openNpcDialog(npc) {
   SoundFX.uiClick();
   activeNpc = npc;
@@ -3553,16 +4028,25 @@ function openNpcDialog(npc) {
   }
 
   npcSpeechText.textContent = npc.dialogs[0] || '';
-  npcWeaponPanel.classList.toggle('hidden', npc.id !== 'npc_master');
+  npcBlacksmithPanel.classList.toggle('hidden', npc.id !== 'npc_blacksmith');
   npcCustomAvatarPanel.classList.toggle('hidden', npc.id !== 'npc_haerin');
 
-  if (npc.id === 'npc_master') renderMasterWeaponPanel();
-  if (npc.id === 'npc_haerin') processAndPreviewAvatar();
+  if (npc.id === 'npc_blacksmith') {
+    bsLoadoutMsg.textContent = '';
+    renderBlacksmithPanel();
+  }
+  if (npc.id === 'npc_haerin') {
+    if (avatarSizeW) avatarSizeW.value = String(myCharacter?.avatarWidth || 1);
+    if (avatarSizeH) avatarSizeH.value = String(myCharacter?.avatarHeight || 1);
+    processAndPreviewAvatar();
+  }
 
   npcDialogModal.classList.remove('hidden');
 }
 
 function closeNpcDialog() {
+  stopBsEnhanceHold();
+  closeEnhanceConfirmModal();
   npcDialogModal.classList.add('hidden');
   activeNpc = null;
 }
@@ -3580,7 +4064,6 @@ function advanceNpcDialog() {
 npcNextBtn.addEventListener('click', advanceNpcDialog);
 document.getElementById('npcCloseTopBtn')?.addEventListener('click', () => { SoundFX.uiClick(); closeNpcDialog(); });
 
-// 열려 있는 모달 확인 및 닫기 헬퍼 (ESC 키: 열린 모달 닫기 -> 열린 모달 없으면 설정 창 열기)
 function closeAnyOpenModal() {
   let closed = false;
   const list = [
@@ -3626,6 +4109,7 @@ function updateHUD() {
   }
   hudChances.textContent = chanceStr;
   modalChanceCount.textContent = myChances;
+  if (bsChanceCount) bsChanceCount.textContent = myChances;
   hudOnlineCount.textContent = `동접: ${Math.max(1, Object.keys(players).length)}`;
   if (!onlineModal.classList.contains('hidden')) renderOnlineList();
   if (!billboardModal.classList.contains('hidden')) renderBillboardModalContent();

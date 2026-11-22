@@ -35,7 +35,7 @@ syncCanvasViewportResolution();
 
 // ================= [동쪽숲 타일셋(#FF0000 자동 투명화) & 오프스크린 100×15 월드 베이킹] =================
 let worldBgCanvas = null;
-let forestTilesClean = null; // 빨간색 배경이 투명 처리된 타일셋 오프스크린 캔버스
+let forestTilesClean = null;
 let forestTilesLoaded = false;
 
 function loadForestTileset() {
@@ -49,7 +49,6 @@ function loadForestTileset() {
       const octx = off.getContext('2d');
       octx.drawImage(img, 0, 0);
 
-      // 빨간색 배경(#FF0000 계열) 픽셀을 한 번만 투명(alpha=0) 처리
       const imgData = octx.getImageData(0, 0, off.width, off.height);
       const d = imgData.data;
       for (let i = 0; i < d.length; i += 4) {
@@ -77,8 +76,8 @@ function hash2D(x, y) {
 }
 
 function bakeWorldBackground() {
-  const totalW = mapW * TILE_SIZE; // 100 * 40 = 4000px
-  const totalH = mapH * TILE_SIZE; // 15 * 40 = 600px
+  const totalW = mapW * TILE_SIZE;
+  const totalH = mapH * TILE_SIZE;
   if (!worldBgCanvas) worldBgCanvas = document.createElement('canvas');
   worldBgCanvas.width = totalW;
   worldBgCanvas.height = totalH;
@@ -92,7 +91,6 @@ function bakeWorldBackground() {
       const h = hash2D(tx, ty);
 
       if (tx < 20) {
-        // [0~19: 기숙사 로비] 따뜻한 석재 바닥 + 중앙 카펫
         const isWall = ty === 0 || tx === 0;
         if (isWall) {
           bctx.fillStyle = '#24151c';
@@ -114,7 +112,6 @@ function bakeWorldBackground() {
           }
         }
       } else if (tx < 40) {
-        // [20~39: 동쪽 숲 오솔길 (비전투 완충 지대)] 석재 -> 흙길·잔디 자연 전환
         const ratio = (tx - 20) / 20;
         const isPath = ty >= 5 && ty <= 9;
         if (isPath) {
@@ -140,7 +137,6 @@ function bakeWorldBackground() {
           }
         }
       } else if (tx < 60) {
-        // [40~59: 동쪽숲 1] 밝은 초록 마법의 숲
         bctx.fillStyle = ((tx + ty) % 2 === 0) ? '#15803d' : '#166534';
         bctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         if (h > 0.55) {
@@ -153,7 +149,6 @@ function bakeWorldBackground() {
           bctx.fillRect(px + 16, py + 22, 5, 5);
         }
       } else if (tx < 80) {
-        // [60~79: 동쪽숲 2] 어둡고 음산한 역병의 숲
         bctx.fillStyle = ((tx + ty) % 2 === 0) ? '#172b24' : '#13241e';
         bctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         if (h > 0.58) {
@@ -166,7 +161,6 @@ function bakeWorldBackground() {
           bctx.fillRect(px + 14, py + 18, 4, 4);
         }
       } else {
-        // [80~99: 동쪽숲 3 : 심연의 고대 숲] 짙은 남색·에메랄드 고대 유적 지대
         bctx.fillStyle = ((tx + ty) % 2 === 0) ? '#0f172a' : '#0b1222';
         bctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         if (h > 0.62) {
@@ -181,7 +175,6 @@ function bakeWorldBackground() {
     }
   }
 
-  // 구역 경계 게이트 바닥 통로 표시 (X=20, 40, 60, 80)
   const gateConfigs = [
     { x: 20, label: '▶ 동쪽 숲 오솔길', color: '#4ade80' },
     { x: 40, label: '▶ 동쪽숲 1 (사냥터)', color: '#fef08a' },
@@ -198,7 +191,6 @@ function bakeWorldBackground() {
     bctx.fillText(g.label, gx + 20, 4 * TILE_SIZE - 8);
   });
 
-  // 동쪽숲 3 보스 제단 마법진 바닥 각인 (X=91~92, Y=6~7 중심)
   const bossCx = 92 * TILE_SIZE;
   const bossCy = 7 * TILE_SIZE;
   bctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
@@ -214,7 +206,7 @@ function bakeWorldBackground() {
 }
 bakeWorldBackground();
 
-// ================= [커스텀 캐릭터 아바타 이미지 캐시 (Zero-Lag 디코딩)] =================
+// ================= [커스텀 캐릭터 아바타 이미지 캐시] =================
 const avatarImageCache = new Map();
 
 function getCachedAvatarImage(dataUrl) {
@@ -233,7 +225,7 @@ function getCachedAvatarImage(dataUrl) {
   return null;
 }
 
-// ================= [채팅 로그 출력 & 스킬 이펙트 팝업] =================
+// ================= [채팅 로그 출력 & 상태 알림 팝업] =================
 function appendChatMessage(author, text, isSystem = false) {
   if (!chatLog) return;
   const div = document.createElement('div');
@@ -265,7 +257,7 @@ function spawnSkillPopup(worldX, worldY, text, color = '#fef08a', tier = 50) {
   });
 }
 
-// ================= [소켓 연결 및 전체 서버 이벤트 바인딩] =================
+// ================= [소켓 연결 및 서버 이벤트 바인딩] =================
 function initPlayerRenderFields(p) {
   if (!p) return;
   if (p.renderX === undefined) p.renderX = p.x * TILE_SIZE;
@@ -284,6 +276,7 @@ function initMonsterRenderFields(m) {
   if (m.renderX === undefined) m.renderX = m.x * TILE_SIZE;
   if (m.renderY === undefined) m.renderY = m.y * TILE_SIZE;
   if (m.hitFlashUntil === undefined) m.hitFlashUntil = 0;
+  if (m.frozenUntil === undefined) m.frozenUntil = 0;
 }
 
 function connectSocketGame(token, nickname) {
@@ -333,7 +326,7 @@ function connectSocketGame(token, nickname) {
     updateAttackButtonLabel();
     updateHUD();
     syncCanvasViewportResolution();
-    appendChatMessage('', '🌟 인생온라인에 입장했습니다! 동쪽 문으로 나가 사냥터를 탐험하세요.', true);
+    appendChatMessage('', '🌟 인생온라인에 입장했습니다! 로비의 [대장간]에서 무기를 세팅하고 동쪽 사냥터로 나가보세요.', true);
   });
 
   socket.on('playerJoined', (p) => {
@@ -374,6 +367,14 @@ function connectSocketGame(token, nickname) {
       myCharacter = data.character;
       updateAttackButtonLabel();
       if (!enhanceModal.classList.contains('hidden')) renderEnhanceUI();
+      if (
+        !npcDialogModal.classList.contains('hidden') &&
+        activeNpc &&
+        activeNpc.id === 'npc_blacksmith' &&
+        typeof renderBlacksmithPanel === 'function'
+      ) {
+        renderBlacksmithPanel();
+      }
     }
   });
 
@@ -397,7 +398,6 @@ function connectSocketGame(token, nickname) {
     if (!billboardModal.classList.contains('hidden')) renderBillboardModalContent();
   });
 
-  // 구역별 압축 배치 몬스터 이동 패킷
   socket.on('monstersMovedBatch', (list) => {
     if (!Array.isArray(list)) return;
     for (let i = 0; i < list.length; i++) {
@@ -408,6 +408,38 @@ function connectSocketGame(token, nickname) {
       m.y = item.y;
       m.dir = item.dir || m.dir;
     }
+  });
+
+  // 지팡이 50강: 반경 4타일 밀쳐내기 충격파 & 좌표 동기화
+  socket.on('monstersKnockedBack', (data) => {
+    if (!data) return;
+    if (Array.isArray(data.pushed)) {
+      data.pushed.forEach(item => {
+        const m = monsters[item.id];
+        if (m) { m.x = item.x; m.y = item.y; }
+      });
+    }
+    hitEffects.push({
+      x: data.cx * TILE_SIZE + 20,
+      y: data.cy * TILE_SIZE + 20,
+      radius: (data.radius || 4.0) * TILE_SIZE,
+      color: '#38bdf8',
+      born: Date.now(),
+      duration: 340
+    });
+  });
+
+  // 뇌전구 2타: 하늘에서 내리꽂히는 번개 이펙트
+  socket.on('lightningStrike', (data) => {
+    if (!data) return;
+    const mSize = data.size || 1;
+    lightningEffects.push({
+      x: (data.x + (mSize - 1) * 0.5) * TILE_SIZE + 20,
+      y: (data.y + (mSize - 1) * 0.5) * TILE_SIZE + 20,
+      born: Date.now(),
+      duration: 280
+    });
+    SoundFX.tone(680, 'sawtooth', 0.14, 0.1, 140);
   });
 
   socket.on('monstersPulled', (data) => {
@@ -432,19 +464,31 @@ function connectSocketGame(token, nickname) {
     m.hp = data.hp;
     m.maxHp = data.maxHp;
     m.hitFlashUntil = Date.now() + 120;
+    if (typeof data.frozenUntil === 'number') {
+      m.frozenUntil = data.frozenUntil;
+    }
 
     const mSize = m.size || 1;
     const cx = (m.renderX !== undefined ? m.renderX : m.x * TILE_SIZE) + (mSize * TILE_SIZE) / 2;
-    const cy = (m.renderY !== undefined ? m.renderY : m.y * TILE_SIZE) + 10;
+    const cy = (m.renderY !== undefined ? m.renderY : m.y * TILE_SIZE) + (data.hitType === 'lightning_bolt' ? -6 : 10);
 
     if (floatingDamages.length > 35) floatingDamages.shift();
+    const dmgPrefix = data.hitType === 'lightning_bolt' ? '⚡-' : '-';
+    const dmgColor = data.isDebuffed
+      ? '#94a3b8'
+      : (data.hitType === 'lightning_bolt'
+        ? '#facc15'
+        : (data.hitType === 'ice'
+          ? '#7dd3fc'
+          : (data.attackerId === myId ? '#fef08a' : '#cbd5e1')));
+
     floatingDamages.push({
       x: cx + (Math.random() - 0.5) * 18,
       y: cy,
-      text: data.isDebuffed ? `${data.damage} (약화)` : `-${data.damage}`,
-      color: data.isDebuffed ? '#94a3b8' : (data.attackerId === myId ? '#fef08a' : '#cbd5e1'),
+      text: data.isDebuffed ? `${data.damage} (약화)` : `${dmgPrefix}${data.damage}`,
+      color: dmgColor,
       born: Date.now(),
-      duration: 680
+      duration: 700
     });
 
     if (data.attackerId === myId) {
@@ -457,6 +501,7 @@ function connectSocketGame(token, nickname) {
     if (m) {
       m.alive = false;
       m.hp = 0;
+      m.frozenUntil = 0;
     }
 
     const cx = (m ? (m.renderX || m.x * TILE_SIZE) : data.x * TILE_SIZE) + 20;
@@ -465,7 +510,7 @@ function connectSocketGame(token, nickname) {
 
     if (data.attackerId === myId) {
       SoundFX.magicHit(getEquippedWeaponLevel(myCharacter) + 4);
-      screenShakeMag = Math.max(screenShakeMag, data.isBoss ? 9 : 4); // 본인 처치 시에만 화면 흔들림
+      screenShakeMag = Math.max(screenShakeMag, data.isBoss ? 9 : 4);
       if (data.rewarded) {
         myChances = data.tokens;
         myLastRefill = data.lastRefill;
@@ -484,6 +529,7 @@ function connectSocketGame(token, nickname) {
 
   socket.on('monsterRespawned', (m) => {
     initMonsterRenderFields(m);
+    m.frozenUntil = 0;
     m.renderX = m.x * TILE_SIZE;
     m.renderY = m.y * TILE_SIZE;
     monsters[m.id] = m;
@@ -495,7 +541,6 @@ function connectSocketGame(token, nickname) {
     }
   });
 
-  // [BOSS] 심연의 마수왕 장판 전조 & 폭발 & 디버프
   socket.on('bossTelegraph', (data) => {
     bossTelegraphs.push({
       id: data.id,
@@ -519,7 +564,7 @@ function connectSocketGame(token, nickname) {
       duration: 420
     });
     if (Array.isArray(data.hitPlayerIds) && data.hitPlayerIds.includes(myId)) {
-      screenShakeMag = 10; // 본인 피격 시에만 화면 흔들림
+      screenShakeMag = 10;
       SoundFX.bossHit();
     }
   });
@@ -580,21 +625,25 @@ function sendDesktopChat() {
 }
 sendBtn?.addEventListener('click', sendDesktopChat);
 
-// SPACE 상호작용: 로비 NPC 대화 / 로비 중앙 전광판 / 기운 발산
+// SPACE 상호작용: 로비 전광판 / 로비 4인 NPC (2x2 대장간 포함) / 기운 발산
 function triggerSpaceInteractOrAura() {
   const me = players[myId];
   if (!me || !socket) return;
 
-  // 1) 로비 중앙 전광판 근접 체크 (X: 8~11, Y: 1~2.8)
+  // 1) 로비 중앙 전광판 근접 체크
   if (me.x >= 7.6 && me.x <= 11.4 && me.y >= 1.0 && me.y <= 3.0) {
     openBillboardModal();
     return;
   }
 
-  // 2) 로비 4인 NPC 근접 체크
+  // 2) 로비 4인 NPC 근접 체크 (2x2 대형 NPC 대장간 반경 반영)
   for (let i = 0; i < DORM_NPCS.length; i++) {
     const npc = DORM_NPCS[i];
-    if (Math.hypot(me.x - npc.x, me.y - npc.y) <= 1.75) {
+    const sz = npc.size || 1;
+    const npcCx = npc.x + (sz - 1) * 0.5;
+    const npcCy = npc.y + (sz - 1) * 0.5;
+    const interactDist = sz === 2 ? 2.4 : 1.75;
+    if (Math.hypot(me.x - npcCx, me.y - npcCy) <= interactDist) {
       openNpcDialog(npc);
       return;
     }
@@ -605,9 +654,8 @@ function triggerSpaceInteractOrAura() {
   socket.emit('emitAura');
 }
 
-// 키보드 이벤트 (Enter/슬래시 채팅, ESC 닫기->설정, S/C/R/A/Space)
+// 키보드 이벤트 (Enter/슬래시 채팅, ESC 닫기->설정, X 무기변경, S/C/R/A/Space)
 window.addEventListener('keydown', (e) => {
-  // 로그인 모달 내 Enter
   if (!authModal.classList.contains('hidden')) {
     if (e.key === 'Enter' && !loginFormSection.classList.contains('hidden')) {
       authSubmitBtn.click();
@@ -615,7 +663,6 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  // +15강 2차 확인 모달 열려있을 때 키보드 실수 방지
   if (isEnhanceConfirmOpen()) {
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -626,7 +673,6 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  // 채팅 입력창 포커스 중 처리
   if (document.activeElement === chatInput) {
     if (e.key === 'Enter') { e.preventDefault(); sendDesktopChat(); }
     else if (e.key === 'Escape') { e.preventDefault(); chatInput.blur(); }
@@ -638,14 +684,12 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  // 기타 input/textarea/select 포커스 중 (전광판 입력 등)
   const tag = document.activeElement?.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
     if (e.key === 'Escape') { e.preventDefault(); closeAnyOpenModal(); }
     return;
   }
 
-  // ESC: 열린 모달 있으면 닫기, 아무 모달도 없으면 설정 창 열기
   if (e.key === 'Escape') {
     e.preventDefault();
     const closedAny = closeAnyOpenModal();
@@ -653,28 +697,24 @@ window.addEventListener('keydown', (e) => {
     return;
   }
 
-  // NPC 대화창 열려 있을 때 SPACE / ENTER로 다음 대사
   if (!npcDialogModal.classList.contains('hidden')) {
-    if (e.key === ' ' || e.key === 'Enter') {
+    if ((e.key === ' ' || e.key === 'Enter') && activeNpc && activeNpc.id !== 'npc_blacksmith' && activeNpc.id !== 'npc_haerin') {
       e.preventDefault();
       advanceNpcDialog();
     }
     return;
   }
 
-  // 강화 모달 열려 있을 때 C 키로 연성
   if (!enhanceModal.classList.contains('hidden')) {
     if ((e.key === 'c' || e.key === 'C') && !e.repeat) {
       e.preventDefault();
-      executeEnhance(false);
+      executeEnhance();
     }
     return;
   }
 
-  // 다른 모달 열려 있으면 이동·단축키 차단
   if (isAnyBlockingModalOpen()) return;
 
-  // ENTER 또는 / 로 모든 화면 모드에서 채팅창 즉시 열기
   if (e.key === 'Enter' || e.key === '/') {
     e.preventDefault();
     openChatInputSmart();
@@ -701,6 +741,9 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     isAttackHeld = true;
     if (!e.repeat) performWeaponAttack();
+  } else if (lower === 'x') {
+    e.preventDefault();
+    if (!e.repeat && typeof swapMyWeapon === 'function') swapMyWeapon();
   } else if (lower === 's') {
     e.preventDefault();
     openInfoModal(null);
@@ -725,7 +768,6 @@ window.addEventListener('blur', () => {
   isAttackHeld = false;
 });
 
-// PC & 모바일 공격/기운 버튼 바인딩
 function bindHoldButton(el, onDown, onUp) {
   if (!el) return;
   el.addEventListener('mousedown', (e) => { e.preventDefault(); onDown(); });
@@ -829,7 +871,7 @@ bindHoldButton(
   zone.addEventListener('touchcancel', resetStick);
 })();
 
-// 캔버스 클릭 (로비 전광판 / NPC / 다른 유저 스펙 보기) & 마우스 휠 / 핀치 줌
+// 캔버스 클릭 (전광판 / 2x2 대장간 포함 NPC / 커스텀 크기 유저) & 휠·핀치 줌
 canvas.addEventListener('click', (e) => {
   if (!socket || isAnyBlockingModalOpen()) return;
   const rect = canvas.getBoundingClientRect();
@@ -840,25 +882,38 @@ canvas.addEventListener('click', (e) => {
   const tileX = worldPxX / TILE_SIZE;
   const tileY = worldPxY / TILE_SIZE;
 
-  // 1) 로비 중앙 전광판 클릭 (X: 7.2~12.8, Y: 0.1~2.3)
+  // 1) 로비 중앙 전광판 클릭
   if (tileX >= 7.2 && tileX <= 12.8 && tileY >= 0.1 && tileY <= 2.3) {
     openBillboardModal();
     return;
   }
 
-  // 2) NPC 클릭
+  // 2) 로비 4인 NPC 클릭 (2x2 대장간 포함)
   for (let i = 0; i < DORM_NPCS.length; i++) {
     const npc = DORM_NPCS[i];
-    if (Math.hypot(tileX - (npc.x + 0.5), tileY - (npc.y + 0.5)) <= 1.0) {
+    const sz = npc.size || 1;
+    if (tileX >= npc.x - 0.2 && tileX <= npc.x + sz + 0.2 && tileY >= npc.y - 0.3 && tileY <= npc.y + sz + 0.2) {
       openNpcDialog(npc);
       return;
     }
   }
 
-  // 3) 다른 유저 클릭 시 스펙 정보 창 열기
+  // 3) 다른 유저 클릭 시 스펙 정보 창 열기 (1~3x1~3 캐릭터 크기 반영)
   for (const sid in players) {
     const p = players[sid];
-    if (Math.hypot(worldPxX - (p.renderX + 20), worldPxY - (p.renderY + 20)) <= 26) {
+    const c = p.character || {};
+    const aw = Math.min(3, Math.max(1, c.avatarWidth || 1));
+    const ah = Math.min(3, Math.max(1, c.avatarHeight || 1));
+    const wPx = aw * TILE_SIZE;
+    const hPx = ah * TILE_SIZE;
+    const cx = (p.renderX || p.x * TILE_SIZE) + 20;
+    const feetY = (p.renderY || p.y * TILE_SIZE) + 36;
+    if (
+      worldPxX >= cx - wPx / 2 - 4 &&
+      worldPxX <= cx + wPx / 2 + 4 &&
+      worldPxY >= feetY - hPx - 4 &&
+      worldPxY <= feetY + 4
+    ) {
       openInfoModal(p);
       return;
     }
@@ -896,7 +951,7 @@ canvas.addEventListener('touchmove', (e) => {
   }
 }, { passive: false });
 
-// ================= [충돌 검사 & 무기 6종 평타 + 50강/100강 스킬 발동 엔진] =================
+// ================= [충돌 검사 & 무기 6종 전투 엔진 (지팡이 3속성 리워크 · 스킬 외침 제거)] =================
 function isClientPosBlocked(fx, fy) {
   if (fx < 0.2 || fx > mapW - 1.2 || fy < 0.8 || fy > mapH - 1.2) return true;
   for (let i = 0; i < obstacles.length; i++) {
@@ -924,6 +979,11 @@ function findNearestAliveMonster(px, py, maxRangeTiles = 9.0) {
   return best;
 }
 
+const WAND_ELEMENTS = ['fire', 'ice', 'lightning'];
+function pickRandomWandElement() {
+  return WAND_ELEMENTS[Math.floor(Math.random() * WAND_ELEMENTS.length)];
+}
+
 let lastLocalAttackTime = 0;
 let swingSideToggle = 1;
 let greatswordHitCounter = 0;
@@ -942,7 +1002,6 @@ function performWeaponAttack() {
   const wSpec = WEAPON_SPECS[wType];
   const now = Date.now();
 
-  // 태극구(taijiorb)는 A 키 홀드 지속 회전 전용 (별도 updateTaijiOrbTick에서 처리)
   if (wType === 'taijiorb') return;
 
   if (now - lastLocalAttackTime < wSpec.cooldownMs) return;
@@ -953,7 +1012,6 @@ function performWeaponAttack() {
   const has50 = hasWeaponSkill50Client(c, wType);
   const has100 = hasWeaponSkill100Client(c, wType);
 
-  // 자동 타게팅 (가장 가까운 몬스터를 향해 조준)
   const targetM = findNearestAliveMonster(me.x, me.y, wType === 'bow' ? 12.5 : (wType === 'wand' ? 8.5 : 5.5));
   let angle = typeof me.angle === 'number' ? me.angle : Math.PI / 2;
   if (targetM) {
@@ -976,45 +1034,48 @@ function performWeaponAttack() {
 
   let skillType = null;
   let skillTier = 0;
-  let shoutText = '';
+  let wandElement = null;
+  let triggerWandKnockback = false;
 
-  // ================= [무기별 50강(1차 각성) & 100강(2차 평타 각성) 분기] =================
   if (wType === 'wand') {
+    // 1발째 랜덤 속성 발사 (화염 / 빙결 / 뇌전)
+    wandElement = pickRandomWandElement();
+    spawnLocalProjectile(me, angle, 'wand', wLv, has100 ? 100 : 0, null, 1, false, wandElement);
+
+    // 50강 스킬 (IQ 150+): 100강 여부와 무관하게 20% 확률로 반경 4타일 밀쳐내기 (데미지 없음)
+    if (has50 && Math.random() < 0.20) {
+      triggerWandKnockback = true;
+    }
+
+    // 100강 평타 강화 (IQ 200+): 순간이동 없음, 3속성 중 랜덤 2발째 연속 발사 (공속 0.5초 유지)
     if (has100) {
-      skillType = 'dimension_meteor';
-      skillTier = 100;
-      shoutText = '차원 도약 포격!!';
-      // 100강: 짧은 순간이동 스텝 + 잔상
-      me.afterimages.push({ x: me.renderX, y: me.renderY, born: now, color: '#a855f7' });
-      const stepAng = angle + Math.PI + (Math.random() - 0.5) * 1.1;
-      const nx = me.x + Math.cos(stepAng) * 0.85;
-      const ny = me.y + Math.sin(stepAng) * 0.85;
-      if (!isClientPosBlocked(nx, ny)) {
-        me.x = nx; me.y = ny;
-        me.renderX = nx * TILE_SIZE; me.renderY = ny * TILE_SIZE;
-      }
-      spawnLocalProjectile(me, angle, 'wand', wLv, 100, 'dimension_meteor', 1);
-      setTimeout(() => spawnLocalProjectile(me, angle + 0.14, 'wand', wLv, 100, 'dimension_meteor', 1, true), 110);
-      setTimeout(() => spawnLocalProjectile(me, angle - 0.14, 'wand', wLv, 100, 'dimension_meteor', 1, true), 220);
-    } else if (has50 && Math.random() < 0.35) {
-      skillType = 'double_cast';
-      skillTier = 50;
-      shoutText = '1+1=귀요미!!';
-      spawnLocalProjectile(me, angle, 'wand', wLv, 50, 'double_cast', 1);
       setTimeout(() => {
-        spawnLocalProjectile(me, angle, 'wand', wLv, 50, 'double_cast', 1, true);
-        socket.emit('fireProjectile', { x: me.x, y: me.y, dir: me.dir, angle, isExtraWandShot: true, skillType, skillTier });
-      }, 160);
-    } else {
-      spawnLocalProjectile(me, angle, 'wand', wLv, 0, null, 1);
+        const curMe = players[myId];
+        if (!curMe || !socket) return;
+        const elem2 = pickRandomWandElement();
+        const t2 = findNearestAliveMonster(curMe.x, curMe.y, 8.5);
+        let ang2 = angle;
+        if (t2) {
+          const ms = t2.size || 1;
+          ang2 = Math.atan2(t2.y + (ms - 1) * 0.5 - curMe.y, t2.x + (ms - 1) * 0.5 - curMe.x);
+        }
+        spawnLocalProjectile(curMe, ang2, 'wand', wLv, 100, null, 1, true, elem2);
+        SoundFX.weaponAttack('wand', wLv, false, false);
+        socket.emit('fireProjectile', {
+          x: curMe.x,
+          y: curMe.y,
+          dir: curMe.dir,
+          angle: ang2,
+          element: elem2,
+          isExtraWandShot: true
+        });
+      }, 115);
     }
   } else if (wType === 'greatsword') {
     greatswordHitCounter++;
     if (has100) {
       skillType = 'overlord_dash';
       skillTier = 100;
-      shoutText = '패왕 돌진베기!!';
-      // 100강: 적진 고속 돌진 + 광역 거대 검기
       for (let s = 0; s < 3; s++) {
         me.afterimages.push({ x: me.renderX, y: me.renderY, born: now + s * 25, color: '#ef4444' });
         const nx = me.x + Math.cos(angle) * 0.7;
@@ -1027,7 +1088,6 @@ function performWeaponAttack() {
     } else if (has50 && greatswordHitCounter % 3 === 0) {
       skillType = 'spin_slash';
       skillTier = 50;
-      shoutText = 'GG!!';
       executeMeleeConeAttack(me, angle, 3.1, Math.PI * 2, 'greatsword', wLv, 50, skillType);
       setTimeout(() => executeMeleeConeAttack(me, angle + Math.PI, 3.1, Math.PI * 2, 'greatsword', wLv, 50, skillType), 180);
     } else {
@@ -1037,8 +1097,6 @@ function performWeaponAttack() {
     if (has100) {
       skillType = 'meteor_slam';
       skillTier = 100;
-      shoutText = '운석 강하!!';
-      // 100강: 타겟 근처로 도약 강하 충격파
       if (targetM) {
         const mSize = targetM.size || 1;
         const tx = targetM.x + (mSize - 1) * 0.5 - Math.cos(angle) * 0.9;
@@ -1053,7 +1111,6 @@ function performWeaponAttack() {
     } else if (has50 && Math.random() < 0.35) {
       skillType = 'blackhole';
       skillTier = 50;
-      shoutText = '일루왕♡';
       executeMeleeConeAttack(me, angle, 3.4, Math.PI * 2, 'hammer', wLv, 50, skillType);
     } else {
       executeMeleeConeAttack(me, angle, 2.5, (118 * Math.PI) / 180, 'hammer', wLv, 0, null);
@@ -1063,8 +1120,6 @@ function performWeaponAttack() {
     if (has100) {
       skillType = 'acrobatic_shot';
       skillTier = 100;
-      shoutText = '비연 곡예사격!!';
-      // 100강: 좌우/대각선 공중제비 스텝 무빙샷
       const sideAng = angle + (swingSideToggle > 0 ? Math.PI / 2 : -Math.PI / 2);
       const nx = me.x + Math.cos(sideAng) * 0.9;
       const ny = me.y + Math.sin(sideAng) * 0.9;
@@ -1077,7 +1132,6 @@ function performWeaponAttack() {
     } else if (has50 && bowHitCounter % 4 === 0) {
       skillType = 'samsamgu';
       skillTier = 50;
-      shoutText = '삼삼구샷!!';
       [0, 110, 220].forEach(delay => {
         setTimeout(() => {
           [-0.22, 0, 0.22].forEach(off => spawnLocalProjectile(me, angle + off, 'bow', wLv, 50, skillType, 1));
@@ -1090,8 +1144,6 @@ function performWeaponAttack() {
     if (has100) {
       skillType = 'phantom_blink';
       skillTier = 100;
-      shoutText = '환영 순보!!';
-      // 100강: 잔상을 남기며 대상 좌/우/배후로 순간이동 연속 베기
       if (targetM) {
         const mSize = targetM.size || 1;
         const tcx = targetM.x + (mSize - 1) * 0.5;
@@ -1111,35 +1163,30 @@ function performWeaponAttack() {
     } else if (has50 && Math.random() < 0.24) {
       skillType = 'savage_blow';
       skillTier = 50;
-      shoutText = '새비지 블로우!!';
       executeDaggerStrike(me, angle, targetM, wLv, 50, skillType, 6);
     } else {
       executeDaggerStrike(me, angle, targetM, wLv, 0, null, 1);
     }
   }
 
-  SoundFX.weaponAttack(wType, wLv, isMale, Boolean(skillType));
-  screenShakeMag = Math.max(screenShakeMag, skillTier >= 100 ? 4.5 : (skillTier === 50 ? 3.0 : 1.5)); // 본인 공격만 미세 흔들림
-
-  // 스킬 외침은 채팅 말풍선(p.chatText)과 완전히 분리된 전용 팝업 레이어로 출력
-  if (shoutText) {
-    spawnSkillPopup(me.renderX + 20, me.renderY - 14, shoutText, skillTier >= 100 ? '#f43f5e' : '#fef08a', skillTier);
-  }
+  SoundFX.weaponAttack(wType, wLv, isMale, Boolean(skillType || triggerWandKnockback));
+  screenShakeMag = Math.max(screenShakeMag, (skillTier >= 100 && wType !== 'wand') ? 4.5 : (triggerWandKnockback ? 3.0 : 1.5));
 
   socket.emit('fireProjectile', {
     x: me.x,
     y: me.y,
     dir: me.dir,
     angle: angle,
+    element: wandElement,
+    triggerKnockback: triggerWandKnockback,
     swingSide: swingSideToggle,
     skillType: skillType,
-    skillTier: skillTier,
-    shoutText: shoutText
+    skillTier: skillTier
   });
 }
 
-function spawnLocalProjectile(owner, angle, weaponType, weaponLv, skillTier, skillType, isMine = 1, isExtra = false) {
-  const speed = weaponType === 'bow' ? 14.5 : (skillTier >= 100 ? 10.5 : 8.5);
+function spawnLocalProjectile(owner, angle, weaponType, weaponLv, skillTier, skillType, isMine = 1, isExtra = false, element = null) {
+  const speed = weaponType === 'bow' ? 14.5 : 8.5;
   const maxRangePx = (weaponType === 'bow' ? 12.2 : 7.8) * TILE_SIZE;
   projectiles.push({
     ownerId: owner.id,
@@ -1148,6 +1195,7 @@ function spawnLocalProjectile(owner, angle, weaponType, weaponLv, skillTier, ski
     weaponLv,
     skillTier,
     skillType,
+    element: weaponType === 'wand' ? (element || 'fire') : null,
     x: owner.renderX + 20 + Math.cos(angle) * 14,
     y: owner.renderY + 20 + Math.sin(angle) * 14,
     vx: Math.cos(angle) * speed,
@@ -1238,7 +1286,7 @@ function executeDaggerStrike(owner, angle, targetM, weaponLv, skillTier, skillTy
   }
 }
 
-// ================= [신규 무기 ☯️ 태극구: A 홀드 360° 회전 타격 + 50강 음양양의 + 100강 무위 축지] =================
+// ================= [태극구: A 홀드 360° 회전 타격 (스킬 외침 제거)] =================
 function updateTaijiOrbLogic(now, dtSec) {
   const me = players[myId];
   if (!me || !socket) return;
@@ -1255,7 +1303,6 @@ function updateTaijiOrbLogic(now, dtSec) {
   const has100 = hasWeaponSkill100Client(c, 'taijiorb');
   if (taijiHoldStartTime === 0) taijiHoldStartTime = now;
 
-  // 100강 [무위 축지]: 더 빠른 회전 + 잔상
   const rotSpeed = has100 ? 5.6 : 3.4;
   taijiOrbitAngle = (taijiOrbitAngle + rotSpeed * dtSec) % (Math.PI * 2);
   me.taijiActiveUntil = now + 180;
@@ -1264,23 +1311,19 @@ function updateTaijiOrbLogic(now, dtSec) {
     me.afterimages.push({ x: me.renderX, y: me.renderY, born: now, color: '#38bdf8' });
   }
 
-  // 50강 [음양양의]: A 홀드 3초마다 2초간 4.5타일 외곽 역회전 거대 구슬 2개 추가
   if (has50 && (now - taijiHoldStartTime >= 2800) && (now - lastTaijiOuterTrigger >= 5000)) {
     lastTaijiOuterTrigger = now;
     me.taijiOuterUntil = now + 2000;
-    spawnSkillPopup(me.renderX + 20, me.renderY - 14, '☯️ 음양양의!!', '#fef08a', 50);
     SoundFX.weaponAttack('taijiorb', getEquippedWeaponLevel(c), true, true);
     socket.emit('fireProjectile', {
       x: me.x, y: me.y, dir: me.dir, angle: taijiOrbitAngle,
-      skillType: 'yinyang_outer', skillTier: 50, shoutText: '☯️ 음양양의!!'
+      skillType: 'yinyang_outer', skillTier: 50
     });
   }
 
-  // 0.5초마다 궤도 내 몬스터 타격
   if (now - lastTaijiTickTime < 500) return;
   lastTaijiTickTime = now;
 
-  const innerCount = has100 ? 4 : 2;
   const outerActive = me.taijiOuterUntil > now;
   const hitAny = [];
 
@@ -1292,7 +1335,6 @@ function updateTaijiOrbLogic(now, dtSec) {
     const mCy = m.y + (mSize - 1) * 0.5;
     const dist = Math.hypot(mCx - me.x, mCy - me.y);
 
-    // 내부 반경 3타일 궤도 판정
     if (dist <= 3.35 + (mSize === 2 ? 0.65 : 0)) {
       const hits = has100 ? 2 : 1;
       for (let h = 0; h < hits; h++) {
@@ -1304,7 +1346,6 @@ function updateTaijiOrbLogic(now, dtSec) {
       }
       hitAny.push(m.id);
     } else if (outerActive && dist <= 4.95 + (mSize === 2 ? 0.65 : 0)) {
-      // 50강 외곽 반경 4.5타일 역회전 거대 구슬 판정
       socket.emit('hitMonster', {
         monsterId: m.id,
         skillHit: true,
@@ -1320,11 +1361,11 @@ function updateTaijiOrbLogic(now, dtSec) {
   socket.emit('fireProjectile', {
     x: me.x, y: me.y, dir: me.dir, angle: taijiOrbitAngle,
     skillType: has100 ? 'wuwei_step' : null,
-    skillTier: has100 ? 100 : 0,
-    shoutText: ''
+    skillTier: has100 ? 100 : 0
   });
 }
-// ================= [원격 플레이어 공격 & 스킬 이펙트 동기화 (내 화면 흔들림 없음)] =================
+
+// ================= [원격 플레이어 공격 & 이펙트 동기화 (스킬 외침 제거 · 지팡이 3속성 색상 동기화)] =================
 function handleRemoteProjectileEvent(data) {
   if (!data || data.ownerId === myId) return;
   const owner = players[data.ownerId];
@@ -1342,17 +1383,6 @@ function handleRemoteProjectileEvent(data) {
     owner.lungeOffsetX = Math.cos(angle) * 6;
     owner.lungeOffsetY = Math.sin(angle) * 6;
 
-    // 원격 유저의 스킬 외침도 채팅 말풍선과 분리된 전용 이펙트 팝업으로 표시
-    if (data.shoutText) {
-      spawnSkillPopup(
-        owner.renderX + 20,
-        owner.renderY - 14,
-        data.shoutText,
-        skillTier >= 100 ? '#f43f5e' : '#fef08a',
-        skillTier
-      );
-    }
-
     if (wType === 'taijiorb') {
       owner.taijiActiveUntil = now + 620;
       if (data.skillType === 'yinyang_outer') {
@@ -1362,7 +1392,7 @@ function handleRemoteProjectileEvent(data) {
     }
 
     if (wType === 'wand' || wType === 'bow') {
-      spawnLocalProjectile(owner, angle, wType, data.weaponLv || 0, skillTier, data.skillType, 0);
+      spawnLocalProjectile(owner, angle, wType, data.weaponLv || 0, skillTier, data.skillType, 0, false, data.element || null);
     } else if (wType === 'greatsword' || wType === 'hammer') {
       const range = wType === 'greatsword' ? (skillTier >= 100 ? 3.6 : 2.9) : (skillTier >= 100 ? 3.8 : 2.6);
       const arc = (skillTier >= 50) ? Math.PI * 2 : (wType === 'greatsword' ? 2.6 : 2.06);
@@ -1395,7 +1425,7 @@ function handleRemoteProjectileEvent(data) {
   }
 }
 
-// ================= [60FPS 고정 틱 물리 · 선판정 이동 · 보간 루프 (고주사율/약한 와이파이 무렉)] =================
+// ================= [60FPS 고정 틱 물리 · 선판정 이동 · 보간 루프] =================
 let lastMoveEmitTime = 0;
 let lastFootstepSoundTime = 0;
 let wasMovingLocally = false;
@@ -1426,7 +1456,6 @@ function stepGameSimulation(dtSec, now) {
     if (mag > 0.05) {
       const nxDir = vx / mag;
       const nyDir = vy / mag;
-      // 기본 속도 4.9타일/초, 달리기 7.6타일/초, 태극구 100강[무위 축지] 시 +28%
       let speedTiles = isSprintHeld ? 7.6 : 4.9;
       if (isTaiji100Moving) speedTiles *= 1.28;
 
@@ -1467,7 +1496,6 @@ function stepGameSimulation(dtSec, now) {
       BGMManager.updateZoneByX(me.x);
       wasMovingLocally = true;
 
-      // 약한 와이파이 대응: 65ms 간격으로 좌표 송신
       if (now - lastMoveEmitTime >= 65) {
         lastMoveEmitTime = now;
         socket.emit('move', {
@@ -1491,7 +1519,6 @@ function stepGameSimulation(dtSec, now) {
       });
     }
 
-    // 공격 홀드 연사 & 태극구 회전 처리
     if (isAttackHeld) {
       if (myCharacter?.equippedWeapon === 'taijiorb') {
         updateTaijiOrbLogic(now, dtSec);
@@ -1528,7 +1555,7 @@ function stepGameSimulation(dtSec, now) {
     }
   }
 
-  // 3) 몬스터 스냅샷 부드러운 보간 (약한 와이파이 끊김 제거)
+  // 3) 몬스터 스냅샷 보간
   const lerpMon = Math.min(1, dtSec * 8.5);
   for (const mid in monsters) {
     const m = monsters[mid];
@@ -1546,12 +1573,12 @@ function stepGameSimulation(dtSec, now) {
     }
   }
 
-  // 4) 투사체 물리 이동 & 몬스터 충돌 판정 (지팡이 유도 폭발 / 활 관통)
+  // 4) 투사체 물리 이동 & 몬스터 충돌 판정 (지팡이 3속성 유도 / 활 관통)
   const stepScale = dtSec * 60;
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const pr = projectiles[i];
 
-    // 지팡이(wand) 부드러운 유도 보정
+    // 지팡이(wand) 기존 유도 메커니즘 유지
     if (pr.weaponType === 'wand' && pr.traveled < pr.maxRangePx * 0.85) {
       const nearest = findNearestAliveMonster(pr.x / TILE_SIZE, pr.y / TILE_SIZE, 5.5);
       if (nearest) {
@@ -1584,20 +1611,23 @@ function stepGameSimulation(dtSec, now) {
       const mSize = m.size || 1;
       const mCx = (m.renderX || m.x * TILE_SIZE) + (mSize * TILE_SIZE) / 2;
       const mCy = (m.renderY || m.y * TILE_SIZE) + (mSize * TILE_SIZE) / 2;
-      const hitRad = (mSize === 2 ? 38 : 22) + (pr.skillTier >= 100 ? 10 : 0);
+      const hitRad = (mSize === 2 ? 38 : 22) + (pr.weaponType === 'bow' && pr.skillTier >= 100 ? 10 : 0);
 
       if (Math.hypot(pr.x - mCx, pr.y - mCy) <= hitRad) {
         pr.hitSet.add(mid);
+        const elem = pr.element || 'fire';
+
         if (pr.isMine && socket) {
           socket.emit('hitMonster', {
             monsterId: m.id,
+            element: pr.weaponType === 'wand' ? elem : null,
             skillHit: pr.skillTier >= 50,
             skillTier: pr.skillTier
           });
 
-          // 지팡이 폭발 스플래시 (주변 2.1타일 내 동시 타격)
-          if (pr.weaponType === 'wand') {
-            const splashR = (pr.skillTier >= 100 ? 2.8 : 2.1) * TILE_SIZE;
+          // 지팡이 화염구(스플래시 60%) & 빙결구(스플래시 10%+빙결)만 스플래시 적용 (뇌전구는 단일+번개)
+          if (pr.weaponType === 'wand' && (elem === 'fire' || elem === 'ice')) {
+            const splashR = 2.1 * TILE_SIZE;
             for (const smid in monsters) {
               if (smid === mid) continue;
               const sm = monsters[smid];
@@ -1606,19 +1636,24 @@ function stepGameSimulation(dtSec, now) {
               const smCx = (sm.renderX || sm.x * TILE_SIZE) + (smSize * TILE_SIZE) / 2;
               const smCy = (sm.renderY || sm.y * TILE_SIZE) + (smSize * TILE_SIZE) / 2;
               if (Math.hypot(pr.x - smCx, pr.y - smCy) <= splashR) {
-                socket.emit('hitMonster', { monsterId: sm.id, isSplash: true, skillTier: pr.skillTier });
+                socket.emit('hitMonster', { monsterId: sm.id, isSplash: true, element: elem });
               }
             }
           }
         }
 
+        const hitColor = pr.weaponType === 'bow'
+          ? '#38bdf8'
+          : (elem === 'fire' ? '#f97316' : (elem === 'ice' ? '#38bdf8' : '#facc15'));
+        const hitRadius = pr.weaponType === 'wand' ? (elem === 'lightning' ? 32 : 56) : 24;
+
         hitEffects.push({
           x: pr.x,
           y: pr.y,
-          radius: pr.weaponType === 'wand' ? (pr.skillTier >= 100 ? 78 : 54) : 24,
-          color: pr.weaponType === 'bow' ? '#38bdf8' : (pr.skillTier >= 100 ? '#f43f5e' : '#c084fc'),
+          radius: hitRadius,
+          color: hitColor,
           born: now,
-          duration: pr.weaponType === 'wand' ? 280 : 180
+          duration: pr.weaponType === 'wand' ? 260 : 180
         });
 
         if (!pr.pierce) {
@@ -1637,6 +1672,7 @@ function stepGameSimulation(dtSec, now) {
   burstEffects = burstEffects.filter(b => now - b.born < b.duration);
   meleeEffects = meleeEffects.filter(m => now - m.born < m.duration);
   hitEffects = hitEffects.filter(h => now - h.born < h.duration);
+  lightningEffects = lightningEffects.filter(l => now - l.born < l.duration);
   floatingDamages = floatingDamages.filter(f => now - f.born < f.duration);
   skillPopups = skillPopups.filter(s => now - s.born < s.duration);
   bossTelegraphs = bossTelegraphs.filter(t => now - t.born < t.duration + 180);
@@ -1663,17 +1699,14 @@ function stepGameSimulation(dtSec, now) {
   else screenShakeMag = 0;
 }
 
-// ================= [Zero-Lag 렌더링 헬퍼 (shadowBlur & 매 프레임 그라데이션 완전 제거)] =================
+// ================= [Zero-Lag 렌더링 헬퍼] =================
 function drawPixelTree(px, py, trunkColor, leafDark, leafLight, accentColor = null) {
-  // 바닥 그림자
   ctx.fillStyle = 'rgba(0,0,0,0.32)';
   ctx.beginPath();
   ctx.ellipse(px + 20, py + 36, 16, 6, 0, 0, Math.PI * 2);
   ctx.fill();
-  // 나무 기둥
   ctx.fillStyle = trunkColor;
   ctx.fillRect(px + 15, py + 22, 10, 14);
-  // 잎사귀 레이어 (도트 계단형)
   ctx.fillStyle = leafDark;
   ctx.fillRect(px + 4, py + 8, 32, 18);
   ctx.fillRect(px + 8, py + 2, 24, 10);
@@ -1693,7 +1726,6 @@ function drawObstacleItem(obs) {
   const py = obs.y * TILE_SIZE;
   const t = obs.type;
 
-  // NPC & 전광판은 전용 레이어에서 렌더링
   if (t.startsWith('npc_') || t === 'billboard') return;
 
   if (t === 'window') {
@@ -1750,7 +1782,6 @@ function drawObstacleItem(obs) {
     ctx.fillRect(px + 10, py + 12, 18, 10);
   } else if (t === 'forest_tree') {
     if (forestTilesLoaded && forestTilesClean && forestTilesClean.width >= 300) {
-      // 업로드된 forest_tiles.png 좌측 상단 밝은 숲 나무 스프라이트 자동 매핑
       const sw = Math.floor(forestTilesClean.width * 0.056);
       const sh = Math.floor(forestTilesClean.height * 0.088);
       const sx = Math.floor(forestTilesClean.width * 0.197);
@@ -1793,23 +1824,20 @@ function drawObstacleItem(obs) {
 function drawLobbyCentralBillboard() {
   const bx = 7.4 * TILE_SIZE;
   const by = 0.25 * TILE_SIZE;
-  const bw = 5.2 * TILE_SIZE; // 208px
-  const bh = 2.05 * TILE_SIZE; // 82px
+  const bw = 5.2 * TILE_SIZE;
+  const bh = 2.05 * TILE_SIZE;
 
   if (bx + bw < cameraX - 40 || bx > cameraX + viewLogicalW + 40) return;
 
-  // 전광판 외곽 프레임
   ctx.fillStyle = '#1c1015';
   ctx.fillRect(bx, by, bw, bh);
   ctx.strokeStyle = '#f59e0b';
   ctx.lineWidth = 2.5;
   ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
 
-  // 내부 전광판 스크린
   ctx.fillStyle = '#05080d';
   ctx.fillRect(bx + 5, by + 5, bw - 10, bh - 10);
 
-  // 상단 헤더 (유지 시간 & 소거율)
   const elapsedStr = formatBillboardDuration(billboardData.textSince);
   const failedCnt = billboardData.failedCount || 0;
   ctx.font = 'bold 9px "DungGeunMo"';
@@ -1820,7 +1848,6 @@ function drawLobbyCentralBillboard() {
   ctx.fillStyle = '#facc15';
   ctx.fillText(`소거 ${failedCnt}/1000`, bx + bw - 9, by + 16);
 
-  // 본문 전체 내용 자동 줄바꿈 표시
   const rawText = (billboardData.boxText || '').replace(/\r/g, '');
   ctx.font = '10px "DungGeunMo"';
   ctx.textAlign = 'center';
@@ -1847,54 +1874,144 @@ function drawLobbyCentralBillboard() {
     ctx.fillText(ln, bx + bw / 2, by + 31 + idx * 12);
   });
 
-  // 하단 상호작용 안내
   ctx.font = '9px "DungGeunMo"';
   ctx.fillStyle = '#4ade80';
   ctx.fillText('[클릭 또는 SPACE: 비밀번호 해킹]', bx + bw / 2, by + bh + 11);
 }
 
-// ================= [로비 4인 NPC 렌더링] =================
+// ================= [로비 4인 NPC 렌더링 (2×2 덩치 큰 힘센 대장장이 '대장간' 포함)] =================
 function drawDormNpcs(now) {
   const me = players[myId];
   const bob = Math.sin(now * 0.005) * 1.5;
 
   DORM_NPCS.forEach(npc => {
+    const sz = npc.size || 1;
     const px = npc.x * TILE_SIZE;
     const py = npc.y * TILE_SIZE;
-    if (px < cameraX - 60 || px > cameraX + viewLogicalW + 60) return;
+    const wPx = sz * TILE_SIZE;
+    const hPx = sz * TILE_SIZE;
+    if (px + wPx < cameraX - 60 || px > cameraX + viewLogicalW + 60) return;
 
-    // 그림자
+    const npcTileCx = npc.x + (sz - 1) * 0.5;
+    const npcTileCy = npc.y + (sz - 1) * 0.5;
+    const interactDist = sz === 2 ? 2.4 : 1.9;
+
+    if (npc.id === 'npc_blacksmith') {
+      // [2x2 대형 NPC: 덩치 큰 힘센 대장장이 남자 + 모루/화덕 불꽃]
+      const cx = px + wPx / 2;
+      const dy = py + bob * 0.8;
+
+      // 바닥 그림자
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(cx, py + hPx - 6, 34, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 화덕 열기 링
+      const heatPulse = 32 + Math.sin(now * 0.007) * 3;
+      ctx.strokeStyle = 'rgba(249, 115, 22, 0.45)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.ellipse(cx, py + hPx - 8, heatPulse, heatPulse * 0.36, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 단단한 다리 & 부츠
+      ctx.fillStyle = '#292524';
+      ctx.fillRect(px + 20, dy + 56, 14, 16);
+      ctx.fillRect(px + 46, dy + 56, 14, 16);
+
+      // 넓은 근육질 상체 (민소매/가죽 앞치마)
+      ctx.fillStyle = '#d99b6c'; // 근육 팔·어깨
+      ctx.fillRect(px + 8, dy + 24, 64, 24);
+      ctx.fillRect(px + 10, dy + 42, 14, 14);
+      ctx.fillRect(px + 56, dy + 42, 14, 14);
+
+      // 가죽 대장간 앞치마 & 붉은 허리띠
+      ctx.fillStyle = '#5c2b16';
+      ctx.fillRect(px + 20, dy + 24, 40, 36);
+      ctx.fillStyle = '#9a3412';
+      ctx.fillRect(px + 24, dy + 28, 32, 26);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(px + 20, dy + 46, 40, 5);
+
+      // 듬직한 머리와 풍성한 수염 & 붉은 머리띠
+      ctx.fillStyle = '#e5a97c';
+      ctx.fillRect(px + 26, dy + 6, 28, 22);
+      ctx.fillStyle = '#1c1917'; // 머리칼 + 수염
+      ctx.fillRect(px + 24, dy + 2, 32, 8);
+      ctx.fillRect(px + 24, dy + 20, 32, 10);
+      ctx.fillStyle = '#dc2626'; // 붉은 머리띠
+      ctx.fillRect(px + 25, dy + 8, 30, 4);
+      // 눈
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(px + 32, dy + 14, 4, 4);
+      ctx.fillRect(px + 44, dy + 14, 4, 4);
+
+      // 오른손 대형 대장장이 망치 (살짝 들썩이는 모션)
+      const hammerLift = Math.sin(now * 0.008) * 3;
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(px + 63, dy + 16 + hammerLift, 5, 34);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(px + 56, dy + 10 + hammerLift, 19, 12);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(px + 58, dy + 11 + hammerLift, 15, 4);
+
+      // 앞쪽 작은 모루
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(px + 6, dy + 60, 22, 10);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(px + 3, dy + 56, 28, 6);
+
+      // 이름표 & 역할 뱃지
+      ctx.font = 'bold 12px "DungGeunMo"';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#000';
+      ctx.fillText(npc.name, cx + 1, dy - 3);
+      ctx.fillStyle = '#fef08a';
+      ctx.fillText(npc.name, cx, dy - 4);
+      ctx.font = '10px "DungGeunMo"';
+      ctx.fillStyle = '#fb923c';
+      ctx.fillText('⚒️무기강화·2슬롯', cx, dy - 16);
+
+      if (me && Math.hypot(me.x - npcTileCx, me.y - npcTileCy) <= interactDist) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.fillRect(cx - 38, dy - 38, 76, 16);
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx - 38, dy - 38, 76, 16);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText('SPACE / 클릭', cx, dy - 26);
+      }
+      return;
+    }
+
+    // 일반 1x1 NPC 렌더링
     ctx.fillStyle = 'rgba(0,0,0,0.38)';
     ctx.beginPath();
     ctx.ellipse(px + 20, py + 36, 13, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // NPC별 개성 있는 도트 몸체
     const bodyColors = {
       npc_helicopter: { robe: '#1d4ed8', accent: '#facc15', hair: '#0f172a' },
       npc_nong:       { robe: '#c2410c', accent: '#fde047', hair: '#9a3412' },
-      npc_haerin:     { robe: '#be185d', accent: '#fbcfe8', hair: '#4c1d95' },
-      npc_master:     { robe: '#065f46', accent: '#f59e0b', hair: '#e2e8f0' }
+      npc_haerin:     { robe: '#be185d', accent: '#fbcfe8', hair: '#4c1d95' }
     };
-    const pal = bodyColors[npc.id] || bodyColors.npc_master;
+    const pal = bodyColors[npc.id] || bodyColors.npc_helicopter;
 
     const dy = py + bob;
     ctx.fillStyle = pal.robe;
     ctx.fillRect(px + 10, dy + 17, 20, 17);
     ctx.fillStyle = pal.accent;
     ctx.fillRect(px + 17, dy + 18, 6, 15);
-    // 머리
     ctx.fillStyle = '#fde68a';
     ctx.fillRect(px + 12, dy + 5, 16, 13);
     ctx.fillStyle = pal.hair;
     ctx.fillRect(px + 11, dy + 3, 18, 5);
-    // 눈
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(px + 15, dy + 10, 2, 3);
     ctx.fillRect(px + 23, dy + 10, 2, 3);
 
-    // 이름표 & 역할 뱃지
-    const roleTag = npc.id === 'npc_haerin' ? '🎨외형커스텀' : (npc.id === 'npc_master' ? '⚔️무기전수' : (npc.id === 'npc_helicopter' ? '📋패치안내' : '🤣아재개그'));
+    const roleTag = npc.id === 'npc_haerin' ? '🎨외형·크기' : (npc.id === 'npc_helicopter' ? '📋패치안내' : '🤣아재개그');
     ctx.font = 'bold 10px "DungGeunMo"';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#000';
@@ -1905,7 +2022,7 @@ function drawDormNpcs(now) {
     ctx.fillStyle = '#38bdf8';
     ctx.fillText(roleTag, px + 20, dy - 13);
 
-    if (me && Math.hypot(me.x - npc.x, me.y - npc.y) <= 1.9) {
+    if (me && Math.hypot(me.x - npcTileCx, me.y - npcTileCy) <= interactDist) {
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.fillRect(px - 14, dy - 33, 68, 15);
       ctx.strokeStyle = '#facc15';
@@ -1917,7 +2034,7 @@ function drawDormNpcs(now) {
   });
 }
 
-// ================= [몬스터 렌더링 (9종: 독감 거수 BOSS 제거 · 심연의 마수왕 BOSS 전용 연출)] =================
+// ================= [몬스터 렌더링 (9종 + 빙결 상태 시각화 · 보스 CC 면역)] =================
 function drawMonsters(now) {
   for (const mid in monsters) {
     const m = monsters[mid];
@@ -1930,19 +2047,16 @@ function drawMonsters(now) {
     const wPx = mSize * TILE_SIZE;
     const hPx = mSize * TILE_SIZE;
 
-    // 뷰포트 컬링
     if (px + wPx < cameraX - 50 || px > cameraX + viewLogicalW + 50) continue;
 
     const bob = Math.sin(now * 0.006 + px * 0.05) * (mSize === 2 ? 2.5 : 1.8);
     const isHit = m.hitFlashUntil > now;
 
-    // 바닥 그림자
     ctx.fillStyle = 'rgba(0,0,0,0.38)';
     ctx.beginPath();
     ctx.ellipse(px + wPx / 2, py + hPx - 5, wPx * 0.36, mSize === 2 ? 12 : 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // [BOSS] 심연의 마수왕 바닥 붉은 오라 링 (shadowBlur 미사용)
     if (m.isBoss) {
       const pulse = 36 + Math.sin(now * 0.008) * 5;
       ctx.strokeStyle = 'rgba(239, 68, 68, 0.72)';
@@ -1955,7 +2069,6 @@ function drawMonsters(now) {
     const cx = px + wPx / 2;
     const cy = py + hPx / 2 + bob;
 
-    // 몬스터 종류별 깔끔한 도트 렌더링
     if (m.type === 'mandrake') {
       ctx.fillStyle = isHit ? '#fff' : '#d97706';
       ctx.beginPath(); ctx.arc(cx, cy + 4, 12, 0, Math.PI * 2); ctx.fill();
@@ -1994,7 +2107,6 @@ function drawMonsters(now) {
       ctx.fillStyle = '#fef08a';
       ctx.fillRect(cx - 7, cy - 3, 4, 4); ctx.fillRect(cx + 3, cy - 3, 4, 4);
     } else if (m.type === 'flu_behemoth') {
-      // 2x2 대형 일반 몬스터 (독감 거수)
       ctx.fillStyle = isHit ? '#fff' : '#365314';
       ctx.beginPath(); ctx.arc(cx, cy, 29, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#65a30d';
@@ -2004,7 +2116,6 @@ function drawMonsters(now) {
       ctx.fillStyle = '#fef08a';
       ctx.fillRect(cx - 10, cy + 7, 20, 5);
     } else if (m.type === 'sleepless_shadow') {
-      // 동쪽숲 3 유일 1x1 몬스터: 불면의 그림자
       ctx.fillStyle = isHit ? '#fff' : '#0f172a';
       ctx.beginPath(); ctx.arc(cx, cy - 2, 13, Math.PI, 0); ctx.lineTo(cx + 14, cy + 14); ctx.lineTo(cx - 14, cy + 14); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#38bdf8';
@@ -2013,7 +2124,6 @@ function drawMonsters(now) {
       ctx.fillStyle = '#22d3ee';
       ctx.fillRect(cx - 6, cy - 4, 4, 3); ctx.fillRect(cx + 2, cy - 4, 4, 3);
     } else if (m.type === 'ancient_golem') {
-      // 동쪽숲 3 2x2 대형 일반 몬스터: 고대 나무 골렘
       ctx.fillStyle = isHit ? '#fff' : '#3f2e21';
       ctx.fillRect(cx - 26, cy - 24, 52, 48);
       ctx.fillStyle = '#15803d';
@@ -2022,25 +2132,31 @@ function drawMonsters(now) {
       ctx.fillRect(cx - 14, cy - 8, 9, 6); ctx.fillRect(cx + 5, cy - 8, 9, 6);
       ctx.fillRect(cx - 6, cy + 6, 12, 12);
     } else if (m.type === 'abyss_beast_king') {
-      // 동쪽숲 3 [BOSS] 심연의 마수왕 (2x2 초대형 보스)
       ctx.fillStyle = isHit ? '#fff' : '#3b0764';
       ctx.fillRect(cx - 30, cy - 22, 60, 48);
       ctx.fillStyle = '#7f1d1d';
       ctx.fillRect(cx - 24, cy - 18, 48, 34);
-      // 왕관/거대 뿔
       ctx.fillStyle = '#facc15';
       ctx.beginPath();
       ctx.moveTo(cx - 26, cy - 22); ctx.lineTo(cx - 34, cy - 40); ctx.lineTo(cx - 14, cy - 24);
       ctx.moveTo(cx + 26, cy - 22); ctx.lineTo(cx + 34, cy - 40); ctx.lineTo(cx + 14, cy - 24);
       ctx.fill();
-      // 황금 보스 눈 & 송곳니
       ctx.fillStyle = '#fef08a';
       ctx.fillRect(cx - 14, cy - 9, 9, 6); ctx.fillRect(cx + 5, cy - 9, 9, 6);
       ctx.fillStyle = '#f8fafc';
       ctx.fillRect(cx - 12, cy + 8, 5, 7); ctx.fillRect(cx + 7, cy + 8, 5, 7);
     }
 
-    // 체력바 & 이름표 (독감 거수 [BOSS] 제거, 오직 심연의 마수왕만 [BOSS] 표기)
+    // 빙결 상태 시각화 (모든 [BOSS] 몬스터는 면역이므로 미표시)
+    if (!m.isBoss && m.frozenUntil && m.frozenUntil > now) {
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
+      ctx.fillRect(px + 2, py + 2, wPx - 4, hPx - 4);
+      ctx.strokeStyle = '#7dd3fc';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(px + 2, py + 2, wPx - 4, hPx - 4);
+    }
+
+    // 체력바 & 이름표
     const barW = mSize === 2 ? 72 : 38;
     const barX = cx - barW / 2;
     const barY = py - (m.isBoss ? 18 : 10);
@@ -2061,7 +2177,7 @@ function drawMonsters(now) {
   }
 }
 
-// ================= [플레이어 · 커스텀 아바타 · 무기 · 태극구 궤도 · 말풍선 렌더링] =================
+// ================= [플레이어 · 커스텀 아바타 · 1~3×1~3 크기 스케일링 · 무기 · 태극구 궤도] =================
 function drawEquippedWeaponSimple(cx, cy, angle, weaponType, weaponLv, isAttacking) {
   ctx.save();
   ctx.translate(cx, cy);
@@ -2097,7 +2213,6 @@ function drawEquippedWeaponSimple(cx, cy, angle, weaponType, weaponLv, isAttacki
     ctx.fillRect(6, -6, 13, 3);
     ctx.fillRect(6, 3, 13, 3);
   } else if (weaponType === 'taijiorb') {
-    // 대기 시 손 주위에 작은 태극 문양 부유 (판정 없음)
     ctx.fillStyle = '#ef4444';
     ctx.beginPath(); ctx.arc(15, -3, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#38bdf8';
@@ -2111,10 +2226,9 @@ function drawTaijiActiveOrbs(p, cx, cy, now) {
   const c = p.character || {};
   const has100 = hasWeaponSkill100Client(c, 'taijiorb');
   const innerCount = has100 ? 4 : 2;
-  const innerR = 3.0 * TILE_SIZE; // 반경 3타일
+  const innerR = 3.0 * TILE_SIZE;
   const baseAng = (p.id === myId) ? taijiOrbitAngle : (now * (has100 ? 0.0056 : 0.0034));
 
-  // 내부 궤도선
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -2134,7 +2248,6 @@ function drawTaijiActiveOrbs(p, cx, cy, now) {
     ctx.beginPath(); ctx.arc(ox - 2, oy - 2, 3, 0, Math.PI * 2); ctx.fill();
   }
 
-  // 50강 [음양양의]: 반경 4.5타일 외곽 역회전 거대 구슬 2개
   if (p.taijiOuterUntil > now) {
     const outerR = 4.5 * TILE_SIZE;
     ctx.strokeStyle = 'rgba(250, 204, 21, 0.38)';
@@ -2167,12 +2280,18 @@ function drawPlayers(now) {
     const rx = p.renderX + (p.lungeOffsetX || 0);
     const ry = p.renderY + (p.lungeOffsetY || 0);
 
-    // 뷰포트 컬링
-    if (rx < cameraX - 220 || rx > cameraX + viewLogicalW + 220) continue;
+    if (rx < cameraX - 240 || rx > cameraX + viewLogicalW + 240) continue;
 
     const c = p.character || {};
+    const aw = Math.min(3, Math.max(1, c.avatarWidth || 1));
+    const ah = Math.min(3, Math.max(1, c.avatarHeight || 1));
+    const wPx = aw * TILE_SIZE;
+    const hPx = ah * TILE_SIZE;
+
     const cx = rx + 20;
-    const cy = ry + 20;
+    const feetY = ry + 36;
+    const topY = feetY - hPx;
+    const bodyCy = feetY - hPx * 0.5;
     const bounce = Math.abs(Math.sin(p.walkPhase || 0)) * 3.5;
 
     // 100강 스킬 잔상 렌더링
@@ -2182,91 +2301,95 @@ function drawPlayers(now) {
       ctx.fillStyle = aft.color || '#38bdf8';
       ctx.globalAlpha = alpha;
       ctx.beginPath();
-      ctx.arc(aft.x + 20, aft.y + 20, 14, 0, Math.PI * 2);
+      ctx.arc(aft.x + 20, aft.y + 36 - hPx * 0.5, Math.max(14, Math.min(wPx, hPx) * 0.35), 0, Math.PI * 2);
       ctx.fill();
       ctx.globalAlpha = 1;
     }
 
-    // 태극구 회전 궤도
-    drawTaijiActiveOrbs(p, cx, cy, now);
+    // 태극구 회전 궤도 (발밑 기준)
+    drawTaijiActiveOrbs(p, cx, ry + 20, now);
 
-    // 발밑 2.5D 그림자
+    // 발밑 2.5D 그림자 (캐릭터 가로 크기에 맞춰 확장)
     ctx.fillStyle = 'rgba(0,0,0,0.42)';
     ctx.beginPath();
-    ctx.ellipse(cx, ry + 36, 13, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, feetY, Math.max(13, wPx * 0.38), 5 + (aw - 1) * 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // [해린이언니 커스텀 캐릭터 아바타] vs [기본 외형]
+    // [해린이언니 커스텀 캐릭터 아바타] vs [기본 외형] — 발끝 고정(feetY)으로 1~3×1~3 블록 스케일링
     const customImg = c.customAvatar ? getCachedAvatarImage(c.customAvatar) : null;
     if (customImg) {
       ctx.save();
-      ctx.translate(cx, ry + 18 - bounce);
+      ctx.translate(cx, feetY - bounce);
       if (p.dir === 'left') ctx.scale(-1, 1);
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(customImg, -20, -20, 40, 40);
+      ctx.drawImage(customImg, -wPx / 2, -hPx, wPx, hPx);
       ctx.restore();
     } else {
-      // 기본 김치워리어(남) / 고추걸(여) Crisp Pixel 렌더링
       const isMale = (c.gender || 'male') === 'male';
-      const dy = ry - bounce;
+      const eyeShift = p.dir === 'left' ? -2 : (p.dir === 'right' ? 2 : 0);
+      ctx.save();
+      ctx.translate(cx, feetY - bounce);
+      ctx.scale(aw, ah);
+      // 1x1 기준 (rx+20, ry+36)을 원점 (0, 0)으로 변환한 도트 좌표
       // 다리
       ctx.fillStyle = '#1e293b';
-      ctx.fillRect(rx + 13, dy + 28, 5, 8);
-      ctx.fillRect(rx + 22, dy + 28, 5, 8);
+      ctx.fillRect(-7, -8, 5, 8);
+      ctx.fillRect(2, -8, 5, 8);
       // 몸통
       ctx.fillStyle = isMale ? '#dc2626' : '#ec4899';
-      ctx.fillRect(rx + 11, dy + 16, 18, 13);
+      ctx.fillRect(-9, -20, 18, 13);
       ctx.fillStyle = '#fef08a';
-      ctx.fillRect(rx + 17, dy + 17, 6, 11);
+      ctx.fillRect(-3, -19, 6, 11);
       // 머리
       ctx.fillStyle = '#fde68a';
-      ctx.fillRect(rx + 12, dy + 4, 16, 13);
+      ctx.fillRect(-8, -32, 16, 13);
       ctx.fillStyle = isMale ? '#991b1b' : '#16a34a';
-      ctx.fillRect(rx + 10, dy + 2, 20, 5);
+      ctx.fillRect(-10, -34, 20, 5);
       // 눈
       ctx.fillStyle = '#0f172a';
-      const eyeShift = p.dir === 'left' ? -2 : (p.dir === 'right' ? 2 : 0);
-      ctx.fillRect(rx + 15 + eyeShift, dy + 9, 2, 3);
-      ctx.fillRect(rx + 23 + eyeShift, dy + 9, 2, 3);
+      ctx.fillRect(-5 + eyeShift, -27, 2, 3);
+      ctx.fillRect(3 + eyeShift, -27, 2, 3);
+      ctx.restore();
     }
 
-    // 장착 무기 렌더링 (커스텀 아바타에도 자동 결합)
+    // 장착 무기 렌더링
     const eqWep = c.equippedWeapon || 'wand';
     const eqLv = getEquippedWeaponLevel(c);
-    drawEquippedWeaponSimple(cx, cy - bounce + 2, p.angle || 0, eqWep, eqLv, p.attackAnimUntil > now);
+    drawEquippedWeaponSimple(cx, bodyCy - bounce + 2, p.angle || 0, eqWep, eqLv, p.attackAnimUntil > now);
 
-    // 본인 보스 디버프 표시 (캐릭터 위 붉은 저주 아이콘)
+    // 본인 보스 디버프 표시 (확대된 캐릭터 몸집에 맞춘 피격 저주 테두리)
     if (p.id === myId && myDebuffUntil > now) {
       ctx.strokeStyle = 'rgba(239, 68, 68, 0.85)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.ellipse(cx, bodyCy, wPx * 0.52, hPx * 0.52, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // 머리 위 칭호 & 닉네임
+    // 머리 위 칭호 & 닉네임 (캐릭터 세로 높이 topY 기준으로 자동 상승)
+    const labelBaseY = topY + 2;
     const titleStr = getSelectedOverheadTitle(c);
     ctx.font = '10px "DungGeunMo"';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#000';
-    ctx.fillText(titleStr, cx + 1, ry - 14);
+    ctx.fillText(titleStr, cx + 1, labelBaseY - 14);
     ctx.fillStyle = '#38bdf8';
-    ctx.fillText(titleStr, cx, ry - 15);
+    ctx.fillText(titleStr, cx, labelBaseY - 15);
 
     ctx.font = 'bold 11px "DungGeunMo"';
     ctx.fillStyle = '#000';
-    ctx.fillText(p.name, cx + 1, ry - 2);
+    ctx.fillText(p.name, cx + 1, labelBaseY - 2);
     ctx.fillStyle = p.id === myId ? '#fef08a' : '#ffffff';
-    ctx.fillText(p.name, cx, ry - 3);
+    ctx.fillText(p.name, cx, labelBaseY - 3);
 
-    // 일반 대화 말풍선 (스킬 발동으로 절대 지워지지 않음!)
+    // 일반 대화 말풍선
     if (p.chatText && p.chatText.length > 0) {
       ctx.font = '11px "DungGeunMo"';
       const tw = ctx.measureText(p.chatText).width;
       const bw = Math.max(46, tw + 16);
       const bh = 22;
       const bx = cx - bw / 2;
-      const by = ry - 48;
+      const by = labelBaseY - 48;
       ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
       ctx.fillRect(bx, by, bw, bh);
       ctx.strokeStyle = '#f59e0b';
@@ -2278,19 +2401,17 @@ function drawPlayers(now) {
   }
 }
 
-// ================= [장판 전조 · 투사체 · 근접 검기 · 기운 폭발 · 스킬 외침 팝업 렌더링] =================
+// ================= [장판 전조 · 투사체(3속성) · 번개 · 근접 검기 · 기운 폭발 렌더링] =================
 function drawBossTelegraphs(now) {
   for (let i = 0; i < bossTelegraphs.length; i++) {
     const t = bossTelegraphs[i];
     const progress = Math.max(0, Math.min(1, (now - t.born) / t.duration));
 
-    // 바닥 붉은 위험 장판 외곽
     ctx.fillStyle = 'rgba(220, 38, 38, 0.18)';
     ctx.beginPath();
     ctx.arc(t.x, t.y, t.radiusPx, 0, Math.PI * 2);
     ctx.fill();
 
-    // 차오르는 내부 폭발 타이밍 원
     ctx.fillStyle = `rgba(239, 68, 68, ${0.22 + progress * 0.35})`;
     ctx.beginPath();
     ctx.arc(t.x, t.y, t.radiusPx * progress, 0, Math.PI * 2);
@@ -2338,7 +2459,7 @@ function drawCombatAndVisualEffects(now) {
     ctx.restore();
   }
 
-  // 투사체 (지팡이 마법구 / 활 관통 화살 — shadowBlur 없이 이중 원으로 글로우 구현)
+  // 투사체 (지팡이 3속성 색상 분리 / 활 관통 화살)
   for (let i = 0; i < projectiles.length; i++) {
     const pr = projectiles[i];
     if (pr.weaponType === 'bow') {
@@ -2351,17 +2472,56 @@ function drawCombatAndVisualEffects(now) {
       ctx.fillRect(8, -3, 6, 6);
       ctx.restore();
     } else {
-      const r = pr.skillTier >= 100 ? 12 : 8;
-      ctx.fillStyle = pr.skillTier >= 100 ? 'rgba(244, 63, 94, 0.35)' : 'rgba(192, 132, 252, 0.35)';
+      const elem = pr.element || 'fire';
+      let outerCol = 'rgba(239, 68, 68, 0.38)', midCol = '#f97316', coreCol = '#fef08a';
+      if (elem === 'ice') {
+        outerCol = 'rgba(56, 189, 248, 0.38)'; midCol = '#0ea5e9'; coreCol = '#e0f2fe';
+      } else if (elem === 'lightning') {
+        outerCol = 'rgba(250, 204, 21, 0.42)'; midCol = '#facc15'; coreCol = '#ffffff';
+      }
+      const r = 8;
+      ctx.fillStyle = outerCol;
       ctx.beginPath(); ctx.arc(pr.x, pr.y, r + 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = pr.skillTier >= 100 ? '#f43f5e' : '#c084fc';
+      ctx.fillStyle = midCol;
       ctx.beginPath(); ctx.arc(pr.x, pr.y, r, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = coreCol;
       ctx.beginPath(); ctx.arc(pr.x, pr.y, r * 0.45, 0, Math.PI * 2); ctx.fill();
     }
   }
 
-  // 피격/폭발 링
+  // 뇌전구 2타: 하늘에서 내리꽂히는 번개 이펙트
+  for (let i = 0; i < lightningEffects.length; i++) {
+    const l = lightningEffects[i];
+    const p = (now - l.born) / l.duration;
+    const alpha = Math.max(0, 1 - p);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const pts = [
+      { x: l.x + 8, y: l.y - 165 },
+      { x: l.x - 10, y: l.y - 115 },
+      { x: l.x + 11, y: l.y - 68 },
+      { x: l.x - 7, y: l.y - 28 },
+      { x: l.x, y: l.y }
+    ];
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    pts.forEach((pt, idx) => idx === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y));
+    ctx.stroke();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(l.x, l.y, 12 + p * 26, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 피격/폭발/밀쳐내기 링
   for (let i = 0; i < hitEffects.length; i++) {
     const h = hitEffects[i];
     const p = (now - h.born) / h.duration;
@@ -2375,7 +2535,7 @@ function drawCombatAndVisualEffects(now) {
     ctx.restore();
   }
 
-  // 360도 기운 발산 이펙트 (경량 무렉)
+  // 360도 기운 발산 이펙트
   for (let i = 0; i < burstEffects.length; i++) {
     const b = burstEffects[i];
     const p = (now - b.born) / b.duration;
@@ -2397,7 +2557,7 @@ function drawCombatAndVisualEffects(now) {
     ctx.restore();
   }
 
-  // 데미지 및 기회 획득 플로팅 텍스트
+  // 데미지, 무기 변경 및 기회 획득 플로팅 텍스트
   for (let i = 0; i < floatingDamages.length; i++) {
     const f = floatingDamages[i];
     const p = (now - f.born) / f.duration;
@@ -2413,7 +2573,7 @@ function drawCombatAndVisualEffects(now) {
     ctx.restore();
   }
 
-  // 채팅과 완전 분리된 전용 스킬 외침 이펙트 레이어 (skillPopups)
+  // 상태이상(보스 디버프 등) 알림 팝업
   for (let i = 0; i < skillPopups.length; i++) {
     const s = skillPopups[i];
     const p = (now - s.born) / s.duration;
@@ -2441,7 +2601,7 @@ function drawGame(now) {
   const shakeY = screenShakeMag > 0.2 ? (Math.random() - 0.5) * screenShakeMag : 0;
   ctx.translate(-Math.round(cameraX + shakeX), -Math.round(cameraY + shakeY));
 
-  // 1) 오프스크린 월드 배경 뷰포트 슬라이스 출력 (O(1) 고속 블릿)
+  // 1) 오프스크린 월드 배경 뷰포트 슬라이스 출력
   if (worldBgCanvas) {
     const sx = Math.max(0, Math.floor(cameraX));
     const sy = Math.max(0, Math.floor(cameraY));
@@ -2452,10 +2612,10 @@ function drawGame(now) {
     }
   }
 
-  // 2) 보스 장판 전조 (캐릭터·몬스터 아래 바닥 레이어)
+  // 2) 보스 장판 전조
   drawBossTelegraphs(now);
 
-  // 3) 장애물 (뷰포트 컬링)
+  // 3) 장애물
   for (let i = 0; i < obstacles.length; i++) {
     const obs = obstacles[i];
     const ox = obs.x * TILE_SIZE;
@@ -2463,7 +2623,7 @@ function drawGame(now) {
     drawObstacleItem(obs);
   }
 
-  // 4) 로비 중앙 전광판 & 4인 NPC
+  // 4) 로비 중앙 전광판 & 4인 NPC (2x2 대장간 포함)
   drawLobbyCentralBillboard();
   drawDormNpcs(now);
 
@@ -2471,12 +2631,12 @@ function drawGame(now) {
   drawMonsters(now);
   drawPlayers(now);
 
-  // 6) 전투 이펙트 & 스킬 외침 팝업
+  // 6) 전투 이펙트 & 번개/피격/디버프 알림
   drawCombatAndVisualEffects(now);
 
   ctx.restore();
 
-  // 7) 좌측 상단 현재 구역 표기 (고정 HUD 오버레이)
+  // 7) 좌측 상단 현재 구역 표기
   const me = players[myId];
   if (me) {
     const zName = getZoneNameByX(me.x);
@@ -2492,7 +2652,6 @@ function drawGame(now) {
   }
 }
 
-// 고주사율(144Hz/240Hz) 부하 폭증 방지: 물리 60FPS 고정 틱 누적기
 const FIXED_STEP_MS = 1000 / 60;
 let tickAccumulator = 0;
 
