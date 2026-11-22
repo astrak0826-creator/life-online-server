@@ -2766,68 +2766,255 @@ function processAndPreviewAvatar() {
     return;
   }
 
+  const BASE_SIZE = 48;
   const removeBg = chkRemoveBg.checked;
   const pixelize = chkPixelize.checked;
-  const workSize = pixelize ? 32 : 48;
 
-  const off = document.createElement('canvas');
-  off.width = workSize;
-  off.height = workSize;
-  const octx = off.getContext('2d');
-  octx.imageSmoothingEnabled = !pixelize;
+  // ================= [1~2단계: 파일 수신 → 48×48 이미지로 변환] =================
+  const step1 = document.createElement('canvas');
+  step1.width = BASE_SIZE;
+  step1.height = BASE_SIZE;
+  const s1ctx = step1.getContext('2d', { willReadFrequently: true });
+  s1ctx.imageSmoothingEnabled = !pixelize;
 
-  // 비율 유지 중앙 맞춤
   const iw = loadedRawAvatarImg.naturalWidth || loadedRawAvatarImg.width;
   const ih = loadedRawAvatarImg.naturalHeight || loadedRawAvatarImg.height;
-  const scale = Math.min((workSize - 2) / iw, (workSize - 2) / ih);
-  const dw = Math.max(1, Math.round(iw * scale));
-  const dh = Math.max(1, Math.round(ih * scale));
-  const dx = Math.floor((workSize - dw) / 2);
-  const dy = Math.floor((workSize - dh) / 2);
-  octx.drawImage(loadedRawAvatarImg, dx, dy, dw, dh);
+  const fitScale = Math.min(BASE_SIZE / iw, BASE_SIZE / ih);
+  const dw = Math.max(1, Math.round(iw * fitScale));
+  const dh = Math.max(1, Math.round(ih * fitScale));
+  const dx = Math.floor((BASE_SIZE - dw) / 2);
+  const dy = Math.floor((BASE_SIZE - dh) / 2);
+  s1ctx.drawImage(loadedRawAvatarImg, dx, dy, dw, dh);
 
-  // 단색/흰 배경 자동 투명화 (네 모서리 Flood-Fill)
-  if (removeBg) {
-    const imgData = octx.getImageData(0, 0, workSize, workSize);
-    const d = imgData.data;
-    const isAlreadyTransparent = d[3] < 20 && d[((workSize - 1) * 4) + 3] < 20;
-    if (!isAlreadyTransparent) {
-      const corners = [0, (workSize - 1) * 4, ((workSize - 1) * workSize) * 4, (workSize * workSize - 1) * 4];
-      let bgR = 0, bgG = 0, bgB = 0;
-      corners.forEach(idx => { bgR += d[idx]; bgG += d[idx + 1]; bgB += d[idx + 2]; });
-      bgR /= 4; bgG /= 4; bgB /= 4;
+  const s1Img = s1ctx.getImageData(0, 0, BASE_SIZE, BASE_SIZE);
+  const s1Data = s1Img.data;
 
-      const visited = new Uint8Array(workSize * workSize);
-      const queue = [0, workSize - 1, (workSize - 1) * workSize, workSize * workSize - 1];
-      const tol = 46;
+  // 실제 이미지가 그려진 외곽 4변에서 최빈 배경색 자동 추출 (JPEG 노이즈 흡수)
+  let transparentBorderCount = 0;
+  let totalBorderCount = 0;
+  const colorBuckets = new Map();
 
-      while (queue.length > 0) {
-        const pos = queue.pop();
-        if (pos < 0 || pos >= workSize * workSize || visited[pos]) continue;
-        visited[pos] = 1;
-        const idx = pos * 4;
-        const diff = Math.abs(d[idx] - bgR) + Math.abs(d[idx + 1] - bgG) + Math.abs(d[idx + 2] - bgB);
-        if (diff <= tol * 2.2) {
-          d[idx + 3] = 0;
-          const x = pos % workSize, y = Math.floor(pos / workSize);
-          if (x > 0) queue.push(pos - 1);
-          if (x < workSize - 1) queue.push(pos + 1);
-          if (y > 0) queue.push(pos - workSize);
-          if (y < workSize - 1) queue.push(pos + workSize);
-        }
-      }
-      octx.putImageData(imgData, 0, 0);
+  function sampleBorder(x, y) {
+    const idx = (y * BASE_SIZE + x) * 4;
+    totalBorderCount++;
+    if (s1Data[idx + 3] < 25) {
+      transparentBorderCount++;
+      return;
+    }
+    const r = s1Data[idx], g = s1Data[idx + 1], b = s1Data[idx + 2];
+    const key = `${r >> 4},${g >> 4},${b >> 4}`;
+    let bucket = colorBuckets.get(key);
+    if (!bucket) {
+      bucket = { count: 0, rSum: 0, gSum: 0, bSum: 0 };
+      colorBuckets.set(key, bucket);
+    }
+    bucket.count++;
+    bucket.rSum += r;
+    bucket.gSum += g;
+    bucket.bSum += b;
+  }
+
+  const bx0 = dx, bx1 = dx + dw - 1;
+  const by0 = dy, by1 = dy + dh - 1;
+  for (let x = bx0; x <= bx1; x++) {
+    sampleBorder(x, by0);
+    if (by1 !== by0) sampleBorder(x, by1);
+  }
+  for (let y = by0 + 1; y < by1; y++) {
+    sampleBorder(bx0, y);
+    if (bx1 !== bx0) sampleBorder(bx1, y);
+  }
+
+  const isAlreadyTransparentPng = totalBorderCount > 0 && (transparentBorderCount / totalBorderCount) >= 0.5;
+  let bgR = 255, bgG = 255, bgB = 255;
+  let hasOpaqueBg = false;
+
+  if (!isAlreadyTransparentPng && colorBuckets.size > 0) {
+    let best = null;
+    for (const b of colorBuckets.values()) {
+      if (!best || b.count > best.count) best = b;
+    }
+    if (best && best.count > 0) {
+      bgR = best.rSum / best.count;
+      bgG = best.gSum / best.count;
+      bgB = best.bSum / best.count;
+      hasOpaqueBg = true;
     }
   }
 
-  avatarPreviewCtx.imageSmoothingEnabled = false;
-  avatarPreviewCtx.drawImage(off, 0, 0, 48, 48);
+  function colorDist(r, g, b) {
+    const dr = r - bgR, dg = g - bgG, db = b - bgB;
+    return Math.sqrt(dr * dr + dg * dg + db * db);
+  }
+
+  function isMarginPixel(data, idx, tol) {
+    if (data[idx + 3] < 25) return true;
+    if (removeBg && hasOpaqueBg && colorDist(data[idx], data[idx + 1], data[idx + 2]) <= tol) {
+      return true;
+    }
+    return false;
+  }
+
+  // ================= [3단계: 상하좌우 여백 완전히 크롭] =================
+  let minX = BASE_SIZE, minY = BASE_SIZE, maxX = -1, maxY = -1;
+  for (let y = 0; y < BASE_SIZE; y++) {
+    for (let x = 0; x < BASE_SIZE; x++) {
+      const idx = (y * BASE_SIZE + x) * 4;
+      if (!isMarginPixel(s1Data, idx, 58)) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  // 전부 여백으로 판정된 경우 원본 영역 유지
+  if (maxX < minX || maxY < minY) {
+    minX = bx0; maxX = bx1; minY = by0; maxY = by1;
+  }
+
+  const cropW = maxX - minX + 1;
+  const cropH = maxY - minY + 1;
+  const croppedCanvas = document.createElement('canvas');
+  croppedCanvas.width = cropW;
+  croppedCanvas.height = cropH;
+  const cctx = croppedCanvas.getContext('2d', { willReadFrequently: true });
+  cctx.drawImage(step1, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+
+  // ================= [4단계: 크롭 후에도 남은 배경 부분 완전히 제거] =================
+  if (removeBg && hasOpaqueBg) {
+    const cImg = cctx.getImageData(0, 0, cropW, cropH);
+    const cd = cImg.data;
+    const totalPx = cropW * cropH;
+    const cleared = new Uint8Array(totalPx);
+    const queue = [];
+
+    function enqueueIfBg(x, y, tol) {
+      const pos = y * cropW + x;
+      if (cleared[pos]) return;
+      const idx = pos * 4;
+      if (cd[idx + 3] < 25 || colorDist(cd[idx], cd[idx + 1], cd[idx + 2]) <= tol) {
+        cleared[pos] = 1;
+        cd[idx + 3] = 0;
+        queue.push(pos);
+      }
+    }
+
+    // 4-1. 크롭된 외곽 4변 전체에서 Flood-Fill (모서리·머리 주변·다리 사이 배경 제거)
+    for (let x = 0; x < cropW; x++) {
+      enqueueIfBg(x, 0, 65);
+      enqueueIfBg(x, cropH - 1, 65);
+    }
+    for (let y = 0; y < cropH; y++) {
+      enqueueIfBg(0, y, 65);
+      enqueueIfBg(cropW - 1, y, 65);
+    }
+
+    while (queue.length > 0) {
+      const pos = queue.pop();
+      const x = pos % cropW;
+      const y = (pos - x) / cropW;
+      if (x > 0) enqueueIfBg(x - 1, y, 65);
+      if (x < cropW - 1) enqueueIfBg(x + 1, y, 65);
+      if (y > 0) enqueueIfBg(x, y - 1, 65);
+      if (y < cropH - 1) enqueueIfBg(x, y + 1, 65);
+    }
+
+    // 4-2. 팔과 몸통 사이 등 안쪽에 갇힌 배경 덩어리 제거 (5픽셀 이상만 지워 눈 흰자 보호)
+    const visitedHole = new Uint8Array(totalPx);
+    for (let i = 0; i < totalPx; i++) {
+      if (cleared[i] || visitedHole[i]) continue;
+      const idx = i * 4;
+      if (cd[idx + 3] < 25 || colorDist(cd[idx], cd[idx + 1], cd[idx + 2]) > 34) continue;
+
+      const comp = [];
+      const stack = [i];
+      visitedHole[i] = 1;
+      while (stack.length > 0) {
+        const p = stack.pop();
+        comp.push(p);
+        const px = p % cropW;
+        const py = (p - px) / cropW;
+        const neighbors = [];
+        if (px > 0) neighbors.push(p - 1);
+        if (px < cropW - 1) neighbors.push(p + 1);
+        if (py > 0) neighbors.push(p - cropW);
+        if (py < cropH - 1) neighbors.push(p + cropW);
+
+        for (let k = 0; k < neighbors.length; k++) {
+          const np = neighbors[k];
+          if (cleared[np] || visitedHole[np]) continue;
+          const nIdx = np * 4;
+          if (cd[nIdx + 3] >= 25 && colorDist(cd[nIdx], cd[nIdx + 1], cd[nIdx + 2]) <= 34) {
+            visitedHole[np] = 1;
+            stack.push(np);
+          }
+        }
+      }
+      if (comp.length >= 5) {
+        for (let k = 0; k < comp.length; k++) {
+          cleared[comp[k]] = 1;
+          cd[comp[k] * 4 + 3] = 0;
+        }
+      }
+    }
+
+    // 4-3. 캐릭터 외곽선에 미세하게 남은 배경색 잔여 띠(프린지) 1차 정리
+    const fringeList = [];
+    for (let y = 0; y < cropH; y++) {
+      for (let x = 0; x < cropW; x++) {
+        const pos = y * cropW + x;
+        if (cleared[pos]) continue;
+        const idx = pos * 4;
+        if (cd[idx + 3] < 25) continue;
+        const touchesBg =
+          (x > 0 && cleared[pos - 1]) ||
+          (x < cropW - 1 && cleared[pos + 1]) ||
+          (y > 0 && cleared[pos - cropW]) ||
+          (y < cropH - 1 && cleared[pos + cropW]);
+        if (touchesBg && colorDist(cd[idx], cd[idx + 1], cd[idx + 2]) <= 90) {
+          fringeList.push(pos);
+        }
+      }
+    }
+    for (let i = 0; i < fringeList.length; i++) {
+      cd[fringeList[i] * 4 + 3] = 0;
+    }
+
+    cctx.putImageData(cImg, 0, 0);
+  }
+
+  // ================= [최종 48×48 미리보기 캔버스에 꽉 차게 중앙·하단 정렬 출력] =================
+  const finalScale = Math.min(BASE_SIZE / cropW, BASE_SIZE / cropH);
+  const fw = Math.max(1, Math.round(cropW * finalScale));
+  const fh = Math.max(1, Math.round(cropH * finalScale));
+  const fx = Math.floor((BASE_SIZE - fw) / 2);
+  const fy = BASE_SIZE - fh; // 발이 2.5D 바닥 그림자에 딱 붙도록 하단 정렬
+
+  if (pixelize) {
+    const pxCanvas = document.createElement('canvas');
+    pxCanvas.width = 32;
+    pxCanvas.height = 32;
+    const pctx = pxCanvas.getContext('2d');
+    pctx.imageSmoothingEnabled = false;
+    const pScale = Math.min(32 / cropW, 32 / cropH);
+    const pw = Math.max(1, Math.round(cropW * pScale));
+    const ph = Math.max(1, Math.round(cropH * pScale));
+    pctx.drawImage(croppedCanvas, Math.floor((32 - pw) / 2), 32 - ph, pw, ph);
+
+    avatarPreviewCtx.imageSmoothingEnabled = false;
+    avatarPreviewCtx.drawImage(pxCanvas, 0, 0, 32, 32, 0, 0, BASE_SIZE, BASE_SIZE);
+  } else {
+    avatarPreviewCtx.imageSmoothingEnabled = false;
+    avatarPreviewCtx.drawImage(croppedCanvas, 0, 0, cropW, cropH, fx, fy, fw, fh);
+  }
 
   let outUrl = avatarPreviewCanvas.toDataURL('image/png');
   if (outUrl.length > 18000) outUrl = avatarPreviewCanvas.toDataURL('image/webp', 0.85);
   preparedAvatarDataUrl = outUrl;
   const kb = (outUrl.length / 1024).toFixed(1);
-  avatarSizeInfo.textContent = `변환 완료! (48×48 도트 · 약 ${kb}KB · 무렉 최적화됨)`;
+  avatarSizeInfo.textContent = `변환·크롭·배경제거 완료! (48×48 · 약 ${kb}KB)`;
   avatarSizeInfo.style.color = '#4ade80';
 }
 
