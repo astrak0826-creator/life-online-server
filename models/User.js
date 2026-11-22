@@ -47,7 +47,7 @@ const userSchema = new mongoose.Schema({
         // 현재 손에 들고 있는 무기 (loadoutWeapons 2슬롯 중 하나)
         equippedWeapon: {
             type: String,
-            enum: ['wand', 'greatsword', 'hammer', 'bow', 'daggers', 'taijiorb', 'chakram'],
+            enum: ['wand', 'greatsword', 'hammer', 'bow', 'daggers', 'taijiorb'],
             default: 'wand'
         },
 
@@ -64,8 +64,7 @@ const userSchema = new mongoose.Schema({
             hammer: { type: Number, default: 0, min: 0, max: 30 },
             bow: { type: Number, default: 0, min: 0, max: 30 },
             daggers: { type: Number, default: 0, min: 0, max: 30 },
-            taijiorb: { type: Number, default: 0, min: 0, max: 30 },
-            chakram: { type: Number, default: 0, min: 0, max: 30 } // 기존 DB 이관용
+            taijiorb: { type: Number, default: 0, min: 0, max: 30 }
         },
 
         // 대장간 NPC를 통해 제작·전수받은 무기 이력 (실제 사용/장착은 실시간 스탯 기준으로 검사)
@@ -75,8 +74,7 @@ const userSchema = new mongoose.Schema({
             hammer: { type: Boolean, default: false },
             bow: { type: Boolean, default: false },
             daggers: { type: Boolean, default: false },
-            taijiorb: { type: Boolean, default: false },
-            chakram: { type: Boolean, default: false } // 기존 DB 이관용
+            taijiorb: { type: Boolean, default: false }
         },
 
         // 칭호 해금 이력 보존용 역대 최고 달성 기록
@@ -92,11 +90,10 @@ const userSchema = new mongoose.Schema({
             hammer: { type: Number, default: 0 },
             bow: { type: Number, default: 0 },
             daggers: { type: Number, default: 0 },
-            taijiorb: { type: Number, default: 0 },
-            chakram: { type: Number, default: 0 }
+            taijiorb: { type: Number, default: 0 }
         },
 
-        // 유저 커스텀 설정: 머리 위 표시 칭호 & 스페이스바 기운 색상
+        // 유저 커스텀 설정: 머리 위 표시 칭호 · 스페이스바 기운 색상 · 장착 무기 외형 표시
         customTitle: {
             type: String,
             default: ''
@@ -105,7 +102,7 @@ const userSchema = new mongoose.Schema({
             type: String,
             enum: [
                 'education', 'appearance', 'wealth', 'iq', 'stamina', 'personality',
-                'wand', 'greatsword', 'hammer', 'bow', 'daggers', 'taijiorb', 'chakram'
+                'wand', 'greatsword', 'hammer', 'bow', 'daggers', 'taijiorb'
             ],
             default: 'education'
         },
@@ -113,6 +110,10 @@ const userSchema = new mongoose.Schema({
             type: String,
             enum: ['red', 'yellow', 'blue', 'green'],
             default: 'red'
+        },
+        showWeapon: {
+            type: Boolean,
+            default: true
         },
 
         // 해린이언니 커스터마이징 외형 (압축 PNG/WebP DataURL, 빈 문자열이면 기본 외형)
