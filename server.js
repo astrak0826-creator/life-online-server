@@ -85,7 +85,7 @@ setInterval(async () => {
     }
 }, 2500);
 
-// ================= [로비 중앙 전광판 (〈하이잭 디스〉 변형 영구 저장 시스템)] =================
+// ================= [로비 중앙 전광판 (〈하이잭 디스〉 영구 저장 시스템)] =================
 const billboardSchema = new mongoose.Schema({
     key: { type: String, unique: true, default: 'lobby_main' },
     currentPin: { type: String, default: '000' },
@@ -228,7 +228,7 @@ function formatDecayNotice(logs) {
     return `🌙 자정(00:00) 누적 정산(${logs.length}일): 6대 스탯 총합 100 초과로 [${summary}] 하락했습니다.`;
 }
 
-// ================= [무기 6종 스펙 (태극구 신규 도입 & 10/50/100 실시간 스탯 봉인)] =================
+// ================= [무기 6종 스펙 (지팡이 3속성 리워크 & 10/50/100 실시간 스탯 봉인)] =================
 const ENHANCE_RATES = {
     0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
     5: 0.70,  6: 0.65,  7: 0.60,  8: 0.55,  9: 0.50,
@@ -242,19 +242,20 @@ const WEAPON_SPECS = {
     wand: {
         key: 'wand',
         name: '지팡이',
-        cooldownMs: 880,
+        cooldownMs: 500,      // 공속 0.5초
         baseMult: 1.0,
-        splashMult: 1.0,
-        skill50Mult: 1.0,    // 이중 영창 (1+1)
-        skill100Mult: 1.35,  // 차원 도약 포격 (IQ 200)
+        fireSplashMult: 0.60, // 화염구 스플래시 60%
+        iceSplashMult: 0.10,  // 빙결구 스플래시 10% + 3초 이속 50%
+        skill50Mult: 0,       // 50강(IQ 150): 20% 확률 반경 4타일 밀쳐내기 (데미지 없음)
+        skill100Mult: 1.0,    // 100강(IQ 200): 3속성 랜덤 2발 연속 발사
         unlockStat: null,
         unlockReq: 0,
         unlockDesc: '기본 지급 무기',
         skillStat: 'iq',
         skill50Req: 150,
         skill100Req: 200,
-        skill50Name: '이중 영창(1+1)',
-        skill100Name: '차원 도약 포격'
+        skill50Name: '마력 충격파(넉백)',
+        skill100Name: '이중 원소 연사'
     },
     greatsword: {
         key: 'greatsword',
@@ -323,10 +324,10 @@ const WEAPON_SPECS = {
     taijiorb: {
         key: 'taijiorb',
         name: '태극구',
-        cooldownMs: 420,     // A 홀드 시 0.5초마다 구슬 회전 타격
-        baseMult: 0.73,      // 구슬당 70~75% 피해
-        skill50Mult: 0.85,   // 음양양의 (외곽 거대 역회전 구슬)
-        skill100Mult: 0.85,  // 무위 축지 (이속 증가 + 내부 4구슬 고속 회전)
+        cooldownMs: 420,
+        baseMult: 0.73,
+        skill50Mult: 0.85,
+        skill100Mult: 0.85,
         unlockStat: 'personality',
         unlockReq: 10,
         unlockDesc: '현재 성격(왼다리) +10강 이상 유지',
@@ -393,12 +394,21 @@ function hasWeaponSkill100(char, weaponKey) {
     return curVal >= spec.skill100Req;
 }
 
-// 기존 유저 호환(chakram -> taijiorb 자동 이관) + 실시간 스탯 봉인 강제 적용
+function clampAvatarDim(val) {
+    const n = Math.round(Number(val));
+    if (!Number.isFinite(n)) return 1;
+    return Math.min(3, Math.max(1, n));
+}
+
+// 기존 유저 호환 + 2슬롯 출정 무기(loadoutWeapons) + 캐릭터 크기(1~3x1~3) + 실시간 봉인 동기화
 function syncCharacterProgress(char) {
     if (!char) return { autoUnequippedWeapon: null };
     if (typeof char.wand !== 'number') char.wand = 0;
     if (typeof char.customTitle !== 'string') char.customTitle = '';
     if (typeof char.customAvatar !== 'string') char.customAvatar = '';
+    char.avatarWidth = clampAvatarDim(char.avatarWidth);
+    char.avatarHeight = clampAvatarDim(char.avatarHeight);
+
     if (!char.titleStat) char.titleStat = 'education';
     if (char.titleStat === 'chakram') char.titleStat = 'taijiorb';
     if (!char.auraColor) char.auraColor = 'red';
@@ -429,7 +439,7 @@ function syncCharacterProgress(char) {
         }
     }
 
-    // 대사부 전수 이력 초기화 및 chakram -> taijiorb 이관
+    // 대장간 전수 이력 초기화 및 chakram -> taijiorb 이관
     if (!char.unlockedWeapons || typeof char.unlockedWeapons !== 'object') {
         char.unlockedWeapons = {
             wand: true,
@@ -449,19 +459,58 @@ function syncCharacterProgress(char) {
         if (char.unlockedWeapons.chakram) char.unlockedWeapons.taijiorb = true;
     }
 
-    // 장착 무기 보정 + 실시간 스탯 봉인 검사
+    // 출정 무기 2슬롯(loadoutWeapons) 정규화
     if (char.equippedWeapon === 'chakram') char.equippedWeapon = 'taijiorb';
+    let rawLoadout = Array.isArray(char.loadoutWeapons) ? char.loadoutWeapons.slice(0, 2) : [];
+    rawLoadout = rawLoadout.map(w => (w === 'chakram' ? 'taijiorb' : (typeof w === 'string' ? w : '')));
+    while (rawLoadout.length < 2) rawLoadout.push('');
+
+    // 슬롯에 전수받지 않은 무기가 있으면 비움
+    for (let i = 0; i < 2; i++) {
+        const w = rawLoadout[i];
+        if (w && (!WEAPON_SPECS[w] || !char.unlockedWeapons[w])) {
+            rawLoadout[i] = '';
+        }
+    }
+    // 기존 유저 첫 마이그레이션: equippedWeapon이 유효한데 loadout에 없으면 자동 등록
+    if (!rawLoadout[0] && !rawLoadout[1]) {
+        const eq = char.equippedWeapon;
+        if (eq && WEAPON_SPECS[eq] && char.unlockedWeapons[eq] && meetsWeaponStatReq(char, eq)) {
+            rawLoadout[0] = eq;
+            if (eq !== 'wand') rawLoadout[1] = 'wand';
+        } else {
+            rawLoadout[0] = 'wand';
+        }
+    }
+    if (!rawLoadout[0] && rawLoadout[1]) {
+        rawLoadout[0] = rawLoadout[1];
+        rawLoadout[1] = '';
+    }
+    if (rawLoadout[0] && rawLoadout[1] && rawLoadout[0] === rawLoadout[1]) {
+        rawLoadout[1] = '';
+    }
+    if (!rawLoadout[0]) rawLoadout[0] = 'wand';
+    char.loadoutWeapons = [rawLoadout[0], rawLoadout[1] || ''];
+
+    // 현재 장착 무기 보정 + 실시간 스탯 봉인 검사
+    const isUsableNow = (w) => Boolean(w && WEAPON_SPECS[w] && char.unlockedWeapons[w] && meetsWeaponStatReq(char, w));
     let autoUnequippedWeapon = null;
-    if (
-        !char.equippedWeapon ||
-        !WEAPON_SPECS[char.equippedWeapon] ||
-        !char.unlockedWeapons[char.equippedWeapon] ||
-        !meetsWeaponStatReq(char, char.equippedWeapon)
-    ) {
-        if (char.equippedWeapon && char.equippedWeapon !== 'wand' && WEAPON_SPECS[char.equippedWeapon]) {
+
+    if (!isUsableNow(char.equippedWeapon) || !char.loadoutWeapons.includes(char.equippedWeapon)) {
+        if (char.equippedWeapon && char.equippedWeapon !== 'wand' && WEAPON_SPECS[char.equippedWeapon] && !meetsWeaponStatReq(char, char.equippedWeapon)) {
             autoUnequippedWeapon = WEAPON_SPECS[char.equippedWeapon].name;
         }
-        char.equippedWeapon = 'wand';
+        if (isUsableNow(char.loadoutWeapons[0])) {
+            char.equippedWeapon = char.loadoutWeapons[0];
+        } else if (isUsableNow(char.loadoutWeapons[1])) {
+            char.equippedWeapon = char.loadoutWeapons[1];
+        } else {
+            char.equippedWeapon = 'wand';
+            if (!char.loadoutWeapons.includes('wand')) {
+                char.loadoutWeapons[0] = 'wand';
+                if (char.loadoutWeapons[1] === 'wand') char.loadoutWeapons[1] = '';
+            }
+        }
     }
 
     // 칭호 이력용 역대 최고 달성 기록(maxStats) 동기화
@@ -553,6 +602,7 @@ app.post('/api/register', async (req, res) => {
                 personality: 0,
                 wand: 0,
                 equippedWeapon: 'wand',
+                loadoutWeapons: ['wand', ''],
                 weapons: { wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, taijiorb: 0 },
                 unlockedWeapons: { wand: true, greatsword: false, hammer: false, bow: false, daggers: false, taijiorb: false },
                 maxStats: {
@@ -563,6 +613,8 @@ app.post('/api/register', async (req, res) => {
                 titleStat: 'education',
                 auraColor: 'red',
                 customAvatar: '',
+                avatarWidth: 1,
+                avatarHeight: 1,
                 enhanceTokens: MAX_TOKENS,
                 lastTokenRefill: new Date(),
                 lastDecayDate: getKstDateString()
@@ -749,12 +801,15 @@ app.get('/api/rankings', async (req, res) => {
                 personality: c.personality || 0,
                 wand: c.wand || 0,
                 equippedWeapon: c.equippedWeapon || 'wand',
+                loadoutWeapons: c.loadoutWeapons || ['wand', ''],
                 weapons: c.weapons || { wand: c.wand || 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, taijiorb: 0 },
                 unlockedWeapons: c.unlockedWeapons || { wand: true },
                 maxStats: c.maxStats || {},
                 customTitle: c.customTitle || '',
                 titleStat: c.titleStat || 'education',
                 auraColor: c.auraColor || 'red',
+                avatarWidth: c.avatarWidth || 1,
+                avatarHeight: c.avatarHeight || 1,
                 totalScore
             };
         }).sort((a, b) => b.totalScore - a.totalScore).slice(0, 50).map((item, idx) => ({ rank: idx + 1, ...item }));
@@ -766,17 +821,21 @@ app.get('/api/rankings', async (req, res) => {
     }
 });
 
-// ================= [월드 확장(100x15): 로비 + 동쪽 숲 오솔길 + 동쪽숲1 + 동쪽숲2 + 동쪽숲3] =================
+// ================= [월드 구성(100x15): 로비 + 동쪽 숲 오솔길 + 동쪽숲1 + 동쪽숲2 + 동쪽숲3] =================
 const DORM_WIDTH = 20;     // 0~19: 기숙사 로비
-const TRAIL_END = 40;      // 20~39: 동쪽 숲 오솔길 (신규 비전투 중간 맵)
+const TRAIL_END = 40;      // 20~39: 동쪽 숲 오솔길
 const FOREST1_END = 60;    // 40~59: 동쪽숲 1 (마법의 숲)
 const FOREST2_END = 80;    // 60~79: 동쪽숲 2 (역병의 숲)
 const MAP_WIDTH = 100;     // 80~99: 동쪽숲 3 (심연의 고대 숲)
 const MAP_HEIGHT = 15;
 
+// 2x2 대장간 NPC 위치 (좌상단 17,6 ~ 우하단 18,7 / 중심 17.5, 6.5)
+const BLACKSMITH_CENTER_X = 17.5;
+const BLACKSMITH_CENTER_Y = 6.5;
+
 const OBSTACLES = [
     // [0~19: 기숙사 로비]
-    // 상단 12시 중앙: 로비 중앙 전광판 (하이잭 디스 변형)
+    // 상단 12시 중앙: 로비 중앙 전광판 (하이잭 디스)
     { x: 9, y: 1, type: 'billboard' }, { x: 10, y: 1, type: 'billboard' },
 
     // 상단 좌우: 창문 & 서가
@@ -784,11 +843,14 @@ const OBSTACLES = [
     { x: 16, y: 1, type: 'window' }, { x: 17, y: 1, type: 'window' },
     { x: 6, y: 1, type: 'bookshelf' }, { x: 13, y: 1, type: 'bookshelf' },
 
-    // 로비 4명의 NPC
+    // 로비 4명의 NPC (대장간 NPC는 2x2 대형)
     { x: 4, y: 3, type: 'npc_helicopter' },  // 헬리콥터 (패치 내역 안내)
     { x: 15, y: 3, type: 'npc_nong' },       // 농 잊을리 (아재개그)
-    { x: 10, y: 11, type: 'npc_haerin' },    // 해린이언니 (캐릭터 외형 커스터마이징)
-    { x: 17, y: 7, type: 'npc_master' },     // 대사부 (무기 전수 및 스킬 안내)
+    { x: 10, y: 11, type: 'npc_haerin' },    // 해린이언니 (외형·크기 커스터마이징)
+    { x: 17, y: 6, type: 'npc_blacksmith' }, // 대장간 2x2 (무기 전수·강화·출정 2슬롯 세팅)
+    { x: 18, y: 6, type: 'npc_blacksmith' },
+    { x: 17, y: 7, type: 'npc_blacksmith' },
+    { x: 18, y: 7, type: 'npc_blacksmith' },
 
     // 내부 기둥 및 테이블
     { x: 3, y: 7, type: 'pillar' }, { x: 15, y: 7, type: 'pillar' },
@@ -835,7 +897,7 @@ const OBSTACLES = [
     { x: 80, y: 1, type: 'gate_pillar' }, { x: 80, y: 2, type: 'gate_pillar' }, { x: 80, y: 3, type: 'gate_pillar' },
     { x: 80, y: 11, type: 'gate_pillar' }, { x: 80, y: 12, type: 'gate_pillar' }, { x: 80, y: 13, type: 'gate_pillar' },
 
-    // [81~99: 동쪽숲 3 (심연의 고대 숲 - 2x2 대형 몬스터·보스 전투용 넓은 시야 확보)]
+    // [81~99: 동쪽숲 3 (심연의 고대 숲)]
     { x: 83, y: 2, type: 'abyss_tree' },
     { x: 90, y: 2, type: 'rune_pillar' },
     { x: 96, y: 2, type: 'abyss_tree' },
@@ -848,7 +910,6 @@ const players = {};
 const playerChatTimers = new Map();
 const monsters = {};
 
-// 구역 번호 판별 (0: 로비, 1: 오솔길, 2: 동쪽숲1, 3: 동쪽숲2, 4: 동쪽숲3)
 function getWorldZoneByX(x) {
     if (x < DORM_WIDTH) return 0;
     if (x < TRAIL_END) return 1;
@@ -857,7 +918,11 @@ function getWorldZoneByX(x) {
     return 4;
 }
 
-// 구역별 패킷 필터링 전송 (인접 구역 포함 +-1 구역 유저에게만 고빈도 패킷 전달)
+function isNearBlacksmith(p) {
+    if (!p) return false;
+    return p.x < DORM_WIDTH && Math.hypot(p.x - BLACKSMITH_CENTER_X, p.y - BLACKSMITH_CENTER_Y) <= 4.5;
+}
+
 function emitToNearbyZones(centerZone, eventName, payload, excludeSocketId = null) {
     for (const sid in players) {
         if (sid === excludeSocketId) continue;
@@ -869,7 +934,6 @@ function emitToNearbyZones(centerZone, eventName, payload, excludeSocketId = nul
 }
 
 function getZoneBounds(huntingZone, size = 1) {
-    // huntingZone: 1(동쪽숲1: 41~58), 2(동쪽숲2: 61~78), 3(동쪽숲3: 81~98)
     let minX = 41, maxX = 58;
     if (huntingZone === 2) { minX = 61; maxX = 78; }
     else if (huntingZone === 3) { minX = 81; maxX = 98; }
@@ -881,136 +945,52 @@ function getZoneBounds(huntingZone, size = 1) {
     };
 }
 
-// ================= [몬스터 스펙 정의 (드랍률 확정 수치 & 동쪽숲3 보스)] =================
+// ================= [몬스터 스펙 정의] =================
 const MONSTER_SPECS = {
-    // [동쪽숲 1 (zone: 1)]
     mandrake: {
-        type: 'mandrake',
-        name: '아기 맨드레이크',
-        zone: 1,
-        size: 1,
-        maxHp: 500,
-        moveInterval: 2800,
-        dropRate: 0.10,
-        rewardCount: 1,
-        aggroRange: 0,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 4500
+        type: 'mandrake', name: '아기 맨드레이크', zone: 1, size: 1,
+        maxHp: 500, moveInterval: 2800, dropRate: 0.10, rewardCount: 1,
+        aggroRange: 0, isBoss: false, pullImmune: false, respawnMs: 4500
     },
     slime: {
-        type: 'slime',
-        name: '어둠의 마법 슬라임',
-        zone: 1,
-        size: 1,
-        maxHp: 1500,
-        moveInterval: 1700,
-        dropRate: 0.13,
-        rewardCount: 1,
-        aggroRange: 4,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 4500
+        type: 'slime', name: '어둠의 마법 슬라임', zone: 1, size: 1,
+        maxHp: 1500, moveInterval: 1700, dropRate: 0.13, rewardCount: 1,
+        aggroRange: 4, isBoss: false, pullImmune: false, respawnMs: 4500
     },
     wolf: {
-        type: 'wolf',
-        name: '변종 늑대 마수',
-        zone: 1,
-        size: 1,
-        maxHp: 3500,
-        moveInterval: 1100,
-        dropRate: 0.17,
-        rewardCount: 1,
-        aggroRange: 6,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 4500
+        type: 'wolf', name: '변종 늑대 마수', zone: 1, size: 1,
+        maxHp: 3500, moveInterval: 1100, dropRate: 0.17, rewardCount: 1,
+        aggroRange: 6, isBoss: false, pullImmune: false, respawnMs: 4500
     },
-    // [동쪽숲 2 (zone: 2)]
     cold_virus: {
-        type: 'cold_virus',
-        name: '감기 바이러스',
-        zone: 2,
-        size: 1,
-        maxHp: 4500,
-        moveInterval: 2200,
-        dropRate: 0.21,
-        rewardCount: 1,
-        aggroRange: 0,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 4500
+        type: 'cold_virus', name: '감기 바이러스', zone: 2, size: 1,
+        maxHp: 4500, moveInterval: 2200, dropRate: 0.21, rewardCount: 1,
+        aggroRange: 0, isBoss: false, pullImmune: false, respawnMs: 4500
     },
     cavity_germs: {
-        type: 'cavity_germs',
-        name: '충치균 악마',
-        zone: 2,
-        size: 1,
-        maxHp: 6500,
-        moveInterval: 1350,
-        dropRate: 0.25,
-        rewardCount: 1,
-        aggroRange: 5,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 4500
+        type: 'cavity_germs', name: '충치균 악마', zone: 2, size: 1,
+        maxHp: 6500, moveInterval: 1350, dropRate: 0.25, rewardCount: 1,
+        aggroRange: 5, isBoss: false, pullImmune: false, respawnMs: 4500
     },
     flu_behemoth: {
-        type: 'flu_behemoth',
-        name: '독감 거수',
-        zone: 2,
-        size: 2, // 2x2 대형 일반 몬스터 ([BOSS] 제거)
-        maxHp: 9000,
-        moveInterval: 1050,
-        dropRate: 0.32,
-        rewardCount: 1,
-        aggroRange: 7.5,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 4500
+        type: 'flu_behemoth', name: '독감 거수', zone: 2, size: 2,
+        maxHp: 9000, moveInterval: 1050, dropRate: 0.32, rewardCount: 1,
+        aggroRange: 7.5, isBoss: false, pullImmune: false, respawnMs: 4500
     },
-    // [동쪽숲 3 (zone: 3 - 심연의 고대 숲)]
     sleepless_shadow: {
-        type: 'sleepless_shadow',
-        name: '불면의 그림자',
-        zone: 3,
-        size: 1, // 동쪽숲 3의 유일한 1x1 몬스터
-        maxHp: 12500,
-        moveInterval: 920,
-        dropRate: 0.36,
-        rewardCount: 1,
-        aggroRange: 7.5,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 4500
+        type: 'sleepless_shadow', name: '불면의 그림자', zone: 3, size: 1,
+        maxHp: 12500, moveInterval: 920, dropRate: 0.36, rewardCount: 1,
+        aggroRange: 7.5, isBoss: false, pullImmune: false, respawnMs: 4500
     },
     ancient_golem: {
-        type: 'ancient_golem',
-        name: '고대 나무 골렘',
-        zone: 3,
-        size: 2, // 2x2 대형 일반 몬스터
-        maxHp: 19000,
-        moveInterval: 1550,
-        dropRate: 0.42,
-        rewardCount: 1,
-        aggroRange: 5.5,
-        isBoss: false,
-        pullImmune: false,
-        respawnMs: 5000
+        type: 'ancient_golem', name: '고대 나무 골렘', zone: 3, size: 2,
+        maxHp: 19000, moveInterval: 1550, dropRate: 0.42, rewardCount: 1,
+        aggroRange: 5.5, isBoss: false, pullImmune: false, respawnMs: 5000
     },
     abyss_beast_king: {
-        type: 'abyss_beast_king',
-        name: '심연의 마수왕',
-        zone: 3,
-        size: 2, // 2x2 [BOSS] (맵 1마리 고정, 5분 리스폰, 100% 기회 +5, 장판 전조 공격)
-        maxHp: 50000,
-        moveInterval: 1150,
-        dropRate: 1.00,
-        rewardCount: 5,
-        aggroRange: 9.0,
-        isBoss: true,
-        pullImmune: true,
-        respawnMs: 5 * 60 * 1000 // 5분 (300,000ms)
+        type: 'abyss_beast_king', name: '심연의 마수왕', zone: 3, size: 2,
+        maxHp: 50000, moveInterval: 1150, dropRate: 1.00, rewardCount: 5,
+        aggroRange: 9.0, isBoss: true, pullImmune: true, respawnMs: 5 * 60 * 1000
     }
 };
 
@@ -1076,15 +1056,12 @@ function getRandomHuntingTile(zone = 1, size = 1, ignoreMonsterId = null) {
 
 function initMonsters() {
     const spawnPlan = [
-        // 동쪽숲 1 (9마리)
         'mandrake', 'mandrake', 'mandrake', 'mandrake',
         'slime', 'slime', 'slime',
         'wolf', 'wolf',
-        // 동쪽숲 2 (9마리)
         'cold_virus', 'cold_virus', 'cold_virus', 'cold_virus',
         'cavity_germs', 'cavity_germs', 'cavity_germs',
         'flu_behemoth', 'flu_behemoth',
-        // 동쪽숲 3 (8마리: 1x1 4마리 + 2x2 골렘 3마리 + 2x2 보스 심연의 마수왕 1마리)
         'sleepless_shadow', 'sleepless_shadow', 'sleepless_shadow', 'sleepless_shadow',
         'ancient_golem', 'ancient_golem', 'ancient_golem',
         'abyss_beast_king'
@@ -1112,6 +1089,7 @@ function initMonsters() {
             pullImmune: Boolean(spec.pullImmune),
             respawnMs: spec.respawnMs || 4500,
             alive: true,
+            frozenUntil: 0,
             lastMoveTime: Date.now() + Math.floor(Math.random() * 1500),
             lastBossAttackTime: 0,
             isCastingPattern: false
@@ -1120,8 +1098,22 @@ function initMonsters() {
 }
 initMonsters();
 
-// ================= [보스 〈심연의 마수왕〉 장판 전조 패턴 & 10초 공력 95% 감소 디버프] =================
+// ================= [보스 〈심연의 마수왕〉 장판 전조 & 캐릭터 크기(1~3x1~3) 연동 피격 판정] =================
 let bossTelegraphSeq = 0;
+
+function isPlayerHitByCircle(pl, circleX, circleY, radiusTiles) {
+    const aw = clampAvatarDim(pl.character?.avatarWidth);
+    const ah = clampAvatarDim(pl.character?.avatarHeight);
+    // 발밑 고정(feet-anchored) 몸집 AABB: 1x1일 때 반경 0.35, 3x3일 때 2.7x2.7 타일 피격 판정
+    const halfW = aw * 0.5 - 0.15;
+    const halfH = ah * 0.5 - 0.15;
+    const bodyCx = pl.x;
+    const bodyCy = pl.y - (ah - 1) * 0.5;
+
+    const closestX = Math.max(bodyCx - halfW, Math.min(circleX, bodyCx + halfW));
+    const closestY = Math.max(bodyCy - halfH, Math.min(circleY, bodyCy + halfH));
+    return Math.hypot(circleX - closestX, circleY - closestY) <= radiusTiles;
+}
 
 function triggerBossTelegraphAttack(boss, targetPlayer) {
     if (!boss || !boss.alive || boss.isCastingPattern) return;
@@ -1131,15 +1123,14 @@ function triggerBossTelegraphAttack(boss, targetPlayer) {
     const bossCenterX = boss.x + (boss.size - 1) * 0.5;
     const bossCenterY = boss.y + (boss.size - 1) * 0.5;
 
-    // 2종 장판 패턴 교차 사용: (1) 타겟 유저 위치 원형 낙뢰 장판 / (2) 보스 중심 대형 충격파 장판
     const useTargetCircle = Math.random() < 0.6;
     const centerX = useTargetCircle ? Number(targetPlayer.x.toFixed(2)) : Number(bossCenterX.toFixed(2));
     const centerY = useTargetCircle ? Number(targetPlayer.y.toFixed(2)) : Number(bossCenterY.toFixed(2));
     const radiusTiles = useTargetCircle ? 2.7 : 4.2;
-    const telegraphMs = 1400; // 1.4초 전조 경고 후 폭발
+    const telegraphMs = 1400;
 
     const patternId = `bt_${++bossTelegraphSeq}`;
-    const telegraphPayload = {
+    emitToNearbyZones(4, 'bossTelegraph', {
         id: patternId,
         bossId: boss.id,
         x: centerX,
@@ -1147,10 +1138,7 @@ function triggerBossTelegraphAttack(boss, targetPlayer) {
         radius: radiusTiles,
         duration: telegraphMs,
         label: useTargetCircle ? '심연의 낙인!' : '마수왕의 포효!'
-    };
-
-    // 동쪽숲3(worldZone 4) 및 인접 구역에 장판 전조 브로드캐스트
-    emitToNearbyZones(4, 'bossTelegraph', telegraphPayload);
+    });
 
     setTimeout(() => {
         boss.isCastingPattern = false;
@@ -1158,13 +1146,12 @@ function triggerBossTelegraphAttack(boss, targetPlayer) {
 
         const now = Date.now();
         const hitPlayerIds = [];
-        const debuffDurationMs = 10000; // 10초간 데미지 95% 감소 (5%만 적용)
+        const debuffDurationMs = 10000;
 
         for (const sid in players) {
             const pl = players[sid];
-            if (pl.x < 79.0) continue;
-            const dist = Math.hypot(pl.x - centerX, pl.y - centerY);
-            if (dist <= radiusTiles + 0.35) {
+            if (pl.x < 78.0) continue;
+            if (isPlayerHitByCircle(pl, centerX, centerY, radiusTiles)) {
                 pl.debuffUntil = now + debuffDurationMs;
                 hitPlayerIds.push(sid);
                 io.to(sid).emit('playerDebuffed', {
@@ -1187,7 +1174,7 @@ function triggerBossTelegraphAttack(boss, targetPlayer) {
     }, telegraphMs);
 }
 
-// ================= [서버 몬스터 AI 이동 루프 (구역별 배치 전송으로 네트워크 렉 최소화)] =================
+// ================= [서버 몬스터 AI 이동 루프 (빙결 50% 둔화 & 모든 BOSS CC 면역)] =================
 setInterval(() => {
     const now = Date.now();
     const dirs = ['up', 'down', 'left', 'right'];
@@ -1202,7 +1189,6 @@ setInterval(() => {
         const mCenterX = m.x + centerOffset;
         const mCenterY = m.y + centerOffset;
 
-        // 같은 사냥터 구역 내 가장 가까운 플레이어 탐색
         let nearestPlayer = null;
         let minDist = Infinity;
         if (m.aggroRange > 0) {
@@ -1220,15 +1206,16 @@ setInterval(() => {
             }
         }
 
-        // [BOSS] 심연의 마수왕 장판 패턴 시전 체크 (5.2초 쿨타임)
         if (m.isBoss && nearestPlayer && !m.isCastingPattern && (now - (m.lastBossAttackTime || 0) >= 5200)) {
             triggerBossTelegraphAttack(m, nearestPlayer);
         }
 
-        // 장판 시전 중에는 제자리에 멈춤
         if (m.isCastingPattern) continue;
 
-        if (now - m.lastMoveTime < m.moveInterval) continue;
+        // 빙결 상태 시 이동 주기 2배 (= 이동속도 50%), 모든 [BOSS] 몬스터는 CC 면역
+        const isFrozen = !m.isBoss && Boolean(m.frozenUntil && now < m.frozenUntil);
+        const effectiveInterval = isFrozen ? (m.moveInterval * 2) : m.moveInterval;
+        if (now - m.lastMoveTime < effectiveInterval) continue;
         m.lastMoveTime = now;
 
         const prevX = m.x;
@@ -1262,14 +1249,13 @@ setInterval(() => {
         }
 
         if (m.x !== prevX || m.y !== prevY || m.dir !== prevDir) {
-            const worldZone = m.zone + 1; // zone 1->2, 2->3, 3->4
+            const worldZone = m.zone + 1;
             if (movedByWorldZone[worldZone]) {
                 movedByWorldZone[worldZone].push({ id: m.id, x: m.x, y: m.y, dir: m.dir });
             }
         }
     }
 
-    // 구역별로 1개의 배치 패킷으로 압축 전송
     for (const wz of [2, 3, 4]) {
         if (movedByWorldZone[wz].length > 0) {
             emitToNearbyZones(wz, 'monstersMovedBatch', movedByWorldZone[wz]);
@@ -1309,7 +1295,7 @@ async function runMidnightStatDecayIfNeeded() {
                     io.emit('playerStatUpdated', { id: onlineSid, character: targetChar });
                     let msg = formatDecayNotice(logs);
                     if (autoUnequippedWeapon) {
-                        msg += ` (스탯 하락으로 [${autoUnequippedWeapon}]이(가) 봉인되어 지팡이로 자동 전환되었습니다.)`;
+                        msg += ` (스탯 하락으로 [${autoUnequippedWeapon}]이(가) 봉인되어 보유 무기로 자동 전환되었습니다.)`;
                     }
                     io.to(onlineSid).emit('statDecayNotice', {
                         logs,
@@ -1361,6 +1347,7 @@ io.on('connection', async (socket) => {
     const char = (dbUser && dbUser.character) ? dbUser.character : {
         gender: 'male', education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0, wand: 0,
         equippedWeapon: 'wand',
+        loadoutWeapons: ['wand', ''],
         weapons: { wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, taijiorb: 0 },
         unlockedWeapons: { wand: true, greatsword: false, hammer: false, bow: false, daggers: false, taijiorb: false },
         maxStats: {
@@ -1368,6 +1355,7 @@ io.on('connection', async (socket) => {
             wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, taijiorb: 0
         },
         customTitle: '', titleStat: 'education', auraColor: 'red', customAvatar: '',
+        avatarWidth: 1, avatarHeight: 1,
         enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date(),
         lastDecayDate: getKstDateString()
     };
@@ -1382,10 +1370,9 @@ io.on('connection', async (socket) => {
         queueUserCharacterSave(userId, char);
     }
 
-    // 스폰 위치는 항상 안전한 기숙사 로비 내부 (X: 2 ~ 16, Y: 4 ~ 12)
     let spawnX = 6, spawnY = 7;
     while (isTileBlocked(spawnX, spawnY)) {
-        spawnX = Math.floor(Math.random() * (DORM_WIDTH - 5)) + 2;
+        spawnX = Math.floor(Math.random() * (DORM_WIDTH - 6)) + 2;
         spawnY = Math.floor(Math.random() * (MAP_HEIGHT - 6)) + 4;
     }
 
@@ -1421,7 +1408,7 @@ io.on('connection', async (socket) => {
     if (decayLogs.length > 0) {
         let msg = formatDecayNotice(decayLogs);
         if (autoUnequippedWeapon) {
-            msg += ` (스탯 하락으로 [${autoUnequippedWeapon}]이(가) 봉인되어 지팡이로 자동 전환되었습니다.)`;
+            msg += ` (스탯 하락으로 [${autoUnequippedWeapon}]이(가) 봉인되어 자동 전환되었습니다.)`;
         }
         socket.emit('statDecayNotice', {
             logs: decayLogs,
@@ -1432,7 +1419,7 @@ io.on('connection', async (socket) => {
 
     socket.broadcast.emit('playerJoined', players[socket.id]);
 
-    // 360도 자유 이동 및 무렉(Client-Side Prediction) 위치 동기화 (고무줄 방지 완화 임계값)
+    // 360도 자유 이동 동기화
     socket.on('move', (payload) => {
         const p = players[socket.id];
         if (!p || !payload) return;
@@ -1455,7 +1442,6 @@ io.on('connection', async (socket) => {
             p.sprint = isRunning;
             p.lastMoveTime = now;
 
-            // 100강 이동 스킬(돌진/순간이동) 및 약한 와이파이 패킷 뭉침 허용 (6.5타일 이내 신뢰)
             if (dist <= 6.5 && !isFloatPosBlocked(nextX, nextY)) {
                 p.x = Math.max(0.2, Math.min(MAP_WIDTH - 1.2, nextX));
                 p.y = Math.max(0.8, Math.min(MAP_HEIGHT - 1.2, nextY));
@@ -1479,11 +1465,10 @@ io.on('connection', async (socket) => {
                     reconcile: true
                 });
             }
-            return;
         }
     });
 
-    // 무기별 평타 & 50강/100강 스킬 발사 동기화 (스킬 외침은 채팅 말풍선과 완전 분리)
+    // 무기별 평타 & 50강/100강 스킬 발사 동기화 (지팡이 3속성·4타일 넉백·2연사 / 모든 BOSS CC 면역 / 외침 제거)
     socket.on('fireProjectile', (payload = {}) => {
         const p = players[socket.id];
         if (!p) return;
@@ -1491,9 +1476,11 @@ io.on('connection', async (socket) => {
         const c = p.character || {};
         const weaponType = (c.equippedWeapon && WEAPON_SPECS[c.equippedWeapon]) ? c.equippedWeapon : 'wand';
         const wSpec = WEAPON_SPECS[weaponType];
+        const unlocked50 = hasWeaponSkill50(c, weaponType);
+        const unlocked100 = hasWeaponSkill100(c, weaponType);
 
         const now = Date.now();
-        const isExtraWandShot = Boolean(payload.isExtraWandShot && weaponType === 'wand');
+        const isExtraWandShot = Boolean(payload.isExtraWandShot && weaponType === 'wand' && unlocked100);
         if (!isExtraWandShot) {
             if (now - (p.lastAttackTime || 0) < wSpec.cooldownMs * 0.78) return;
             p.lastAttackTime = now;
@@ -1516,12 +1503,11 @@ io.on('connection', async (socket) => {
         const combatPower = calcCombatPower(c);
         const angle = typeof p.angle === 'number' ? p.angle : Math.PI / 2;
         const swingSide = typeof payload.swingSide === 'number' ? payload.swingSide : 1;
+        const element = (weaponType === 'wand' && ['fire', 'ice', 'lightning'].includes(payload.element))
+            ? payload.element
+            : null;
 
-        // 실시간 50강·100강 스킬 검증 (p.chatText 절대 덮어쓰지 않음!)
-        const unlocked50 = hasWeaponSkill50(c, weaponType);
-        const unlocked100 = hasWeaponSkill100(c, weaponType);
         const reqSkillTier = payload.skillTier === 100 ? 100 : (payload.skillTier === 50 ? 50 : 0);
-
         let verifiedSkillType = null;
         let verifiedSkillTier = 0;
         if (reqSkillTier === 100 && unlocked100 && typeof payload.skillType === 'string') {
@@ -1535,21 +1521,67 @@ io.on('connection', async (socket) => {
             verifiedSkillTier = 50;
         }
 
-        const shoutText = (verifiedSkillType && typeof payload.shoutText === 'string')
-            ? payload.shoutText.slice(0, 35)
-            : '';
+        const wz = getWorldZoneByX(p.x);
 
-        // 망치 50강 스킬 '중력 붕괴(블랙홀)' 흡입 (보스 pullImmune 제외)
+        // 지팡이 50강(IQ 150+): 반경 4타일 원 범위 밀쳐내기 (데미지 없음, 모든 [BOSS]는 CC 면역)
+        if (weaponType === 'wand' && unlocked50 && payload.triggerKnockback && !isExtraWandShot) {
+            const pushedList = [];
+            for (const mid in monsters) {
+                const m = monsters[mid];
+                if (!m.alive || m.isBoss) continue;
+                if ((m.zone + 1) !== wz) continue;
+
+                const mSize = m.size || 1;
+                const mCenterX = m.x + (mSize - 1) * 0.5;
+                const mCenterY = m.y + (mSize - 1) * 0.5;
+                const dx = mCenterX - p.x;
+                const dy = mCenterY - p.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist <= 4.0) {
+                    const ux = dist > 0.01 ? (dx / dist) : Math.cos(angle);
+                    const uy = dist > 0.01 ? (dy / dist) : Math.sin(angle);
+                    const b = getZoneBounds(m.zone, mSize);
+
+                    let finalX = null, finalY = null;
+                    for (const pushDist of [3.0, 2.5, 2.0, 1.5, 1.0, 0.5]) {
+                        const candX = Math.max(b.minX, Math.min(b.maxX, Number((m.x + ux * pushDist).toFixed(2))));
+                        const candY = Math.max(b.minY, Math.min(b.maxY, Number((m.y + uy * pushDist).toFixed(2))));
+                        if (isMonsterPullPosValid(candX, candY, m.zone, mSize)) {
+                            finalX = candX;
+                            finalY = candY;
+                            break;
+                        }
+                    }
+
+                    if (finalX !== null && finalY !== null) {
+                        m.x = finalX;
+                        m.y = finalY;
+                        m.lastMoveTime = now + 450;
+                        pushedList.push({ id: m.id, x: m.x, y: m.y });
+                    }
+                }
+            }
+
+            emitToNearbyZones(wz, 'monstersKnockedBack', {
+                ownerId: socket.id,
+                cx: p.x,
+                cy: p.y,
+                radius: 4.0,
+                pushed: pushedList
+            });
+        }
+
+        // 망치 50강 스킬 '중력 붕괴(블랙홀)' 흡입 (모든 [BOSS] CC 면역)
         if (verifiedSkillType === 'blackhole' && weaponType === 'hammer') {
             const pullCenterX = p.x + Math.cos(angle) * 1.2;
             const pullCenterY = p.y + Math.sin(angle) * 1.2;
             const pulledList = [];
-            const playerWorldZone = getWorldZoneByX(p.x);
 
             for (const mid in monsters) {
                 const m = monsters[mid];
-                if (!m.alive || m.pullImmune) continue;
-                if ((m.zone + 1) !== playerWorldZone) continue;
+                if (!m.alive || m.isBoss || m.pullImmune) continue;
+                if ((m.zone + 1) !== wz) continue;
 
                 const mSize = m.size || 1;
                 const mCenterX = m.x + (mSize - 1) * 0.5;
@@ -1578,7 +1610,7 @@ io.on('connection', async (socket) => {
             }
 
             if (pulledList.length > 0) {
-                emitToNearbyZones(playerWorldZone, 'monstersPulled', {
+                emitToNearbyZones(wz, 'monstersPulled', {
                     ownerId: socket.id,
                     cx: pullCenterX,
                     cy: pullCenterY,
@@ -1587,7 +1619,6 @@ io.on('connection', async (socket) => {
             }
         }
 
-        const wz = getWorldZoneByX(p.x);
         emitToNearbyZones(wz, 'projectileFired', {
             ownerId: socket.id,
             ownerName: p.name,
@@ -1599,43 +1630,31 @@ io.on('connection', async (socket) => {
             vy: Math.sin(angle),
             weaponType: weaponType,
             weaponLv: weaponLv,
+            element: element,
             swingSide: swingSide,
             attackPower: combatPower,
             skillType: verifiedSkillType,
             skillTier: verifiedSkillTier,
-            shoutText: shoutText,
             isExtraWandShot: isExtraWandShot
         }, socket.id);
     });
 
-    // 사냥터 몬스터 피격 및 처치 보상 (메모리 즉시 처리 + 비동기 DB 저장으로 0ms 응답)
-    socket.on('hitMonster', (payload) => {
-        const p = players[socket.id];
-        if (!p || !payload || !payload.monsterId) return;
-
-        const m = monsters[payload.monsterId];
-        if (!m || !m.alive) return;
-
+    // 사냥터 몬스터 피격 및 처치 (지팡이 3속성 + 빙결 3초 둔화 + 뇌전 2타 + 모든 BOSS CC 면역)
+    function applyDamageToMonster(p, m, mult, opts = {}) {
+        if (!p || !m || !m.alive) return false;
         const c = p.character || {};
-        const eqWeapon = (c.equippedWeapon && WEAPON_SPECS[c.equippedWeapon]) ? c.equippedWeapon : 'wand';
-        const wSpec = WEAPON_SPECS[eqWeapon];
         const basePower = calcCombatPower(c);
-
-        let mult = wSpec.baseMult;
-        if (payload.isSplash && eqWeapon === 'wand') {
-            mult = WEAPON_SPECS.wand.splashMult;
-        } else if (payload.skillTier === 100 && hasWeaponSkill100(c, eqWeapon)) {
-            mult = wSpec.skill100Mult;
-        } else if ((payload.skillHit || payload.skillTier === 50) && hasWeaponSkill50(c, eqWeapon)) {
-            mult = wSpec.skill50Mult;
-        }
-
-        // [BOSS] 심연의 마수왕 장판 피격 디버프 적용: 10초간 데미지 95% 감소 (5%만 적용)
         const now = Date.now();
         const isDebuffed = Boolean(p.debuffUntil && now < p.debuffUntil);
+
         let damage = Math.max(1, Math.round(basePower * mult));
         if (isDebuffed) {
             damage = Math.max(1, Math.round(damage * 0.05));
+        }
+
+        // 빙결 CC 적용 (모든 [BOSS] 몬스터는 CC 면역)
+        if (opts.applyFreeze && !m.isBoss) {
+            m.frozenUntil = now + 3000;
         }
 
         m.hp = Math.max(0, m.hp - damage);
@@ -1648,13 +1667,17 @@ io.on('connection', async (socket) => {
                 maxHp: m.maxHp,
                 damage: damage,
                 isDebuffed: isDebuffed,
+                hitType: opts.hitType || 'normal',
+                frozenUntil: m.frozenUntil || 0,
                 attackerId: socket.id,
                 x: m.x,
                 y: m.y
             });
+            return true;
         } else {
             m.alive = false;
             m.isCastingPattern = false;
+            m.frozenUntil = 0;
 
             let gainedTokenCount = 0;
             if (Math.random() < m.dropRate) {
@@ -1685,6 +1708,7 @@ io.on('connection', async (socket) => {
                 isBoss: Boolean(m.isBoss),
                 damage: damage,
                 isDebuffed: isDebuffed,
+                hitType: opts.hitType || 'normal',
                 attackerId: socket.id,
                 attackerName: p.name,
                 x: m.x,
@@ -1709,6 +1733,7 @@ io.on('connection', async (socket) => {
                 m.hp = m.maxHp;
                 m.alive = true;
                 m.isCastingPattern = false;
+                m.frozenUntil = 0;
                 m.lastMoveTime = Date.now();
                 io.emit('monsterRespawned', m);
                 if (m.isBoss) {
@@ -1717,10 +1742,76 @@ io.on('connection', async (socket) => {
                     });
                 }
             }, respawnDelay);
+            return false;
         }
+    }
+
+    socket.on('hitMonster', (payload) => {
+        const p = players[socket.id];
+        if (!p || !payload || !payload.monsterId) return;
+
+        const m = monsters[payload.monsterId];
+        if (!m || !m.alive) return;
+
+        const c = p.character || {};
+        const eqWeapon = (c.equippedWeapon && WEAPON_SPECS[c.equippedWeapon]) ? c.equippedWeapon : 'wand';
+        const wSpec = WEAPON_SPECS[eqWeapon];
+
+        // 지팡이 3속성 전용 판정
+        if (eqWeapon === 'wand') {
+            const elem = ['fire', 'ice', 'lightning'].includes(payload.element) ? payload.element : 'fire';
+
+            if (elem === 'fire') {
+                const mult = payload.isSplash ? wSpec.fireSplashMult : 1.0; // 직격 100%, 스플래시 60%
+                applyDamageToMonster(p, m, mult, { hitType: 'fire' });
+                return;
+            }
+
+            if (elem === 'ice') {
+                const mult = payload.isSplash ? wSpec.iceSplashMult : 1.0; // 직격 100%, 스플래시 10%
+                applyDamageToMonster(p, m, mult, { hitType: 'ice', applyFreeze: true });
+                return;
+            }
+
+            if (elem === 'lightning') {
+                if (payload.isSplash) return;
+                // 1타: 뇌전구 직격 (100%)
+                const stillAlive = applyDamageToMonster(p, m, 1.0, { hitType: 'lightning_orb' });
+
+                // 2타: 하늘의 번개 (전투력 100% ~ 300% 랜덤)
+                if (stillAlive) {
+                    const targetMonsterId = m.id;
+                    setTimeout(() => {
+                        const curP = players[socket.id];
+                        const curM = monsters[targetMonsterId];
+                        if (!curP || !curM || !curM.alive) return;
+
+                        emitToNearbyZones(curM.zone + 1, 'lightningStrike', {
+                            monsterId: curM.id,
+                            x: curM.x,
+                            y: curM.y,
+                            size: curM.size || 1
+                        });
+
+                        const boltMult = 1.0 + Math.random() * 2.0;
+                        applyDamageToMonster(curP, curM, boltMult, { hitType: 'lightning_bolt' });
+                    }, 110);
+                }
+                return;
+            }
+        }
+
+        // 그 외 5종 무기 배율
+        let mult = wSpec.baseMult;
+        if (payload.skillTier === 100 && hasWeaponSkill100(c, eqWeapon)) {
+            mult = wSpec.skill100Mult;
+        } else if ((payload.skillHit || payload.skillTier === 50) && hasWeaponSkill50(c, eqWeapon)) {
+            mult = wSpec.skill50Mult;
+        }
+        applyDamageToMonster(p, m, mult, { hitType: 'normal' });
     });
 
-    // ================= [로비 중앙 전광판 (1 기회 소모 추리 + 무작위 새 PIN 재봉인)] =================
+    // ================= [로비 중앙 전광판 (하이잭 디스)] =================
     socket.on('billboardGuess', (pinInput, callback) => {
         const p = players[socket.id];
         if (!p) return callback && callback({ success: false, message: '플레이어 정보 없음' });
@@ -1730,7 +1821,6 @@ io.on('connection', async (socket) => {
             return callback && callback({ success: false, message: '3자리 숫자(000~999)를 입력해주세요.' });
         }
 
-        // 이미 다른 유저가 시도해 실패한 번호는 기회 차감 없음
         if (billboardState.failedPins.includes(cleanPin)) {
             return callback && callback({
                 success: false,
@@ -1740,7 +1830,6 @@ io.on('connection', async (socket) => {
             });
         }
 
-        // 기회 1개 차감 검사
         const tokenState = resolveTokens(p.character);
         if (tokenState.tokens < 1) {
             return callback && callback({
@@ -1761,7 +1850,6 @@ io.on('connection', async (socket) => {
         p.lastTokenRefill = nextRefill.getTime();
         queueUserCharacterSave(p.userId, p.character);
 
-        // 정답 일치!
         if (cleanPin === billboardState.currentPin) {
             const claimToken = crypto.randomBytes(12).toString('hex');
             billboardState.activeClaimToken = claimToken;
@@ -1779,7 +1867,6 @@ io.on('connection', async (socket) => {
             });
         }
 
-        // 오답 처리 및 소거율 기록
         billboardState.failedPins.push(cleanPin);
         saveBillboardAsync();
         const pub = getBillboardPublicData();
@@ -1815,7 +1902,6 @@ io.on('connection', async (socket) => {
             return callback && callback({ success: false, message: '전광판에 게시할 문구를 입력해주세요.' });
         }
 
-        // 문구 갱신 + 서버가 완전 무작위 새 3자리 PIN 자동 재설정 (작성자도 비공개)
         billboardState.boxText = cleanText;
         billboardState.textSince = now;
         billboardState.failedPins = [];
@@ -1839,26 +1925,74 @@ io.on('connection', async (socket) => {
         });
     });
 
-    // ================= [해린이언니 캐릭터 외형 커스터마이징] =================
-    socket.on('updateCustomAvatar', (avatarDataUrl, callback) => {
+    // ================= [해린이언니 캐릭터 외형 & 크기(1~3x1~3) 커스터마이징] =================
+    socket.on('updateCustomAvatar', (payload, callback) => {
         const p = players[socket.id];
         if (!p) return callback && callback({ success: false, message: '플레이어 정보 없음' });
 
-        const raw = typeof avatarDataUrl === 'string' ? avatarDataUrl.trim() : '';
-        if (raw.length > 0) {
+        let hasAvatarField = false;
+        let rawAvatar = '';
+        let nextW = p.character.avatarWidth || 1;
+        let nextH = p.character.avatarHeight || 1;
+
+        if (typeof payload === 'string') {
+            hasAvatarField = true;
+            rawAvatar = payload.trim();
+        } else if (payload && typeof payload === 'object') {
+            if (typeof payload.customAvatar === 'string') {
+                hasAvatarField = true;
+                rawAvatar = payload.customAvatar.trim();
+            }
+            if (payload.avatarWidth !== undefined) nextW = clampAvatarDim(payload.avatarWidth);
+            if (payload.avatarHeight !== undefined) nextH = clampAvatarDim(payload.avatarHeight);
+        }
+
+        if (hasAvatarField && rawAvatar.length > 0) {
             const isValidPrefix =
-                raw.startsWith('data:image/png;base64,') ||
-                raw.startsWith('data:image/webp;base64,') ||
-                raw.startsWith('data:image/jpeg;base64,');
+                rawAvatar.startsWith('data:image/png;base64,') ||
+                rawAvatar.startsWith('data:image/webp;base64,') ||
+                rawAvatar.startsWith('data:image/jpeg;base64,');
             if (!isValidPrefix) {
                 return callback && callback({ success: false, message: '지원하지 않는 이미지 형식입니다.' });
             }
-            if (raw.length > 20480) {
-                return callback && callback({ success: false, message: '압축된 이미지 용량이 제한(15KB)을 초과했습니다.' });
+            if (rawAvatar.length > 32768) {
+                return callback && callback({ success: false, message: '압축된 이미지 용량이 제한(32KB)을 초과했습니다.' });
             }
         }
 
-        p.character.customAvatar = raw;
+        if (hasAvatarField) p.character.customAvatar = rawAvatar;
+        p.character.avatarWidth = nextW;
+        p.character.avatarHeight = nextH;
+        queueUserCharacterSave(p.userId, p.character);
+
+        io.emit('playerStatUpdated', {
+            id: socket.id,
+            character: p.character
+        });
+
+        if (callback) {
+            let msg = `📏 캐릭터 크기가 ${nextW}×${nextH} 블록으로 적용되었습니다! (피격 판정 연동)`;
+            if (hasAvatarField) {
+                msg = rawAvatar
+                    ? `✨ 커스텀 외형 및 크기(${nextW}×${nextH})가 적용되었습니다!`
+                    : `🔄 기본 외형으로 복구되었습니다! (크기 ${nextW}×${nextH})`;
+            }
+            callback({
+                success: true,
+                character: p.character,
+                message: msg
+            });
+        }
+    });
+
+    socket.on('updateAvatarSize', (payload, callback) => {
+        const p = players[socket.id];
+        if (!p || !payload) return callback && callback({ success: false, message: '잘못된 요청입니다.' });
+
+        const nextW = clampAvatarDim(payload.width);
+        const nextH = clampAvatarDim(payload.height);
+        p.character.avatarWidth = nextW;
+        p.character.avatarHeight = nextH;
         queueUserCharacterSave(p.userId, p.character);
 
         io.emit('playerStatUpdated', {
@@ -1870,86 +2004,141 @@ io.on('connection', async (socket) => {
             callback({
                 success: true,
                 character: p.character,
-                message: raw ? '✨ 커스텀 캐릭터 외형이 적용되었습니다!' : '🔄 기본 외형(김치워리어/고추걸)으로 복구되었습니다!'
+                message: `📏 캐릭터 크기가 [${nextW}×${nextH}] 블록으로 변경되었습니다! (크기가 클수록 피격 범위도 커집니다)`
             });
         }
     });
 
-    // ================= [대사부 무기 전수 & 장착 (실시간 +10강 검증)] =================
+    // ================= [대장간 NPC 전용: 무기 전수 · 출정 2슬롯 세팅 · 즉시 스왑(X)] =================
     socket.on('unlockWeapon', (weaponType, callback) => {
         const p = players[socket.id];
         if (!p) return callback && callback({ success: false, message: '플레이어 정보 없음' });
+        if (!isNearBlacksmith(p)) {
+            return callback && callback({ success: false, message: '로비의 [대장간] NPC에게 직접 말을 걸어야 무기를 제작·전수받을 수 있습니다!' });
+        }
         if (!WEAPON_SPECS[weaponType]) return callback && callback({ success: false, message: '존재하지 않는 무기입니다.' });
 
         const c = p.character;
         syncCharacterProgress(c);
 
         if (c.unlockedWeapons[weaponType]) {
-            return callback && callback({ success: false, message: '이미 전수받은 무기입니다.' });
+            return callback && callback({ success: false, message: '이미 보유 중인 무기입니다.' });
         }
 
         if (!meetsWeaponStatReq(c, weaponType)) {
             return callback && callback({
                 success: false,
-                message: `아직 수련이 부족하구나! [${WEAPON_SPECS[weaponType].unlockDesc}] 조건을 현재 스탯으로 충족해야 한다.`
+                message: `아직 근력이 부족하군! [${WEAPON_SPECS[weaponType].unlockDesc}] 조건을 현재 스탯으로 충족해 오게.`
             });
         }
 
         c.unlockedWeapons[weaponType] = true;
-        c.equippedWeapon = weaponType;
+        // 보조 슬롯이 비어 있으면 자동으로 2번 슬롯에 세팅
+        if (!c.loadoutWeapons[1] && c.loadoutWeapons[0] !== weaponType) {
+            c.loadoutWeapons[1] = weaponType;
+        }
         queueUserCharacterSave(p.userId, c);
 
-        io.emit('playerStatUpdated', {
-            id: socket.id,
-            character: c
-        });
+        io.emit('playerStatUpdated', { id: socket.id, character: c });
 
         if (callback) {
             callback({
                 success: true,
                 weaponType,
                 character: c,
-                message: `허허, 훌륭하구나! 이제부터 [${WEAPON_SPECS[weaponType].name}]을(를) 네 무기로 쓸 수 있다!`
+                message: `으하하! [${WEAPON_SPECS[weaponType].name}] 제작 완료다! 아래 출정 슬롯(1번/2번)에 세팅하고 사냥터로 나가게!`
             });
         }
     });
 
-    socket.on('equipWeapon', (weaponType, callback) => {
+    // 대장간 NPC 전용: 사냥터에 가져갈 출정 무기 2종 세팅
+    socket.on('setLoadoutWeapons', (payload, callback) => {
         const p = players[socket.id];
         if (!p) return callback && callback({ success: false, message: '플레이어 정보 없음' });
-        if (!WEAPON_SPECS[weaponType]) return callback && callback({ success: false, message: '존재하지 않는 무기입니다.' });
+        if (!isNearBlacksmith(p)) {
+            return callback && callback({ success: false, message: '출정 무기 2종 세팅은 로비의 [대장간] NPC에게서만 가능합니다!' });
+        }
 
         const c = p.character;
         syncCharacterProgress(c);
 
-        if (!c.unlockedWeapons[weaponType]) {
-            return callback && callback({
-                success: false,
-                message: `아직 전수받지 않은 무기입니다. 기숙사의 [대사부] NPC에게서 전수받으세요!`
-            });
+        const s0 = typeof payload?.slot0 === 'string' ? payload.slot0.trim() : '';
+        const s1 = typeof payload?.slot1 === 'string' ? payload.slot1.trim() : '';
+
+        if (!s0 || !WEAPON_SPECS[s0]) {
+            return callback && callback({ success: false, message: '1번 슬롯(주무기)을 선택해주세요.' });
+        }
+        if (!c.unlockedWeapons[s0] || !meetsWeaponStatReq(c, s0)) {
+            return callback && callback({ success: false, message: `1번 슬롯 [${WEAPON_SPECS[s0].name}]은(는) 미보유 또는 스탯 부족 봉인 상태입니다.` });
+        }
+        if (s1) {
+            if (!WEAPON_SPECS[s1]) {
+                return callback && callback({ success: false, message: '2번 슬롯 무기가 올바르지 않습니다.' });
+            }
+            if (s1 === s0) {
+                return callback && callback({ success: false, message: '1번 슬롯과 2번 슬롯에 같은 무기를 중복 배치할 수 없습니다.' });
+            }
+            if (!c.unlockedWeapons[s1] || !meetsWeaponStatReq(c, s1)) {
+                return callback && callback({ success: false, message: `2번 슬롯 [${WEAPON_SPECS[s1].name}]은(는) 미보유 또는 스탯 부족 봉인 상태입니다.` });
+            }
         }
 
-        if (!meetsWeaponStatReq(c, weaponType)) {
-            return callback && callback({
-                success: false,
-                message: `🔒 현재 스탯이 부족하여 [${WEAPON_SPECS[weaponType].name}]이(가) 봉인되었습니다! (${WEAPON_SPECS[weaponType].unlockDesc})`
-            });
+        c.loadoutWeapons = [s0, s1 || ''];
+        if (!c.loadoutWeapons.includes(c.equippedWeapon)) {
+            c.equippedWeapon = s0;
         }
 
-        c.equippedWeapon = weaponType;
         queueUserCharacterSave(p.userId, c);
+        io.emit('playerStatUpdated', { id: socket.id, character: c });
 
-        io.emit('playerStatUpdated', {
-            id: socket.id,
-            character: c
-        });
+        const label1 = WEAPON_SPECS[s0].name;
+        const label2 = s1 ? WEAPON_SPECS[s1].name : '없음';
+        if (callback) {
+            callback({
+                success: true,
+                character: c,
+                message: `⚒️ 출정 무기 세팅 완료! [1번: ${label1} / 2번: ${label2}] — 필드에서 X 키로 즉시 교체하세요!`
+            });
+        }
+    });
+
+    // 로비 및 사냥터 어디서든 가능한 2무기 즉시 스왑 (X 키 / [무기 변경] 버튼)
+    socket.on('swapWeapon', (callback) => {
+        const p = players[socket.id];
+        if (!p) return callback && callback({ success: false, message: '플레이어 정보 없음' });
+
+        const c = p.character;
+        syncCharacterProgress(c);
+
+        const [w0, w1] = c.loadoutWeapons || ['wand', ''];
+        if (!w1 || !WEAPON_SPECS[w1]) {
+            return callback && callback({
+                success: false,
+                message: '2번 보조 무기가 비어 있습니다! 로비의 [대장간] NPC에서 들고 다닐 무기 2종을 세팅하세요.'
+            });
+        }
+
+        const nextWeapon = (c.equippedWeapon === w0) ? w1 : w0;
+        if (!c.unlockedWeapons[nextWeapon]) {
+            return callback && callback({ success: false, message: '미보유 무기로는 교체할 수 없습니다.' });
+        }
+        if (!meetsWeaponStatReq(c, nextWeapon)) {
+            return callback && callback({
+                success: false,
+                message: `🔒 현재 스탯이 부족하여 [${WEAPON_SPECS[nextWeapon].name}]이(가) 봉인 상태입니다! (${WEAPON_SPECS[nextWeapon].unlockDesc})`
+            });
+        }
+
+        c.equippedWeapon = nextWeapon;
+        queueUserCharacterSave(p.userId, c);
+        io.emit('playerStatUpdated', { id: socket.id, character: c });
 
         if (callback) {
             callback({
                 success: true,
-                weaponType,
+                equippedWeapon: nextWeapon,
                 character: c,
-                message: `[${WEAPON_SPECS[weaponType].name}] 장착 완료!`
+                message: `🔄 [${WEAPON_SPECS[nextWeapon].name}](으)로 무기 변경!`
             });
         }
     });
@@ -1972,20 +2161,12 @@ io.on('connection', async (socket) => {
         if (prefs.auraColor && validColors.includes(prefs.auraColor)) {
             c.auraColor = prefs.auraColor;
         }
-        if (
-            prefs.equippedWeapon &&
-            WEAPON_SPECS[prefs.equippedWeapon] &&
-            c.unlockedWeapons[prefs.equippedWeapon] &&
-            meetsWeaponStatReq(c, prefs.equippedWeapon)
-        ) {
-            c.equippedWeapon = prefs.equippedWeapon;
-        }
 
         queueUserCharacterSave(p.userId, c);
         io.emit('playerStatUpdated', { id: socket.id, character: c });
     });
 
-    // ================= [6대 스탯 & 무기 6종 강화 (메모리 즉시 연산 + 비동기 저장)] =================
+    // ================= [6대 스탯 강화(어디서나) & 무기 6종 강화(대장간 NPC 전용)] =================
     socket.on('tryEnhanceStat', (statType, callback) => {
         const p = players[socket.id];
         if (!p) return callback({ success: false, message: '플레이어 정보 없음' });
@@ -1995,10 +2176,17 @@ io.on('connection', async (socket) => {
 
         const isWeaponStat = WEAPON_KEYS.includes(statType);
         if (isWeaponStat) {
+            // 무기 강화는 반드시 로비의 대장간 NPC 근처에서만 가능
+            if (!isNearBlacksmith(p)) {
+                return callback({
+                    success: false,
+                    message: '⚒️ 무기 강화는 로비의 [대장간] NPC에게 말을 걸어야만 가능합니다!'
+                });
+            }
             if (!c.unlockedWeapons[statType]) {
                 return callback({
                     success: false,
-                    message: `아직 전수받지 않은 무기입니다! 기숙사의 [대사부] NPC에게서 먼저 전수받으세요.`
+                    message: '아직 보유하지 않은 무기입니다! 먼저 [대장간]에서 제작·전수받으세요.'
                 });
             }
             if (!meetsWeaponStatReq(c, statType)) {
@@ -2045,7 +2233,7 @@ io.on('connection', async (socket) => {
                 result = {
                     type: 'success',
                     change: 1,
-                    message: `⚔️ ${wName} 강화 성공! (+${nextLv}강 달성 · 장착 시 전투력 +10 상승!)`
+                    message: `⚒️ ${wName} 단조 성공! (+${nextLv}강 달성 · 장착 시 전투력 +10 상승!)`
                 };
             } else {
                 if (curLv > 0 && Math.random() < 0.5) {
@@ -2055,13 +2243,13 @@ io.on('connection', async (socket) => {
                     result = {
                         type: 'fail',
                         change: -1,
-                        message: `💥 ${wName} 연성 실패! 마력이 역류하여 단계가 하락했습니다 (-1강 → +${nextLv}강).`
+                        message: `💥 ${wName} 단조 실패! 균열이 생겨 단계가 하락했습니다 (-1강 → +${nextLv}강).`
                     };
                 } else {
                     result = {
                         type: 'keep',
                         change: 0,
-                        message: `🔨 ${wName} 연성 실패... 다행히 단계가 유지되었습니다 (+${curLv}강).`
+                        message: `🔨 ${wName} 단조 실패... 다행히 단계가 유지되었습니다 (+${curLv}강).`
                     };
                 }
             }
@@ -2131,7 +2319,7 @@ io.on('connection', async (socket) => {
 
         const { autoUnequippedWeapon } = syncCharacterProgress(c);
         if (autoUnequippedWeapon) {
-            result.message += ` 🔒 스탯 하락으로 [${autoUnequippedWeapon}]이(가) 봉인되어 지팡이로 자동 전환되었습니다!`;
+            result.message += ` 🔒 스탯 하락으로 [${autoUnequippedWeapon}]이(가) 봉인되어 자동 전환되었습니다!`;
         }
 
         c.enhanceTokens = currentTokens;
