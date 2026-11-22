@@ -36,19 +36,25 @@ const userSchema = new mongoose.Schema({
             default: 'male'
         },
         // 6대 스탯 + 기본 지팡이 호환 필드(0~30강)
-        education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔 -> 망치: 10 해금 / 50 블랙홀 / 100 운석 강하)
-        appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리 -> 활: 10 해금 / 50 삼삼구샷 / 100 비연 곡예사격)
-        wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔 -> 쌍수: 10 해금 / 50 새비지 블로우 / 100 환영 순보)
-        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100 -> 지팡이: 150 1+1 / 200 차원 도약 포격)
-        stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통 -> 대검: 10 해금 / 50 GG / 100 패왕 돌진베기)
-        personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리 -> 태극구: 10 해금 / 50 음양양의 / 100 무위 축지)
+        education: { type: Number, default: 0, min: 0 },     // 학력 (오른팔 -> 망치)
+        appearance: { type: Number, default: 0, min: 0 },    // 외모 (오른다리 -> 활)
+        wealth: { type: Number, default: 0, min: 0 },        // 재력 (왼팔 -> 쌍수)
+        iq: { type: Number, default: 100, min: 0 },          // 지능 (머리, 기본 100 -> 지팡이: 150 넉백 / 200 2연사)
+        stamina: { type: Number, default: 0, min: 0 },       // 체력 (몸통 -> 대검)
+        personality: { type: Number, default: 0, min: 0 },   // 성격 (왼다리 -> 태극구)
         wand: { type: Number, default: 0, min: 0, max: 30 }, // 지팡이 강화단계 (하위 호환용)
 
-        // 현재 장착 중인 무기 (6종 + 기존 chakram 데이터 마이그레이션 호환)
+        // 현재 손에 들고 있는 무기 (loadoutWeapons 2슬롯 중 하나)
         equippedWeapon: {
             type: String,
             enum: ['wand', 'greatsword', 'hammer', 'bow', 'daggers', 'taijiorb', 'chakram'],
             default: 'wand'
+        },
+
+        // 대장간 NPC에서 세팅하는 출정 무기 2종 슬롯 ([1번 주무기, 2번 보조무기])
+        loadoutWeapons: {
+            type: [String],
+            default: ['wand', '']
         },
 
         // 6종 무기별 개별 강화 단계 (0~30강, 장착 무기 단계당 전투력 +10)
@@ -62,7 +68,7 @@ const userSchema = new mongoose.Schema({
             chakram: { type: Number, default: 0, min: 0, max: 30 } // 기존 DB 이관용
         },
 
-        // 대사부 NPC를 통해 전수받은 무기 이력 (실제 사용/장착은 실시간 스탯 기준으로 검사)
+        // 대장간 NPC를 통해 제작·전수받은 무기 이력 (실제 사용/장착은 실시간 스탯 기준으로 검사)
         unlockedWeapons: {
             wand: { type: Boolean, default: true },
             greatsword: { type: Boolean, default: false },
@@ -109,12 +115,16 @@ const userSchema = new mongoose.Schema({
             default: 'red'
         },
 
-        // 해린이언니 커스터마이징 외형 (48x48 압축 PNG/WebP DataURL, 빈 문자열이면 기본 외형)
+        // 해린이언니 커스터마이징 외형 (압축 PNG/WebP DataURL, 빈 문자열이면 기본 외형)
         customAvatar: {
             type: String,
             default: '',
-            maxlength: 20480
+            maxlength: 32768
         },
+
+        // 해린이언니 캐릭터 크기 설정 (가로 1~3블록 × 세로 1~3블록, 피격 판정 연동)
+        avatarWidth: { type: Number, default: 1, min: 1, max: 3 },
+        avatarHeight: { type: Number, default: 1, min: 1, max: 3 },
 
         // 기회 시스템 (1분당 1충전 + 몬스터 사냥 보상 획득, 최대 120개)
         enhanceTokens: { type: Number, default: 120, min: 0, max: 120 },
