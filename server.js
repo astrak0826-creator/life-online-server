@@ -228,7 +228,7 @@ function formatDecayNotice(logs) {
     return `🌙 자정(00:00) 누적 정산(${logs.length}일): 6대 스탯 총합 100 초과로 [${summary}] 하락했습니다.`;
 }
 
-// ================= [무기 6종 스펙 (지팡이 3속성 리워크 & 10/50/100 실시간 스탯 봉인)] =================
+// ================= [무기 6종 스펙 (v3.2 6종 밸런스 리워크 & 50/100강 중첩 유지)] =================
 const ENHANCE_RATES = {
     0: 0.95,  1: 0.90,  2: 0.85,  3: 0.80,  4: 0.75,
     5: 0.70,  6: 0.65,  7: 0.60,  8: 0.55,  9: 0.50,
@@ -243,11 +243,11 @@ const WEAPON_SPECS = {
         key: 'wand',
         name: '지팡이',
         cooldownMs: 500,      // 공속 0.5초
-        baseMult: 1.0,
+        baseMult: 1.00,
         fireSplashMult: 0.60, // 화염구 스플래시 60%
         iceSplashMult: 0.10,  // 빙결구 스플래시 10% + 3초 이속 50%
         skill50Mult: 0,       // 50강(IQ 150): 20% 확률 반경 4타일 밀쳐내기 (데미지 없음)
-        skill100Mult: 1.0,    // 100강(IQ 200): 3속성 랜덤 2발 연속 발사
+        skill100Mult: 1.00,   // 100강(IQ 200): 3속성 랜덤 2발 연속 발사
         unlockStat: null,
         unlockReq: 0,
         unlockDesc: '기본 지급 무기',
@@ -260,10 +260,10 @@ const WEAPON_SPECS = {
     greatsword: {
         key: 'greatsword',
         name: '대검',
-        cooldownMs: 1240,
-        baseMult: 1.15,
-        skill50Mult: 0.86,   // 회전 참격 (GG)
-        skill100Mult: 1.45,  // 패왕 돌진베기
+        cooldownMs: 1000,     // 공속 1.0초
+        baseMult: 3.20,       // 전방 160도 3.2타일 광역 베기 320%
+        skill50Mult: 2.40,    // 50강: 3타마다 360도 3.6타일 회전 참격 240% × 2타 (100강에도 유지)
+        skill100Mult: 2.80,   // 100강: 5.5타일 거대 관통 검기 파동 280% 추가 발사 (강제 돌진 삭제)
         unlockStat: 'stamina',
         unlockReq: 10,
         unlockDesc: '현재 체력(몸통) +10강 이상 유지',
@@ -271,15 +271,15 @@ const WEAPON_SPECS = {
         skill50Req: 50,
         skill100Req: 100,
         skill50Name: '회전 참격(GG)',
-        skill100Name: '패왕 돌진베기'
+        skill100Name: '패왕의 검기'
     },
     hammer: {
         key: 'hammer',
         name: '망치',
-        cooldownMs: 700,
-        baseMult: 0.76,
-        skill50Mult: 0.76,   // 중력 붕괴 (블랙홀)
-        skill100Mult: 1.25,  // 운석 강하
+        cooldownMs: 800,      // 공속 0.8초
+        baseMult: 2.50,       // 전방 130도 2.8타일 내려찍기 250%
+        skill50Mult: 3.60,    // 50강: 30% 확률 4.5타일 블랙홀 흡입 + 360도 360% (100강에도 유지)
+        skill100Mult: 2.40,   // 100강: 5.5타일 내 적 머리 위 원격 운석 낙하 3.8타일 240% (강제 점프 삭제)
         unlockStat: 'education',
         unlockReq: 10,
         unlockDesc: '현재 학력(오른팔) +10강 이상 유지',
@@ -292,10 +292,11 @@ const WEAPON_SPECS = {
     bow: {
         key: 'bow',
         name: '활',
-        cooldownMs: 520,
-        baseMult: 1.50,
-        skill50Mult: 0.63,   // 삼삼구샷
-        skill100Mult: 1.65,  // 비연 곡예사격
+        cooldownMs: 600,      // 공속 0.6초
+        baseMult: 1.95,       // 12타일 무제한 관통 화살 195%
+        skill50Mult: 1.10,    // 50강: 4타마다 3갈래×3연사 (화살당 110%)
+        skill50EnhancedMult: 1.40, // 100강 달성 시 삼삼구샷 화살당 140%로 상승
+        skill100Mult: 1.95,   // 100강: 기본 사격 2연발 관통 화살 (강제 스텝 삭제)
         unlockStat: 'appearance',
         unlockReq: 10,
         unlockDesc: '현재 외모(오른다리) +10강 이상 유지',
@@ -303,15 +304,15 @@ const WEAPON_SPECS = {
         skill50Req: 50,
         skill100Req: 100,
         skill50Name: '삼삼구샷',
-        skill100Name: '비연 곡예사격'
+        skill100Name: '이중 관통 사격'
     },
     daggers: {
         key: 'daggers',
         name: '쌍수',
-        cooldownMs: 160,
-        baseMult: 1.0,
-        skill50Mult: 0.80,   // 새비지 블로우
-        skill100Mult: 1.30,  // 환영 순보
+        cooldownMs: 250,      // 공속 0.25초 (초당 4타)
+        baseMult: 1.00,       // 단일 2.6타일 초고속 찌르기 100%
+        skill50Mult: 0.50,    // 50강: 20% 확률 새비지 블로우 50% × 6연타 (총 300%, 100강에도 유지)
+        skill100Mult: 0.95,   // 100강: 그림자 환영 분신이 적 뒤편에서 95% 추가타 (무작위 텔포 삭제)
         unlockStat: 'wealth',
         unlockReq: 10,
         unlockDesc: '현재 재력(왼팔) +10강 이상 유지',
@@ -319,15 +320,15 @@ const WEAPON_SPECS = {
         skill50Req: 50,
         skill100Req: 100,
         skill50Name: '새비지 블로우',
-        skill100Name: '환영 순보'
+        skill100Name: '환영 분신'
     },
     taijiorb: {
         key: 'taijiorb',
         name: '태극구',
-        cooldownMs: 420,
-        baseMult: 0.73,
-        skill50Mult: 0.85,
-        skill100Mult: 0.85,
+        cooldownMs: 420,      // 0.5초 틱 회전 타격
+        baseMult: 1.50,       // 반경 3.35타일 음·양 구슬 150%
+        skill50Mult: 0.90,    // 50강: 5초마다 2초간 4.8타일 외곽 역회전 거대 구슬 90% 추가 중첩
+        skill100Mult: 1.50,   // 100강: 이속 +28% + 내부 4구슬 150% × 2연타
         unlockStat: 'personality',
         unlockReq: 10,
         unlockDesc: '현재 성격(왼다리) +10강 이상 유지',
@@ -340,6 +341,7 @@ const WEAPON_SPECS = {
 };
 
 const WEAPON_KEYS = Object.keys(WEAPON_SPECS);
+const VALID_TITLE_STATS = ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality', ...WEAPON_KEYS];
 
 function resolveTokens(charData) {
     const now = Date.now();
@@ -400,79 +402,51 @@ function clampAvatarDim(val) {
     return Math.min(3, Math.max(1, n));
 }
 
-// 기존 유저 호환 + 2슬롯 출정 무기(loadoutWeapons) + 캐릭터 크기(1~3x1~3) + 실시간 봉인 동기화
+// 6종 무기 · 2슬롯 출정 무기 · 캐릭터 크기(1~3x1~3) · 무기 표시 여부(showWeapon) · 실시간 봉인 동기화
 function syncCharacterProgress(char) {
     if (!char) return { autoUnequippedWeapon: null };
     if (typeof char.wand !== 'number') char.wand = 0;
     if (typeof char.customTitle !== 'string') char.customTitle = '';
     if (typeof char.customAvatar !== 'string') char.customAvatar = '';
+    if (typeof char.showWeapon !== 'boolean') char.showWeapon = true;
     char.avatarWidth = clampAvatarDim(char.avatarWidth);
     char.avatarHeight = clampAvatarDim(char.avatarHeight);
 
-    if (!char.titleStat) char.titleStat = 'education';
-    if (char.titleStat === 'chakram') char.titleStat = 'taijiorb';
+    if (!char.titleStat || !VALID_TITLE_STATS.includes(char.titleStat)) {
+        char.titleStat = 'education';
+    }
     if (!char.auraColor) char.auraColor = 'red';
     if (typeof char.lastDecayDate !== 'string') char.lastDecayDate = '';
 
-    // 무기 강화 수치 초기화 및 chakram -> taijiorb 자동 이관
-    if (!char.weapons || typeof char.weapons !== 'object') {
-        char.weapons = {
-            wand: char.wand || 0,
-            greatsword: 0,
-            hammer: 0,
-            bow: 0,
-            daggers: 0,
-            taijiorb: 0
-        };
-    } else {
-        if (typeof char.weapons.wand !== 'number') char.weapons.wand = char.wand || 0;
-        else char.wand = Math.max(char.wand || 0, char.weapons.wand || 0);
-        char.weapons.wand = char.wand;
+    // 6종 무기 강화 수치 정규화 (구버전 불필요 키 자동 제거)
+    const prevW = (char.weapons && typeof char.weapons === 'object') ? char.weapons : {};
+    const wandLv = typeof prevW.wand === 'number' ? prevW.wand : (char.wand || 0);
+    char.wand = wandLv;
+    char.weapons = {
+        wand: wandLv,
+        greatsword: typeof prevW.greatsword === 'number' ? prevW.greatsword : 0,
+        hammer: typeof prevW.hammer === 'number' ? prevW.hammer : 0,
+        bow: typeof prevW.bow === 'number' ? prevW.bow : 0,
+        daggers: typeof prevW.daggers === 'number' ? prevW.daggers : 0,
+        taijiorb: typeof prevW.taijiorb === 'number' ? prevW.taijiorb : 0
+    };
 
-        if (typeof char.weapons.greatsword !== 'number') char.weapons.greatsword = 0;
-        if (typeof char.weapons.hammer !== 'number') char.weapons.hammer = 0;
-        if (typeof char.weapons.bow !== 'number') char.weapons.bow = 0;
-        if (typeof char.weapons.daggers !== 'number') char.weapons.daggers = 0;
-        if (typeof char.weapons.taijiorb !== 'number') char.weapons.taijiorb = 0;
-        if (typeof char.weapons.chakram === 'number' && char.weapons.chakram > char.weapons.taijiorb) {
-            char.weapons.taijiorb = char.weapons.chakram;
-        }
-    }
-
-    // 대장간 전수 이력 초기화 및 chakram -> taijiorb 이관
-    if (!char.unlockedWeapons || typeof char.unlockedWeapons !== 'object') {
-        char.unlockedWeapons = {
-            wand: true,
-            greatsword: false,
-            hammer: false,
-            bow: false,
-            daggers: false,
-            taijiorb: false
-        };
-    } else {
-        char.unlockedWeapons.wand = true;
-        if (typeof char.unlockedWeapons.greatsword !== 'boolean') char.unlockedWeapons.greatsword = false;
-        if (typeof char.unlockedWeapons.hammer !== 'boolean') char.unlockedWeapons.hammer = false;
-        if (typeof char.unlockedWeapons.bow !== 'boolean') char.unlockedWeapons.bow = false;
-        if (typeof char.unlockedWeapons.daggers !== 'boolean') char.unlockedWeapons.daggers = false;
-        if (typeof char.unlockedWeapons.taijiorb !== 'boolean') char.unlockedWeapons.taijiorb = false;
-        if (char.unlockedWeapons.chakram) char.unlockedWeapons.taijiorb = true;
-    }
+    // 대장간 전수 이력 정규화 (6종 무기만 유지)
+    const prevU = (char.unlockedWeapons && typeof char.unlockedWeapons === 'object') ? char.unlockedWeapons : {};
+    char.unlockedWeapons = {
+        wand: true,
+        greatsword: Boolean(prevU.greatsword),
+        hammer: Boolean(prevU.hammer),
+        bow: Boolean(prevU.bow),
+        daggers: Boolean(prevU.daggers),
+        taijiorb: Boolean(prevU.taijiorb)
+    };
 
     // 출정 무기 2슬롯(loadoutWeapons) 정규화
-    if (char.equippedWeapon === 'chakram') char.equippedWeapon = 'taijiorb';
     let rawLoadout = Array.isArray(char.loadoutWeapons) ? char.loadoutWeapons.slice(0, 2) : [];
-    rawLoadout = rawLoadout.map(w => (w === 'chakram' ? 'taijiorb' : (typeof w === 'string' ? w : '')));
+    rawLoadout = rawLoadout.map(w => (typeof w === 'string' && WEAPON_SPECS[w] && char.unlockedWeapons[w]) ? w : '');
     while (rawLoadout.length < 2) rawLoadout.push('');
 
-    // 슬롯에 전수받지 않은 무기가 있으면 비움
-    for (let i = 0; i < 2; i++) {
-        const w = rawLoadout[i];
-        if (w && (!WEAPON_SPECS[w] || !char.unlockedWeapons[w])) {
-            rawLoadout[i] = '';
-        }
-    }
-    // 기존 유저 첫 마이그레이션: equippedWeapon이 유효한데 loadout에 없으면 자동 등록
     if (!rawLoadout[0] && !rawLoadout[1]) {
         const eq = char.equippedWeapon;
         if (eq && WEAPON_SPECS[eq] && char.unlockedWeapons[eq] && meetsWeaponStatReq(char, eq)) {
@@ -514,35 +488,21 @@ function syncCharacterProgress(char) {
     }
 
     // 칭호 이력용 역대 최고 달성 기록(maxStats) 동기화
-    if (!char.maxStats) {
-        char.maxStats = {
-            education: char.education || 0,
-            appearance: char.appearance || 0,
-            wealth: char.wealth || 0,
-            iq: char.iq !== undefined ? char.iq : 100,
-            stamina: char.stamina || 0,
-            personality: char.personality || 0,
-            wand: char.weapons.wand || 0,
-            greatsword: char.weapons.greatsword || 0,
-            hammer: char.weapons.hammer || 0,
-            bow: char.weapons.bow || 0,
-            daggers: char.weapons.daggers || 0,
-            taijiorb: char.weapons.taijiorb || 0
-        };
-    } else {
-        char.maxStats.education = Math.max(char.maxStats.education || 0, char.education || 0);
-        char.maxStats.appearance = Math.max(char.maxStats.appearance || 0, char.appearance || 0);
-        char.maxStats.wealth = Math.max(char.maxStats.wealth || 0, char.wealth || 0);
-        char.maxStats.iq = Math.max(char.maxStats.iq || 100, char.iq !== undefined ? char.iq : 100);
-        char.maxStats.stamina = Math.max(char.maxStats.stamina || 0, char.stamina || 0);
-        char.maxStats.personality = Math.max(char.maxStats.personality || 0, char.personality || 0);
-        char.maxStats.wand = Math.max(char.maxStats.wand || 0, char.weapons.wand || 0);
-        char.maxStats.greatsword = Math.max(char.maxStats.greatsword || 0, char.weapons.greatsword || 0);
-        char.maxStats.hammer = Math.max(char.maxStats.hammer || 0, char.weapons.hammer || 0);
-        char.maxStats.bow = Math.max(char.maxStats.bow || 0, char.weapons.bow || 0);
-        char.maxStats.daggers = Math.max(char.maxStats.daggers || 0, char.weapons.daggers || 0);
-        char.maxStats.taijiorb = Math.max(char.maxStats.taijiorb || 0, char.maxStats.chakram || 0, char.weapons.taijiorb || 0);
-    }
+    const prevM = (char.maxStats && typeof char.maxStats === 'object') ? char.maxStats : {};
+    char.maxStats = {
+        education: Math.max(prevM.education || 0, char.education || 0),
+        appearance: Math.max(prevM.appearance || 0, char.appearance || 0),
+        wealth: Math.max(prevM.wealth || 0, char.wealth || 0),
+        iq: Math.max(prevM.iq || 100, char.iq !== undefined ? char.iq : 100),
+        stamina: Math.max(prevM.stamina || 0, char.stamina || 0),
+        personality: Math.max(prevM.personality || 0, char.personality || 0),
+        wand: Math.max(prevM.wand || 0, char.weapons.wand || 0),
+        greatsword: Math.max(prevM.greatsword || 0, char.weapons.greatsword || 0),
+        hammer: Math.max(prevM.hammer || 0, char.weapons.hammer || 0),
+        bow: Math.max(prevM.bow || 0, char.weapons.bow || 0),
+        daggers: Math.max(prevM.daggers || 0, char.weapons.daggers || 0),
+        taijiorb: Math.max(prevM.taijiorb || 0, char.weapons.taijiorb || 0)
+    };
 
     return { autoUnequippedWeapon };
 }
@@ -612,6 +572,7 @@ app.post('/api/register', async (req, res) => {
                 customTitle: '',
                 titleStat: 'education',
                 auraColor: 'red',
+                showWeapon: true,
                 customAvatar: '',
                 avatarWidth: 1,
                 avatarHeight: 1,
@@ -808,6 +769,7 @@ app.get('/api/rankings', async (req, res) => {
                 customTitle: c.customTitle || '',
                 titleStat: c.titleStat || 'education',
                 auraColor: c.auraColor || 'red',
+                showWeapon: c.showWeapon !== false,
                 avatarWidth: c.avatarWidth || 1,
                 avatarHeight: c.avatarHeight || 1,
                 totalScore
@@ -835,19 +797,16 @@ const BLACKSMITH_CENTER_Y = 6.5;
 
 const OBSTACLES = [
     // [0~19: 기숙사 로비]
-    // 상단 12시 중앙: 로비 중앙 전광판 (하이잭 디스)
     { x: 9, y: 1, type: 'billboard' }, { x: 10, y: 1, type: 'billboard' },
-
-    // 상단 좌우: 창문 & 서가
     { x: 2, y: 1, type: 'window' }, { x: 3, y: 1, type: 'window' },
     { x: 16, y: 1, type: 'window' }, { x: 17, y: 1, type: 'window' },
     { x: 6, y: 1, type: 'bookshelf' }, { x: 13, y: 1, type: 'bookshelf' },
 
     // 로비 4명의 NPC (대장간 NPC는 2x2 대형)
-    { x: 4, y: 3, type: 'npc_helicopter' },  // 헬리콥터 (패치 내역 안내)
-    { x: 15, y: 3, type: 'npc_nong' },       // 농 잊을리 (아재개그)
-    { x: 10, y: 11, type: 'npc_haerin' },    // 해린이언니 (외형·크기 커스터마이징)
-    { x: 17, y: 6, type: 'npc_blacksmith' }, // 대장간 2x2 (무기 전수·강화·출정 2슬롯 세팅)
+    { x: 4, y: 3, type: 'npc_helicopter' },
+    { x: 15, y: 3, type: 'npc_nong' },
+    { x: 10, y: 11, type: 'npc_haerin' },
+    { x: 17, y: 6, type: 'npc_blacksmith' },
     { x: 18, y: 6, type: 'npc_blacksmith' },
     { x: 17, y: 7, type: 'npc_blacksmith' },
     { x: 18, y: 7, type: 'npc_blacksmith' },
@@ -1104,7 +1063,6 @@ let bossTelegraphSeq = 0;
 function isPlayerHitByCircle(pl, circleX, circleY, radiusTiles) {
     const aw = clampAvatarDim(pl.character?.avatarWidth);
     const ah = clampAvatarDim(pl.character?.avatarHeight);
-    // 발밑 고정(feet-anchored) 몸집 AABB: 1x1일 때 반경 0.35, 3x3일 때 2.7x2.7 타일 피격 판정
     const halfW = aw * 0.5 - 0.15;
     const halfH = ah * 0.5 - 0.15;
     const bodyCx = pl.x;
@@ -1354,7 +1312,7 @@ io.on('connection', async (socket) => {
             education: 0, appearance: 0, wealth: 0, iq: 100, stamina: 0, personality: 0,
             wand: 0, greatsword: 0, hammer: 0, bow: 0, daggers: 0, taijiorb: 0
         },
-        customTitle: '', titleStat: 'education', auraColor: 'red', customAvatar: '',
+        customTitle: '', titleStat: 'education', auraColor: 'red', showWeapon: true, customAvatar: '',
         avatarWidth: 1, avatarHeight: 1,
         enhanceTokens: MAX_TOKENS, lastTokenRefill: new Date(),
         lastDecayDate: getKstDateString()
@@ -1468,7 +1426,7 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // 무기별 평타 & 50강/100강 스킬 발사 동기화 (지팡이 3속성·4타일 넉백·2연사 / 모든 BOSS CC 면역 / 외침 제거)
+    // 무기별 평타 & 50강·100강 중첩 스킬 발사 동기화 (모든 BOSS CC 면역)
     socket.on('fireProjectile', (payload = {}) => {
         const p = players[socket.id];
         if (!p) return;
@@ -1480,8 +1438,12 @@ io.on('connection', async (socket) => {
         const unlocked100 = hasWeaponSkill100(c, weaponType);
 
         const now = Date.now();
-        const isExtraWandShot = Boolean(payload.isExtraWandShot && weaponType === 'wand' && unlocked100);
-        if (!isExtraWandShot) {
+        const isExtraShot = Boolean(
+            (payload.isExtraWandShot || payload.isExtraShot) &&
+            (weaponType === 'wand' || weaponType === 'bow') &&
+            unlocked100
+        );
+        if (!isExtraShot) {
             if (now - (p.lastAttackTime || 0) < wSpec.cooldownMs * 0.78) return;
             p.lastAttackTime = now;
         }
@@ -1507,24 +1469,17 @@ io.on('connection', async (socket) => {
             ? payload.element
             : null;
 
-        const reqSkillTier = payload.skillTier === 100 ? 100 : (payload.skillTier === 50 ? 50 : 0);
-        let verifiedSkillType = null;
-        let verifiedSkillTier = 0;
-        if (reqSkillTier === 100 && unlocked100 && typeof payload.skillType === 'string') {
-            verifiedSkillType = payload.skillType;
-            verifiedSkillTier = 100;
-        } else if (reqSkillTier === 50 && unlocked50 && typeof payload.skillType === 'string') {
-            verifiedSkillType = payload.skillType;
-            verifiedSkillTier = 50;
-        } else if (unlocked50 && typeof payload.skillType === 'string' && !reqSkillTier) {
-            verifiedSkillType = payload.skillType;
-            verifiedSkillTier = 50;
-        }
+        const verifiedSkill50 = Boolean(unlocked50 && (payload.skill50Triggered || payload.skillTier === 50));
+        const verifiedSkill100 = Boolean(unlocked100 && (payload.skill100Triggered || payload.skillTier === 100));
+        const verifiedSkillType = (verifiedSkill50 || verifiedSkill100) && typeof payload.skillType === 'string'
+            ? payload.skillType
+            : null;
+        const verifiedSkillTier = verifiedSkill100 ? 100 : (verifiedSkill50 ? 50 : 0);
 
         const wz = getWorldZoneByX(p.x);
 
-        // 지팡이 50강(IQ 150+): 반경 4타일 원 범위 밀쳐내기 (데미지 없음, 모든 [BOSS]는 CC 면역)
-        if (weaponType === 'wand' && unlocked50 && payload.triggerKnockback && !isExtraWandShot) {
+        // 지팡이 50강(IQ 150+): 반경 4타일 원 범위 밀쳐내기 (데미지 없음, 모든 [BOSS] CC 면역)
+        if (weaponType === 'wand' && unlocked50 && payload.triggerKnockback && !isExtraShot) {
             const pushedList = [];
             for (const mid in monsters) {
                 const m = monsters[mid];
@@ -1572,8 +1527,8 @@ io.on('connection', async (socket) => {
             });
         }
 
-        // 망치 50강 스킬 '중력 붕괴(블랙홀)' 흡입 (모든 [BOSS] CC 면역)
-        if (verifiedSkillType === 'blackhole' && weaponType === 'hammer') {
+        // 망치 50강 '중력 붕괴(블랙홀)': 100강에도 유지 · 반경 4.5타일 흡입 (모든 [BOSS] CC 면역)
+        if (weaponType === 'hammer' && unlocked50 && (payload.triggerBlackhole || verifiedSkillType === 'blackhole')) {
             const pullCenterX = p.x + Math.cos(angle) * 1.2;
             const pullCenterY = p.y + Math.sin(angle) * 1.2;
             const pulledList = [];
@@ -1588,7 +1543,7 @@ io.on('connection', async (socket) => {
                 const mCenterY = m.y + (mSize - 1) * 0.5;
                 const dist = Math.hypot(mCenterX - p.x, mCenterY - p.y);
 
-                if (dist <= 4.0) {
+                if (dist <= 4.5) {
                     const jitterX = (Math.random() - 0.5) * 0.5;
                     const jitterY = (Math.random() - 0.5) * 0.5;
                     const b = getZoneBounds(m.zone, mSize);
@@ -1619,6 +1574,11 @@ io.on('connection', async (socket) => {
             }
         }
 
+        const meteorX = (weaponType === 'hammer' && verifiedSkill100 && typeof payload.meteorX === 'number') ? payload.meteorX : null;
+        const meteorY = (weaponType === 'hammer' && verifiedSkill100 && typeof payload.meteorY === 'number') ? payload.meteorY : null;
+        const cloneX = (weaponType === 'daggers' && verifiedSkill100 && typeof payload.cloneX === 'number') ? payload.cloneX : null;
+        const cloneY = (weaponType === 'daggers' && verifiedSkill100 && typeof payload.cloneY === 'number') ? payload.cloneY : null;
+
         emitToNearbyZones(wz, 'projectileFired', {
             ownerId: socket.id,
             ownerName: p.name,
@@ -1635,11 +1595,17 @@ io.on('connection', async (socket) => {
             attackPower: combatPower,
             skillType: verifiedSkillType,
             skillTier: verifiedSkillTier,
-            isExtraWandShot: isExtraWandShot
+            skill50Triggered: verifiedSkill50,
+            skill100Triggered: verifiedSkill100,
+            meteorX: meteorX,
+            meteorY: meteorY,
+            cloneX: cloneX,
+            cloneY: cloneY,
+            isExtraShot: isExtraShot
         }, socket.id);
     });
 
-    // 사냥터 몬스터 피격 및 처치 (지팡이 3속성 + 빙결 3초 둔화 + 뇌전 2타 + 모든 BOSS CC 면역)
+    // 사냥터 몬스터 피격 및 처치 (6종 무기 배율 + 지팡이 3속성 + 모든 BOSS CC 면역)
     function applyDamageToMonster(p, m, mult, opts = {}) {
         if (!p || !m || !m.alive) return false;
         const c = p.character || {};
@@ -1757,28 +1723,26 @@ io.on('connection', async (socket) => {
         const eqWeapon = (c.equippedWeapon && WEAPON_SPECS[c.equippedWeapon]) ? c.equippedWeapon : 'wand';
         const wSpec = WEAPON_SPECS[eqWeapon];
 
-        // 지팡이 3속성 전용 판정
+        // 1) 지팡이 3속성 전용 판정
         if (eqWeapon === 'wand') {
             const elem = ['fire', 'ice', 'lightning'].includes(payload.element) ? payload.element : 'fire';
 
             if (elem === 'fire') {
-                const mult = payload.isSplash ? wSpec.fireSplashMult : 1.0; // 직격 100%, 스플래시 60%
+                const mult = payload.isSplash ? wSpec.fireSplashMult : 1.0;
                 applyDamageToMonster(p, m, mult, { hitType: 'fire' });
                 return;
             }
 
             if (elem === 'ice') {
-                const mult = payload.isSplash ? wSpec.iceSplashMult : 1.0; // 직격 100%, 스플래시 10%
+                const mult = payload.isSplash ? wSpec.iceSplashMult : 1.0;
                 applyDamageToMonster(p, m, mult, { hitType: 'ice', applyFreeze: true });
                 return;
             }
 
             if (elem === 'lightning') {
                 if (payload.isSplash) return;
-                // 1타: 뇌전구 직격 (100%)
                 const stillAlive = applyDamageToMonster(p, m, 1.0, { hitType: 'lightning_orb' });
 
-                // 2타: 하늘의 번개 (전투력 100% ~ 300% 랜덤)
                 if (stillAlive) {
                     const targetMonsterId = m.id;
                     setTimeout(() => {
@@ -1801,14 +1765,27 @@ io.on('connection', async (socket) => {
             }
         }
 
-        // 그 외 5종 무기 배율
+        // 2) 활 전용 판정 (50강 삼삼구샷: 100강 달성 시 화살당 140%, 미만 시 110% / 기본·이중관통 195%)
+        if (eqWeapon === 'bow') {
+            let mult = wSpec.baseMult;
+            if (payload.skillTier === 50 && hasWeaponSkill50(c, 'bow')) {
+                mult = hasWeaponSkill100(c, 'bow') ? wSpec.skill50EnhancedMult : wSpec.skill50Mult;
+            }
+            applyDamageToMonster(p, m, mult, { hitType: payload.skillTier === 50 ? 'bow_50' : 'normal' });
+            return;
+        }
+
+        // 3) 대검 / 망치 / 쌍수 / 태극구: 50강·100강 중첩 독립 판정
         let mult = wSpec.baseMult;
+        let hitType = 'normal';
         if (payload.skillTier === 100 && hasWeaponSkill100(c, eqWeapon)) {
             mult = wSpec.skill100Mult;
-        } else if ((payload.skillHit || payload.skillTier === 50) && hasWeaponSkill50(c, eqWeapon)) {
+            hitType = `${eqWeapon}_100`;
+        } else if ((payload.skillTier === 50 || payload.skillHit) && hasWeaponSkill50(c, eqWeapon)) {
             mult = wSpec.skill50Mult;
+            hitType = `${eqWeapon}_50`;
         }
-        applyDamageToMonster(p, m, mult, { hitType: 'normal' });
+        applyDamageToMonster(p, m, mult, { hitType });
     });
 
     // ================= [로비 중앙 전광판 (하이잭 디스)] =================
@@ -2033,7 +2010,6 @@ io.on('connection', async (socket) => {
         }
 
         c.unlockedWeapons[weaponType] = true;
-        // 보조 슬롯이 비어 있으면 자동으로 2번 슬롯에 세팅
         if (!c.loadoutWeapons[1] && c.loadoutWeapons[0] !== weaponType) {
             c.loadoutWeapons[1] = weaponType;
         }
@@ -2051,7 +2027,6 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // 대장간 NPC 전용: 사냥터에 가져갈 출정 무기 2종 세팅
     socket.on('setLoadoutWeapons', (payload, callback) => {
         const p = players[socket.id];
         if (!p) return callback && callback({ success: false, message: '플레이어 정보 없음' });
@@ -2102,7 +2077,6 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // 로비 및 사냥터 어디서든 가능한 2무기 즉시 스왑 (X 키 / [무기 변경] 버튼)
     socket.on('swapWeapon', (callback) => {
         const p = players[socket.id];
         if (!p) return callback && callback({ success: false, message: '플레이어 정보 없음' });
@@ -2143,16 +2117,16 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // 캐릭터 표시 설정 동기화 (칭호 / 기운 색상 / 장착 무기 보이기·숨기기)
     socket.on('updatePreferences', (prefs) => {
         const p = players[socket.id];
         if (!p || !prefs) return;
 
-        const validStats = ['education', 'appearance', 'wealth', 'iq', 'stamina', 'personality', ...WEAPON_KEYS];
         const validColors = ['red', 'yellow', 'blue', 'green'];
         const c = p.character;
         syncCharacterProgress(c);
 
-        if (prefs.titleStat && validStats.includes(prefs.titleStat)) {
+        if (prefs.titleStat && VALID_TITLE_STATS.includes(prefs.titleStat)) {
             c.titleStat = prefs.titleStat;
         }
         if (typeof prefs.customTitle === 'string') {
@@ -2160,6 +2134,9 @@ io.on('connection', async (socket) => {
         }
         if (prefs.auraColor && validColors.includes(prefs.auraColor)) {
             c.auraColor = prefs.auraColor;
+        }
+        if (typeof prefs.showWeapon === 'boolean') {
+            c.showWeapon = prefs.showWeapon;
         }
 
         queueUserCharacterSave(p.userId, c);
@@ -2176,7 +2153,6 @@ io.on('connection', async (socket) => {
 
         const isWeaponStat = WEAPON_KEYS.includes(statType);
         if (isWeaponStat) {
-            // 무기 강화는 반드시 로비의 대장간 NPC 근처에서만 가능
             if (!isNearBlacksmith(p)) {
                 return callback({
                     success: false,
